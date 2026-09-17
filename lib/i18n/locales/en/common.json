@@ -4,7 +4,5 @@
   "nav.workbook": "Pathways Matrix",
   "nav.languageSwitcher.label": "Language",
   "nav.languageSwitcher.he": "עברית",
-  "nav.languageSwitcher.en": "English",
-  "home.comingSoon.title": "Pathways matrix under construction",
-  "home.comingSoon.body": "The interactive matrix view (F-101) is in development. See docs/DEV-PLAN.md for progress."
+  "nav.languageSwitcher.en": "English"
 }

@@ -55,7 +55,7 @@ export function extractChannelBase(
       columnOrder: index + 1,
       axisGroupId: col.axisGroupId,
       nameHe,
-      nameEn: "", // English names are pending client approval (PRD OQ-11); filled from a translation catalogue once available.
+      nameEn: col.nameEn, // PRD §3.2 working translation; approval still pending (OQ-11)
       potentialMw: col.potentialMw,
       potentialRaw,
       energyRole: col.energyRole,

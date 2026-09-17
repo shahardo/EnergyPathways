@@ -10,10 +10,15 @@ import type { AxisGroupId, ChannelId, EnergyRole } from "@/lib/schemas/workbook"
  * authoritative source is still the workbook's row-3 cell, read fresh at
  * ingestion and checked against this table (a mismatch is reported, not
  * silently trusted either way).
+ *
+ * `nameEn` is PRD §3.2's working translation table — approval is still
+ * pending (OQ-11), but it's the client's own draft English name, not a
+ * machine translation, so it's used as-is rather than left blank.
  */
 export interface ColumnMapEntry {
   columnLetter: string;
   channelId: ChannelId;
+  nameEn: string;
   axisGroupId: AxisGroupId;
   energyRole: EnergyRole;
   potentialMw: number | null;
@@ -23,6 +28,7 @@ export const COLUMN_MAP: readonly ColumnMapEntry[] = [
   {
     columnLetter: "C",
     channelId: "efficiency",
+    nameEn: "Energy efficiency",
     axisGroupId: "efficiency",
     energyRole: "demand_reduction",
     potentialMw: 3000,
@@ -30,6 +36,7 @@ export const COLUMN_MAP: readonly ColumnMapEntry[] = [
   {
     columnLetter: "D",
     channelId: "demand_reduction",
+    nameEn: "Demand reduction",
     axisGroupId: "efficiency",
     energyRole: "demand_reduction_unconfirmed",
     potentialMw: null,
@@ -37,6 +44,7 @@ export const COLUMN_MAP: readonly ColumnMapEntry[] = [
   {
     columnLetter: "E",
     channelId: "renewables_storage",
+    nameEn: "Renewables & storage",
     axisGroupId: "renewables",
     energyRole: "generation_variable",
     potentialMw: 50000,
@@ -44,6 +52,7 @@ export const COLUMN_MAP: readonly ColumnMapEntry[] = [
   {
     columnLetter: "F",
     channelId: "regional_interconnection",
+    nameEn: "Regional electricity interconnection",
     axisGroupId: "electricity_import",
     energyRole: "import_electricity",
     potentialMw: 8000,
@@ -51,6 +60,7 @@ export const COLUMN_MAP: readonly ColumnMapEntry[] = [
   {
     columnLetter: "G",
     channelId: "lng_import",
+    nameEn: "LNG imports",
     axisGroupId: "natural_gas",
     energyRole: "fuel_source_gas",
     potentialMw: 10000,
@@ -58,6 +68,7 @@ export const COLUMN_MAP: readonly ColumnMapEntry[] = [
   {
     columnLetter: "H",
     channelId: "gas_ccs",
+    nameEn: "Gas with carbon capture",
     axisGroupId: "natural_gas",
     energyRole: "generation_gas",
     potentialMw: 10000,
@@ -65,6 +76,7 @@ export const COLUMN_MAP: readonly ColumnMapEntry[] = [
   {
     columnLetter: "I",
     channelId: "pipeline_gas_import",
+    nameEn: "Pipeline gas imports",
     axisGroupId: "natural_gas",
     energyRole: "fuel_source_gas",
     potentialMw: 10000,
@@ -72,6 +84,7 @@ export const COLUMN_MAP: readonly ColumnMapEntry[] = [
   {
     columnLetter: "J",
     channelId: "gas_generation_expansion",
+    nameEn: "Expanded gas-fired generation",
     axisGroupId: "natural_gas",
     energyRole: "generation_gas",
     potentialMw: 10000,
@@ -79,6 +92,7 @@ export const COLUMN_MAP: readonly ColumnMapEntry[] = [
   {
     columnLetter: "K",
     channelId: "fuel_supply",
+    nameEn: "Fuel supply",
     axisGroupId: "fuels",
     energyRole: "enabler",
     potentialMw: null,
@@ -86,6 +100,7 @@ export const COLUMN_MAP: readonly ColumnMapEntry[] = [
   {
     columnLetter: "L",
     channelId: "grid_development",
+    nameEn: "Grid development",
     axisGroupId: "grid",
     energyRole: "enabler",
     potentialMw: null,
@@ -93,6 +108,7 @@ export const COLUMN_MAP: readonly ColumnMapEntry[] = [
   {
     columnLetter: "M",
     channelId: "geothermal",
+    nameEn: "Geothermal energy",
     axisGroupId: "future_tech",
     energyRole: "generation_firm",
     potentialMw: 10000,
@@ -100,6 +116,7 @@ export const COLUMN_MAP: readonly ColumnMapEntry[] = [
   {
     columnLetter: "N",
     channelId: "nuclear_smr",
+    nameEn: "Nuclear fission (SMR)",
     axisGroupId: "future_tech",
     energyRole: "generation_firm",
     potentialMw: 8000,
@@ -107,6 +124,7 @@ export const COLUMN_MAP: readonly ColumnMapEntry[] = [
   {
     columnLetter: "O",
     channelId: "nuclear_fusion",
+    nameEn: "Nuclear fusion",
     axisGroupId: "future_tech",
     energyRole: "generation_firm",
     potentialMw: 5000,
@@ -114,6 +132,7 @@ export const COLUMN_MAP: readonly ColumnMapEntry[] = [
   {
     columnLetter: "P",
     channelId: "hydrogen_import",
+    nameEn: "Hydrogen imports",
     axisGroupId: "hydrogen",
     energyRole: "generation_firm",
     potentialMw: 8000,
@@ -121,6 +140,7 @@ export const COLUMN_MAP: readonly ColumnMapEntry[] = [
   {
     columnLetter: "Q",
     channelId: "deepwater_gas_exploration",
+    nameEn: "Incentivized deep-water gas exploration",
     axisGroupId: "domestic_gas",
     energyRole: "fuel_source_gas",
     potentialMw: 2000,
@@ -128,6 +148,7 @@ export const COLUMN_MAP: readonly ColumnMapEntry[] = [
   {
     columnLetter: "R",
     channelId: "small_gas_fields",
+    nameEn: "Incentivized small-field gas development",
     axisGroupId: "domestic_gas",
     energyRole: "fuel_source_gas",
     potentialMw: 1000,
@@ -135,6 +156,7 @@ export const COLUMN_MAP: readonly ColumnMapEntry[] = [
   {
     columnLetter: "S",
     channelId: "return_to_coal",
+    nameEn: "Return to coal generation",
     axisGroupId: "coal",
     energyRole: "generation_firm",
     potentialMw: 5000,

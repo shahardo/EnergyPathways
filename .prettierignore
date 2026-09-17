@@ -3,6 +3,7 @@ node_modules
 db/reference.sqlite
 db/snapshot.json
 db/ingest-report.md
+db/parity-fixtures.json
 drizzle/meta
 public
 .vscode

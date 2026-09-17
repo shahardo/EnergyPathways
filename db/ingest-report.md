@@ -3,7 +3,7 @@
 - **Dataset version:** `a42326b533e46f9f`
 - **Source file:** `Israel 2050 Pathways 06092026.xlsx`
 - **SHA-256:** `a42326b533e46f9f7ef7505d1b817d60b2320b44c70de84fd747f15daee6beda`
-- **Ingested at:** 2026-09-17T20:19:05.293Z
+- **Ingested at:** 2026-09-17T20:32:20.541Z
 - **Rows × columns read:** 78 × 17
 
 ## Anomalies and warnings

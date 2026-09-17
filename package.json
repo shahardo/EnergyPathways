@@ -13,7 +13,8 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "e2e": "playwright test",
-    "ingest": "tsx scripts/ingest-workbook.ts"
+    "ingest": "tsx scripts/ingest-workbook.ts",
+    "parity:generate": "tsx scripts/generate-parity-fixtures.ts"
   },
   "dependencies": {
     "better-sqlite3": "^11.8.1",
