@@ -1,213 +1,261 @@
 # Development Plan
 
-## Israel Energy Pathways 2050 — Phase 1 (Foundation)
+## Israel Energy Pathways 2050 — Phase 1 (Workbook View)
 
 | | |
 | --- | --- |
-| **Status** | Ready to execute |
-| **Companions** | [PRD.md](PRD.md) — scope · [SPEC.md](SPEC.md) — normative technical spec |
-| **Phase 1 goal** | The data is in, the model is correct and proven against the workbook, and the Supply Pathways Explorer works in both languages. No scenario building yet — that is Phase 2. |
+| **Status** | Ready to execute — no external blockers |
+| **Companions** | [PRD.md](PRD.md) — scope · [SPEC.md](SPEC.md) — normative spec |
+| **Phase 1 goal** | The workbook, rendered on the web so faithfully that someone who knows the spreadsheet recognizes it at a glance — ingested from the file, verified against it, navigable in Hebrew and English, with what the workbook hides one click away. |
 
-Tasks are ordered by dependency and sized to be individually shippable. Each has explicit acceptance criteria. "Done" means: acceptance criteria met, tests written, CI green.
+Tasks are ordered by dependency and individually shippable. "Done" means acceptance criteria met, tests written, CI green.
 
 ---
 
 ## Dependency order
 
 ```
-T1 scaffold ──┬── T2 i18n/RTL shell ──────────────────┬── T7 matrix (F-101) ── T8 detail (F-102)
-              │                                        │
-              └── T3 types/schemas ── T4 data layer ───┴── T6 engine ── T9 KPI shell
-                                   └── T5 ingestion ───────┘
-                                                                         T10 CI gates (continuous)
+T1 scaffold ─┬─ T2 i18n/RTL ────────────────────────────┐
+             │                                           ▼
+             └─ T3 types ─ T4 data layer ─ T5 ingestion ─ T6 workbook model
+                                                          │
+                                   T7 grid skeleton ◄─────┘
+                                     ├─ T8 score rows + colour scale
+                                     ├─ T9 sparkline rows
+                                     ├─ T10 likelihood, barriers, roadmap ─ T11 callouts
+                                     ├─ T12 detail drawer
+                                     └─ T13 column filtering
+                                                  T14 fidelity gates (continuous)
 ```
 
-**T5 is the critical path** and depends on an external deliverable (the workbook). T1–T4 and T6's structure do not — start them immediately and let T5 land in parallel.
+**The critical path is T5 → T6 → T7.** The workbook is in the repo, so nothing is externally blocked. T8–T13 parallelize once T7 lands.
+
+**Before T1:** save the reference screenshot of the workbook as `docs/reference/workbook-he.png` at the workbook's 70% zoom. It is the visual baseline for T14 and the domain lead's sign-off.
 
 ---
 
 ## T1 — Project scaffold
 
-Next.js 15 (App Router) · TypeScript strict · Tailwind · shadcn/ui · Vitest · ESLint + Prettier.
+Next.js 15 (App Router) · TypeScript strict + `noUncheckedIndexedAccess` · Tailwind · shadcn/ui · Vitest · Playwright · ESLint + Prettier.
 
 ```
-app/[locale]/…            routes
-lib/engine/               pure calculation engine (SPEC §4)
-lib/db/                   Drizzle schema + client
+app/[locale]/             routes
+components/workbook/      matrix, rows, sparkline, roadmap, callout
+lib/engine/               pure: workbook model (Ph. 1), scenario engine (Ph. 2)
+lib/db/                   Drizzle schema + queries
 lib/i18n/                 i18next config + catalogues
-components/               UI
-scripts/                  ingest-xlsx.ts and friends
-db/                       reference.sqlite, snapshot.json, ingest-report.md
-docs/                     PRD · SPEC · DEV-PLAN · glossary.he.md
+scripts/                  ingest-workbook.ts
+db/                       snapshot.json + ingest-report.md (committed), reference.sqlite (ignored)
+docs/                     PRD · SPEC · DEV-PLAN · workbook · reference/
 ```
 
-- `strict: true`, plus `noUncheckedIndexedAccess` — the engine indexes records by channel id constantly and a silent `undefined` there becomes a `NaN` in a policy figure.
-- ESLint rule banning physical CSS direction properties (`left`, `right`, `margin-left`, `text-align: left`, and the Tailwind `ml-`/`mr-`/`pl-`/`pr-`/`left-`/`right-` utilities) in favour of logical equivalents. Adding this at T1 rather than after the UI exists is the whole difference in RTL cost (SPEC §7).
-- `.gitignore`: `node_modules`, `.next`, `*.sqlite`. **`db/snapshot.json` and `db/ingest-report.md` are committed** (SPEC §5.3).
-- CI (GitHub Actions): typecheck · lint · test · build on every push.
+- Lint rule banning physical direction CSS (`left`/`right`, `ml-`/`mr-`/`pl-`/`pr-`) in favour of logical properties. The matrix's RTL fidelity depends on it, and it is far cheaper to enforce from the first commit.
+- Lint rule forbidding React, `fs` and `Date` imports under `lib/engine/`.
+- CI: typecheck · lint · unit · build on every push.
 
-**Acceptance:** `npm run dev` serves a page; `npm run typecheck && npm run lint && npm run test && npm run build` all pass; CI green on a trial PR; the direction-property lint rule fails on a deliberate `margin-left`.
+**Acceptance:** all scripts pass; CI green; both lint rules fail on deliberate violations.
 
 ---
 
 ## T2 — i18n and RTL foundation
 
-Before any UI. Retrofitting bidirectionality is the expensive order of operations.
+- i18next; `/he` default, `/en`; middleware redirect from `/`.
+- Root layout sets `lang` and `dir`; nowhere else sets `dir`.
+- `useFormat()`: one-decimal scores, thousands-separated MW, Western Arabic numerals in both locales.
+- Language switcher preserving path and query.
+- Catalogue holds UI chrome only. Row labels, axis and channel names come from the database (SPEC §8).
 
-- i18next + `react-i18next`; `/he` (default) and `/en`; middleware redirect from `/`.
-- Root layout sets `lang` and `dir` from the locale param; `dir` set nowhere else.
-- Catalogues `lib/i18n/locales/{he,en}/common.json`; keys `module.feature.element`.
-- `useFormat()` wrapping `Intl.NumberFormat` for numbers, percentages and units, per SPEC §7 (Western Arabic numerals in both locales; Latin unit symbols in both).
-- Language switcher preserving the current route and query string — a shared scenario permalink must survive a language change.
-- `docs/glossary.he.md` seeded with the domain terms already in the PRD, marked "awaiting domain-lead review". Engineering does not invent Hebrew terminology for regulated energy concepts.
-
-**Acceptance:** both locales render; `/he` is RTL and `/en` LTR with no mirrored-layout defects on the shell; the switcher preserves path and query; a key missing from either catalogue fails CI.
+**Acceptance:** `/he` renders RTL and `/en` LTR; the switcher preserves state; a missing catalogue key fails CI.
 
 ---
 
-## T3 — Domain types and validation schemas
+## T3 — Types and schemas
 
-Transcribe SPEC §2 and §3.1 into `lib/types/` as TypeScript types with Zod schemas as the single source of truth (`z.infer` for the types — no hand-written duplicates to drift).
+Zod schemas as the single source of truth (`z.infer` for types) for SPEC §6.2: channels, sub-scores, averages, trajectories, channel text, roadmap items, callouts, ramp, and the layout metadata (axis groups, row labels, colour-scale rules, sparkline specs, phase bands). Plus `WorkbookPayload` — the `/api/workbook` response the whole matrix renders from.
 
-- `SupplyChannel`, `StorageAsset`, `DemandSector`, `TrilemmaScores`, `Scenario`, `EngineConfig`, `ScenarioResult`.
-- Range constraints encoded in the schemas: fractions in `[0,1]`, Trilemma sub-scores integers in `[1,5]`, `efficiency_offset` in `[0, 0.20]`.
-- `lib/engine/config.ts` with every OQ default from SPEC, each annotated with its OQ number and its working-assumption status.
+- Nullable wherever the workbook can be blank. `null` is a first-class value, not an error.
+- Score values constrained to 1–5; likelihood to its vocabulary plus `-`.
 
-**Acceptance:** schemas reject out-of-range values in unit tests; `EngineConfig` defaults match SPEC exactly; every OQ default is traceable to its open question in a code comment.
+**Acceptance:** schemas reject out-of-range scores and unknown likelihood values; accept every blank the current workbook contains.
 
 ---
 
 ## T4 — Data layer
 
-Drizzle schema per SPEC §5.2 over `better-sqlite3`, Postgres-portable.
+Drizzle schema for SPEC §6.2 over `better-sqlite3`, Postgres-portable. Query `getWorkbookPayload()` assembling the full payload in one read, and `getChannel(id)`.
 
-- Migrations via `drizzle-kit`.
-- Typed query helpers: `getDataset()`, `getChannel(id)`, `getPresets()`, `getDatasetMeta()`.
-- Bilingual fields as column pairs, never JSON blobs, so a missing Hebrew string is a `NULL` CI can catch.
-- `source_ref` non-null on every content table (NFR-6).
-
-**Acceptance:** migrations run clean from empty; helpers typed end-to-end with no `any`; a seeded fixture database round-trips through every helper in tests.
+**Acceptance:** migrations run clean; payload round-trips through the schemas with no `any`.
 
 ---
 
-## T5 — Ingestion pipeline ⚠ external dependency
+## T5 — Workbook ingestion
 
-`scripts/ingest-xlsx.ts` per SPEC §5.3. **Blocked on the client delivering `Israel 2050 Pathways 06092026.xlsx`.**
+`scripts/ingest-workbook.ts` per SPEC §6.3–6.4. The largest single task, and the one everything visual depends on.
 
-Work that proceeds without it: the pipeline skeleton, Zod validation layer, reconciliation logic, report generator, and a small hand-built fixture workbook committed for tests.
+Direct OOXML parsing with `jszip` + `fast-xml-parser`, because the format lives in parts that spreadsheet libraries do not expose:
 
-- Explicit committed column map (workbook column → domain field). Never positional indexing — a column inserted in the source must fail loudly, not silently shift every value one field to the left.
-- Validation: types, ranges, Trilemma score orientation (5 = best; a silently inverted `import_dependency` flips the security axis of every chart), required fields, referential integrity.
-- Reconciliation: unit normalization to SPEC §1.1; efficiency/DSM rows routed to the demand side; storage rows routed to `storage_assets` (SPEC §2.2).
-- Outputs: `db/reference.sqlite`, `db/snapshot.json` (committed — the diffable record of what the numbers are), `db/ingest-report.md` (committed).
-- **Fails closed.** Any validation error aborts; no partial database is written.
+| Sub-task | Source part | Output |
+| :--- | :--- | :--- |
+| T5.1 Cells, shared strings (rich-text runs flattened), merges, row heights, hidden flags, `rightToLeft` | `sheet1.xml`, `sharedStrings.xml` | raw grid |
+| T5.2 Fill resolution, theme colours with ECMA-376 tint | `styles.xml`, `theme1.xml` | hex per cell |
+| T5.3 Colour-scale rules and their multi-range `sqref` | `sheet1.xml` `conditionalFormatting` | `color_scale_rules` |
+| T5.4 Chart data ranges, axis min/max, series fill (`accent1/2/6` → theme hex) | `chartN.xml` | `sparkline_specs` + chart ↔ column report |
+| T5.5 Chart and shape anchors; callout text, ⚠ stripped | `drawing1.xml` + rels | `callouts` |
+| T5.6 Structural assertions | — | abort on failure (SPEC §6.4) |
+| T5.7 Column map: letter → `channel_id`, axis group, energy role | committed map file | `channels`, `axis_groups` |
+| T5.8 Value extraction: scores, cached averages, trajectories, likelihood, barriers | grid | value tables with `cell_ref` |
+| T5.9 Roadmap: phase bands, sub-groups, step triplets, `אתגרים:` prefix split | rows 40–66 | `roadmap_items`, `phase_bands` |
+| T5.10 Model recovery and verification | trajectories | CF, CI, ramp per SPEC §3.5 |
+| T5.11 Outputs | — | `reference.sqlite`, `snapshot.json`, `ingest-report.md` |
 
-**This task answers OQ-6 empirically** — the actual channel count, and whether the workbook treats efficiency as supply or demand. Report the finding; do not assume 17.
-
-**Acceptance:** ingestion of the real workbook completes with a report listing every coercion and warning; deliberately malformed fixture rows abort the run with a precise message; `snapshot.json` diffs readably against a modified fixture; the resolved channel list is recorded in the report and reconciled against PRD §3.1.
+**Acceptance:**
+- The current workbook ingests; recovered parameters equal SPEC §3.4 for every column; every stored trajectory value verifies within ±0.0501.
+- Extracted fills equal SPEC §5.3 and §5.7; colour-scale rules equal SPEC §5.4; sparkline axes and fills equal SPEC §5.5; callouts equal SPEC §5.8.
+- The report lists every anomaly named in SPEC §6.3.
+- Fixture workbooks with a moved row, an inserted column, a broken phase merge and an out-of-range score each abort with a message naming the problem.
+- `snapshot.json` diffs readably against a modified fixture.
 
 ---
 
-## T6 — Calculation engine
+## T6 — Workbook model
 
-SPEC §4, module by module, each with unit tests before the next begins: `demand` → `generation` → `balance` → `emissions` → `curtailment` → `cost` → `reliability` → `trilemma` → `index`.
+`lib/engine/workbook/`, pure functions:
 
-Non-negotiable properties:
-
-- **Pure.** No I/O, no `Date`, no randomness, no React import anywhere under `lib/engine/`. Enforced by a lint rule on the directory.
-- **One implementation.** Imported directly by the client and by `/api/scenario/evaluate`. Never reimplemented (PRD §5.1).
-- **Degenerate cases return `null`, not `NaN`.** Empty scenario, zero generation, zero demand (SPEC §1.3).
-- **`warnings` populated**, not stubbed: capacity over ceiling, curtailment proxy active, missing cost data (SPEC §4.9).
-- **Merit-order utilization (SPEC §3.3) is part of this task, not a later optimization.** Without it a solar-heavy scenario reports a phantom surplus from gas plants that would not be running, and every derived figure — LCOE, emissions, ΔE — is wrong.
-- **The methane double-count guard (SPEC §4.3)** — methane term applies only to `combustion`-basis channels — has an explicit test.
-
-**Acceptance:** full unit coverage of §4 including degenerate cases; the parity test (T6b) passes; compute ≤16 ms for a full scenario; property tests hold (adding zero-carbon capacity never raises emissions; raising efficiency never raises net demand).
+- `dimensionAverage(subScores)` — SPEC §3.1 blank semantics.
+- `colorScale(rule, grid)` → `(cellRef) => hex` — SPEC §5.4 exactly: multi-range union, `PERCENTILE.INC` midpoint, RGB interpolation, `min == max → high`.
+- `recoverParameters` / `verifyTrajectories` — SPEC §3.5, shared with T5 so ingestion and tests run identical code.
+- `sparklinePath(values, spec, width, height)` → SVG path, fixed axis, zero baseline, category spacing.
 
 ### T6b — Parity harness (AC-1)
 
-Golden fixtures extracted from the workbook's baseline scenario. Asserts generation, ΔE, emissions and LCOE within ±0.5% per milestone year. Regenerated only by an explicit script run — auto-regeneration would defeat the purpose, which is to break when the engine drifts.
+Golden fixtures generated from the workbook by an explicit script run, never automatically:
 
-Expect the first run to fail. Each discrepancy is triaged as: engine bug, workbook column misread, or a genuine methodological difference introduced by SPEC (T&D losses, CAPEX annualization, merit order — all of which are *intended* to differ from a naive reading of the v1.0 PRD). **Log the third category in `docs/parity-notes.md` rather than bending the engine to reproduce a formula SPEC deliberately corrected.**
+- Averages equal cached formula results to 1e-9.
+- Recomputed trajectories within ±0.0501 of stored values for all 17 columns × 4 years × 2 metrics.
+- Expected colour for every cell in every colour-scale range, derived independently.
 
----
-
-## T7 — F-101 Supply Pathways matrix
-
-- Table of all channels: name, axis, capacity ceiling, capacity factor, carbon intensity, LCOE inputs, Trilemma dimension scores, feasibility.
-- Sort on any column; filter by axis, feasibility and Trilemma score ranges.
-- URL-synced filter state (shareable views).
-- Responsive to tablet width; horizontal scroll contained to the table, never the page.
-- Column headers and cell values fully localized; numeric formatting via `useFormat()`.
-- Accessible table semantics: proper headers, sort state announced, full keyboard operation.
-
-**Acceptance:** all channels render from the database; sort and filter correct in both locales; RTL column order mirrors correctly while numeric values do not; axe scan clean; filter state survives a page reload.
+**Acceptance:** all parity tests pass; colour of column D's all-5 environment block is `#63BE7B`; a fixture with one sub-score changed shifts the colours of *other* cells in that range, proving the scale is range-relative.
 
 ---
 
-## T8 — F-102 Pathway detail sheet
+## T7 — Matrix grid skeleton (F-101 part 1)
 
-- Drawer per channel (shadcn `Sheet`), keyboard and screen-reader accessible, focus trapped and restored.
-- Recharts radar of the three Trilemma dimension means (SPEC §4.8), with an accessible table equivalent (NFR-2).
-- Roadmap timeline across 2025–2030 / 2030–2040 / 2040–2050: milestones, legislative steps, TRL, environmental impact.
-- Bottlenecks and grid-integration notes.
-- **Provenance panel** — `source_ref` and `dataset_version` for every displayed figure (NFR-6).
+- `/[locale]` renders from one `/api/workbook` payload, statically generated per `dataset_version`.
+- CSS Grid: label column plus 17 channel columns in `column_order`.
+- Rows 1–3: axis headers spanning their groups; channel names; potential. Fills from `axis_groups`.
+- Sticky label column (inline-start) and rows 1–3; the matrix scrolls in its own container on both axes.
+- Row heights proportional per SPEC §5.2.
+- Header text colour chosen per fill for AA contrast (recorded deviation, SPEC §5.10).
+- Keyboard grid navigation: arrow keys move between cells; `role="grid"` semantics.
 
-**Acceptance:** drawer opens from any matrix row; radar renders correctly in RTL; the accessible table matches the chart values; provenance shown for every figure; full keyboard operation with correct focus restoration.
-
----
-
-## T9 — KPI scorecard shell
-
-Wires T6 to the UI ahead of Module 3, so the engine is exercised end-to-end within Phase 1.
-
-- Four cards: balance status (ΔE), net emissions, system LCOE with tariff band, reliability index.
-- Fed by a default scenario loaded from presets.
-- Semantic states per PRD §6; **status never carried by colour alone**.
-- The tariff card carries its mandatory "directional, not a tariff forecast" qualifier (SPEC §4.7) — this is an acceptance criterion, not copy to be trimmed.
-- The reliability card shows its three sub-scores alongside the composite (SPEC §4.6).
-- `warnings` from `ScenarioResult` surfaced, not swallowed.
-
-**Acceptance:** cards reflect engine output for the default scenario; changing the preset changes the cards; qualifier and sub-scores present; warnings visible; axe clean in both locales.
+**Acceptance:** in `/he`, the label column is on the right, efficiency adjacent to it, coal leftmost; `/en` is the exact mirror; axis spans match SPEC §2.4; stickiness holds while scrolling both axes in both locales; the page body never scrolls horizontally.
 
 ---
 
-## T10 — CI quality gates
+## T8 — Score rows, colour scale, sub-score disclosure (F-101, F-102)
 
-Added incrementally as the relevant surface appears.
+- Three score rows (ביטחון, סביבה, שוויון), one-decimal values, fill from T6's `colorScale`.
+- Each label cell is a disclosure toggle (`aria-expanded`) revealing that dimension's five sub-score rows, coloured by the same rule. Collapsed by default.
+- Blank averages render as empty cells.
+
+**Acceptance:** every visible cell's colour matches the T6b golden colours; column F's and M's equity cells render blank; expanding a group changes no colour anywhere; axe clean.
+
+---
+
+## T9 — Sparkline rows (F-101, F-102)
+
+- One `<Sparkline>` per channel per dimension: inline SVG, **not** a chart-library instance — 51 library charts with their own resize observers would strain the render budget for what is a four-point path.
+- Shared fixed axes, fills, category spacing, negative fill below zero, hidden axes — all from `sparkline_specs` (SPEC §5.5).
+- Cell fill `#D9D9D9`, white plot frame; empty frame for columns with no data.
+- Tooltip on hover and focus with the four values and unit; accessible name per SPEC §5.5.
+
+**Acceptance:** renewables' generation sparkline visibly fills near the top of its frame while efficiency's is low — the shared axis working; efficiency's emissions fill below the baseline; K and L show empty frames; the accessible name reads the four values.
+
+---
+
+## T10 — Likelihood, barriers, roadmap (F-101, F-103)
+
+- Likelihood and barriers rows, fill `#BFBFBF`, likelihood **not** colour-coded.
+- Three phase bands with label and body fills (SPEC §5.7); rotated phase labels; 2025–2030 sub-group labels (יעדים / צעדים / אימפקט).
+- Step cards in fixed slots — bold title, detail, challenges with bold `אתגרים:` — so each slot aligns across all 17 columns.
+- Targets and impact placeholders where present.
+- English mode: free text shown in Hebrew with a "Hebrew source" marker.
+
+**Acceptance:** every step in the workbook appears in its channel, phase and slot; empty slots preserve alignment; the `אתגרים:` prefix is bold everywhere; the rotated labels read correctly in both directions.
+
+---
+
+## T11 — Trigger callouts (F-104)
+
+- Five callouts from `callouts`, positioned inside their anchor cell's grid area per SPEC §5.8.
+- `role="note"`, associated with the anchor cell.
+
+**Acceptance:** each callout sits on its anchor cell (F49, G53, J53, Q49, R49) in both locales and stays attached through scrolling on both axes; Q49 appears once.
+
+---
+
+## T12 — Channel detail drawer (F-105)
+
+- Opened from the channel-name cell; shadcn `Sheet`; focus trapped and restored.
+- Radar of the three dimension averages (Recharts), with an accessible table.
+- All 15 sub-scores with their colour-scale fills.
+- Three full-size trajectory charts on a **true time axis**, labelled as such, each with a numeric table.
+- Complete roadmap for the channel; its callouts.
+- Recovered CF and CI, marked as derived.
+- Provenance: `cell_ref` and `dataset_version` for every figure.
+
+**Acceptance:** opens from every column; numbers match the matrix; every figure shows its cell reference; full keyboard operation.
+
+---
+
+## T13 — Column filtering (F-106)
+
+- Toolbar filters by axis group and likelihood; state synced to the URL.
+- Axis header spans shrink with hidden columns and disappear when empty.
+- Colours never change with filtering (SPEC §5.9).
+
+**Acceptance:** filtering to one axis group renders only its columns with a correct header span; every visible cell's colour is identical to the unfiltered view; a reload restores the filter.
+
+---
+
+## T14 — Fidelity and quality gates
 
 | Gate | Asserts |
 | :--- | :--- |
-| Typecheck · lint · test · build | T1 |
+| Typecheck · lint · unit · build | T1 |
 | i18n key parity | NFR-8 |
-| Direction-property lint | SPEC §7 |
-| Engine purity lint | No React/I/O under `lib/engine/` |
-| axe accessibility scan, both locales | AC-5 |
-| Engine performance budget (≤16 ms) | NFR-1 |
-| Parity test | AC-1 |
-| RTL visual regression | AC-4 |
+| Direction-property and engine-purity lint | SPEC §8, NFR-7 |
+| Workbook parity | AC-1 (T6b) |
+| **Structural fidelity** | AC-2: DOM test — column order, spans, fills, sticky elements, collapsed groups, callout anchors, blank cells |
+| **Visual regression** | Playwright screenshots of the matrix in both locales against committed baselines |
+| axe, both locales | AC-5 |
+| Performance | First render ≤ 1 s; engine ≤ 16 ms |
 
-**Acceptance:** all gates run on every PR; each has a deliberate-failure test proving it actually fails.
+Plus one manual gate: **side-by-side review** of the rendered matrix against `docs/reference/workbook-he.png` by the domain lead. Any difference is fixed, or recorded as a deviation in SPEC §5.10 with its reason.
+
+**Acceptance:** all gates run on every PR, each proven to fail on a deliberate break; the domain lead's sign-off is recorded.
 
 ---
 
 ## Definition of done for Phase 1
 
-- [ ] Workbook ingested; `snapshot.json` and `ingest-report.md` committed; OQ-6 answered from the data
-- [ ] Engine complete per SPEC §4, fully unit-tested, parity within ±0.5% (AC-1) with any intended deviations documented in `parity-notes.md`
-- [ ] F-101 and F-102 working in Hebrew (RTL) and English (LTR)
-- [ ] KPI shell rendering live engine output
-- [ ] All CI gates green
-- [ ] Open questions OQ-1 … OQ-10 either answered and encoded, or still visibly flagged in-product as working assumptions
+- [ ] Workbook ingested; `snapshot.json` and `ingest-report.md` committed; every anomaly reported
+- [ ] Parity (AC-1): averages exact, trajectories verified, colour scale matches for every cell
+- [ ] F-101 – F-106 complete in Hebrew and English
+- [ ] Structural fidelity test and visual regression green (AC-2)
+- [ ] Domain lead side-by-side sign-off against the workbook
+- [ ] Recognition test (AC-6) run with ≥ 8 workbook-familiar stakeholders
+- [ ] OQ-11, OQ-12, OQ-14 – OQ-18 raised with the client, with answers encoded or still flagged in the UI
 
 ---
 
 ## Phases 2–4
 
-Held at PRD altitude. Detailing them now would be writing against decisions the data and the v1 engine have not yet informed — and Phase 3 in particular exists to *replace* v1's proxies, so its design depends on what those proxies get wrong.
+Held at PRD altitude. Their detail depends on data the workbook does not contain.
 
-- **Phase 2 — Demand & Mix.** F-201/202/203 demand profiling; F-301 supply sliders; F-302 live balance and alerts; F-303 presets. AC-6 usability testing runs at the end of this phase, once a scenario can actually be built.
-- **Phase 3 — Analytics.** Hourly dispatch replacing the §4.4 curtailment proxy and the §4.6 firm-capacity treatment; real grid-upgrade cost modelling; GHG and methane gauges; F-304 side-by-side comparison. Moves the heavy engine server-side while the client keeps the annual engine for optimistic feedback.
-- **Phase 4 — Policy tools.** Permalink storage at scale; PDF executive summaries; Monte-Carlo sensitivity over the OQ parameters (which is precisely why they were centralized in `config.ts`); public research API — the point at which SQLite likely gives way to Postgres.
+- **Phase 2 — Scenarios & demand.** Begins with the **supplementary data workbook** in the same column layout (OQ-13): demand projections, cost parameters, storage split, domestic gas baseline. Then: energy roles confirmed (OQ-17); scenario engine per SPEC §4; the workbook preset reproducing the workbook exactly; deployment controls *inside* the matrix (F-301), with sparklines showing scenario against potential; KPI scorecards above the matrix; demand module (F-201 – F-203); balance and alerts including fuel availability (F-302); GHG (F-402); AC-7 usability test.
+- **Phase 3 — Analytics.** Hourly dispatch replacing the curtailment and firm-capacity proxies; system LCOE with grid modelling (F-403); reliability index (F-404); scenario comparison (F-304).
+- **Phase 4 — Policy tools.** Excel export written back in the workbook's layout; PDF summaries in workbook format; sensitivity runs over the OQ parameters; public API.
 
 ---
 
@@ -215,8 +263,10 @@ Held at PRD altitude. Detailing them now would be writing against decisions the 
 
 | Risk | Handling |
 | :--- | :--- |
-| Workbook arrives late or is structurally unlike the assumed schema | T1–T4 and T6 structure proceed against the fixture workbook; T5's column map is the only piece requiring the real file. Escalate if it slips past T4's completion. |
-| Parity test cannot reach ±0.5% because SPEC deliberately corrected the model | Expected. Triage per T6b; document intended deviations rather than reintroducing the dimensional error in the v1.0 LCOE formula. |
-| Curtailment proxy `α` proves uncalibratable (OQ-10) | Ship it labelled as an editorial assumption and surfaced as an adjustable parameter; Phase 3 replaces it. Do not present a proxy figure as a computed result. |
-| Hebrew terminology blocks UI work | Glossary seeded at T2 and sent for domain-lead review early; English-first strings with Hebrew keys present but flagged is an acceptable temporary state — a missing key is not. |
-| Outputs quoted as forecasts | The qualifiers in PRD §1.4, SPEC §4.7 and T9 are acceptance criteria. They do not get trimmed for visual polish. |
+| Colour scale looks right but isn't — computed over the visible row instead of the rule's full range | T6b golden colours for every cell, including the proof that changing a hidden sub-score recolours visible cells |
+| A revised workbook moves a row or column | Structural assertions abort ingestion with a precise message (SPEC §6.4); nothing renders from misaligned data |
+| Sticky headers, merged spans and RTL interact badly in CSS Grid | T7 proves the skeleton in both directions before any content task starts |
+| 51 sparklines plus a long roadmap exceed the render budget | Inline SVG sparklines (T9), static generation per dataset version, performance gate in CI |
+| Stakeholders read column trajectories as additive national totals | PRD §1.4 statement; no column totals shown in Phase 1; the energy-role model arrives with scenario totals in Phase 2 |
+| Supplementary data for Phase 2 not produced | Phase 1 is complete and valuable without it; flag OQ-13 to the client at Phase 1 kickoff, not at Phase 2 start |
+| English mode feels unfinished while free text is untranslated | Explicit "Hebrew source" marker; translations requested alongside OQ-11 |

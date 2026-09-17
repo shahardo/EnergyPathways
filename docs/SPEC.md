@@ -1,14 +1,17 @@
 # Technical Specification
 
-## Israel Energy Pathways 2050 — Domain Model, Calculation Engine, Data Schema, API
+## Israel Energy Pathways 2050 — Workbook Model, Presentation Format, Engine, Data, API
 
 | | |
 | --- | --- |
 | **Status** | Ready for implementation |
-| **Version** | 1.0 |
+| **Version** | 1.1 — realigned to the source workbook |
 | **Companions** | [PRD.md](PRD.md) — product scope · [DEV-PLAN.md](DEV-PLAN.md) — build sequence |
+| **Source** | `docs/Israel 2050 Pathways 06092026.xlsx`, sheet `Sheet1` |
 
-This document is normative. Where it and the PRD disagree on a number or formula, this document wins. Every default marked **(OQ-n)** is a working assumption pending the answer to that open question in [PRD §10](PRD.md#10-open-questions); all are single constants in `lib/engine/config.ts`, changeable without touching logic.
+This document is normative. Where it and the PRD disagree on a number, a colour or a formula, this document wins. Defaults marked **(OQ-n)** are working assumptions pending [PRD §10](PRD.md#10-open-questions); all live in `lib/engine/config.ts`.
+
+Everything in §2, §3 and §5 was extracted from the workbook's OOXML and verified against all 17 columns.
 
 ---
 
@@ -16,22 +19,17 @@ This document is normative. Where it and the PRD disagree on a number or formula
 
 ### 1.1 Units
 
-| Quantity | Unit | Notes |
-| :--- | :--- | :--- |
-| Power / capacity | MW | Never GW internally |
-| Energy (annual) | TWh | Never GWh internally |
-| Storage energy capacity | MWh | Converted at the boundary |
-| Carbon intensity | gCO₂e/kWh | |
-| Emissions | MtCO₂e | |
-| Cost (levelized) | USD/MWh, real, base year 2025 | |
-| CAPEX | USD/kW | |
-| Fixed O&M | USD/kW-year | |
-| Variable O&M, fuel | USD/MWh | |
-| Efficiency, capacity factor, rates | Dimensionless fraction 0–1 | Never percent internally; percent is a display concern |
+| Quantity | Unit |
+| :--- | :--- |
+| Capacity | MW |
+| Annual energy | TWh (electricity) |
+| Carbon intensity | gCO₂e/kWh |
+| Emissions | MtCO₂e |
+| Scores | 1–5, **5 = best** |
+| Price-impact trajectory | unitless index, −5…+5 (OQ-12) |
+| Fractions (CF, ramp, shares) | 0–1; percent is display-only |
 
-**Rule.** Units are encoded in every field name (`capacity_mw`, `generation_twh`, `carbon_intensity_g_per_kwh`). Conversion happens only at ingestion and at display. No bare numeric field names.
-
-`HOURS_PER_YEAR = 8760` (no leap-year adjustment; the model is not sub-annual).
+Units appear in every field name (`potential_mw`, `generation_twh`). `HOURS_PER_YEAR = 8760`.
 
 ### 1.2 Milestone years
 
@@ -39,488 +37,597 @@ This document is normative. Where it and the PRD disagree on a number or formula
 type MilestoneYear = 2025 | 2030 | 2040 | 2050;
 ```
 
-`2025` is the **baseline year**. It is calibrated to the source workbook and is used as the comparison denominator for the tariff direction index (§4.7). Interpolation between milestones is not performed in v1.
-
 ### 1.3 Numerical conventions
 
-- All engine functions are pure: `(inputs) => outputs`. No I/O, no dates, no randomness, no React.
-- Floating point throughout; no rounding inside the engine. Rounding is a formatting concern.
-- Division guards: any denominator that can be zero (e.g. `Σ Generation` in an empty scenario) returns `null`, not `NaN` or `Infinity`. The UI renders `null` as "—", never as `0`.
+- Engine functions are pure: no I/O, no `Date`, no randomness, no React.
+- No rounding inside the engine; rounding is a display concern.
+- A value that does not exist — a blank workbook cell, a zero denominator — is `null`. `null` renders as a blank cell, never as `0` and never as `NaN`.
 
 ---
 
-## 2. Domain Model
+## 2. Workbook Source Map
 
-Three entity kinds. The separation is the central modelling correction from PRD v1.0.
+### 2.1 Sheet properties
 
-### 2.1 `SupplyChannel` — produces energy
+| Property | Value |
+| :--- | :--- |
+| Sheets | one, `Sheet1` |
+| Direction | `rightToLeft="1"` |
+| Channel columns | `C` … `S` (17), in canonical order |
+| Label column | `A`; column `B` holds roadmap sub-group labels |
+| Formulas | only the dimension averages (rows 9, 20, 31) |
+| Charts | 51 area charts — one per channel × dimension |
+| Shapes | 6 callouts (5 unique) |
 
-```ts
-interface SupplyChannel {
-  channel_id: string;              // stable slug, e.g. "solar_utility_scale"
-  axis: AxisId;
-  display_name_en: string;
-  display_name_he: string;
+### 2.2 Row map
 
-  // Technical
-  dispatchability: 'variable' | 'dispatchable' | 'baseload' | 'import';
-  max_capacity_mw: number;         // deployment ceiling
-  capacity_factor: number;         // 0–1, expected annual average
-  max_annual_generation_twh: number | null;  // independent ceiling (e.g. resource- or contract-limited)
+| Row(s) | Label (col A) | Content | Visible |
+| :--- | :--- | :--- | :-: |
+| 1 | ציר | Axis header, merged across axis columns | ✅ |
+| 2 | תחום | Channel name | ✅ |
+| 3 | פוטנציאל | Potential, string `"3,000 MW"` or `"-"` | ✅ |
+| 4 | תלות ביבוא | Security: import dependency | hidden |
+| 5 | גיוון | Security: diversity | hidden |
+| 6 | יכולת אגירה | Security: storage capability | hidden |
+| 7 | אמינות רשת | Security: grid reliability | hidden |
+| 8 | יתירות | Security: redundancy | hidden |
+| 9 | ביטחון | `=IFERROR(AVERAGE(x4:x8),"")` | ✅ |
+| 10–13 | 2025 … 2050 | Generation trajectory, TWh | hidden |
+| 14 | — | Sparkline row (height 37.5 pt) | ✅ |
+| 15 | עצימות פד"ח | Environment: CO₂ intensity | hidden |
+| 16 | % מתחדשות | Environment: renewable share | hidden |
+| 17 | יעילות | Environment: efficiency | hidden |
+| 18 | איכות אויר | Environment: air quality | hidden |
+| 19 | פליטות מתאן | Environment: methane emissions | hidden |
+| 20 | סביבה | `=IFERROR(AVERAGE(x15:x19),"")` | ✅ |
+| 21–24 | 2025 … 2050 | Emissions trajectory, MtCO₂e | hidden |
+| 25 | — | Sparkline row | ✅ |
+| 26 | גישה לחשמל | Equity: access to electricity | hidden |
+| 27 | בישול נקי | Equity: clean cooking | hidden |
+| 28 | מחיר חשמל | Equity: electricity price | hidden |
+| 29 | מחיר דלקים | Equity: fuel price | hidden |
+| 30 | מחיר לתעשיה | Equity: industrial price | hidden |
+| 31 | שוויון | `=IFERROR(AVERAGE(x26:x30),"")` | ✅ |
+| 32–35 | 2025 … 2050 | Price-impact trajectory, index | hidden |
+| 36 | — | Sparkline row | ✅ |
+| 37 | טרילמה | Empty; colour-scaled (OQ-16) | hidden |
+| 38 | סבירות | Likelihood: גבוהה / בינונית / נמוכה / `-` | ✅ |
+| 39 | חסמים | Barriers, free text | ✅ |
+| 40–51 | 2025-2030 (A40:A51) | Roadmap phase 1 — see §2.3 | ✅ |
+| 52–60 | 2030-2040 (A52:A60) | Roadmap phase 2 | ✅ |
+| 61–66 | 2040-2050 (A61:A66) | Roadmap phase 3 | ✅ |
 
-  // Environmental
-  carbon_intensity_g_per_kwh: number;
-  carbon_intensity_basis: 'lifecycle' | 'combustion';   // OQ-3
-  methane_leak_rate: number | null;                     // 0–1, fraction of fuel throughput, gas channels only
-  renewable_fraction: number;                           // 0–1
+**Equity has five sub-scores**, not four as PRD v2.0 stated.
 
-  // Economic
-  capex_usd_per_kw: number;
-  fixed_om_usd_per_kw_year: number;
-  var_om_usd_per_mwh: number;
-  fuel_cost_usd_per_mwh: number;   // 0 for fuel-free channels
-  conversion_efficiency: number;   // 0–1; used for fuel-cost and methane scaling
-  economic_lifetime_years: number;
+### 2.3 Roadmap block structure
 
-  // Assessment
-  trilemma: TrilemmaScores;
-  feasibility: 'high' | 'medium' | 'low';
-  trl: number | null;              // 1–9
-  bottlenecks: Bottleneck[];
+Steps occupy **row triplets**: title, detail, challenges. Challenges text begins with the literal prefix `אתגרים:`.
 
-  // Provenance — NFR-6
-  source_ref: string;              // workbook sheet + cell range, or citation
-}
-```
+| Phase | Rows | Col B sub-groups | Layout |
+| :--- | :--- | :--- | :--- |
+| 2025–2030 | 40–51 | יעדים (B40:B42) · צעדים (B43:B48) · אימפקט (B49:B51) | targets rows 40–42; step slots 43–45, 46–48; impact rows 49–51 |
+| 2030–2040 | 52–60 | — | step slots 52–54, 55–57, 58–60 |
+| 2040–2050 | 61–66 | — | step slots 61–63, 64–66 |
 
-`dispatchability` drives three behaviours: whether the channel is dispatched down under merit order (§3.3), whether it counts toward firm capacity (§4.6), and whether it counts as variable renewable output for curtailment (§4.4).
+The roadmap is sparse. Targets exist only for C and E; impact rows hold three placeholder labels in column E only (employment, social, resilience & national security) with no values. Not every channel fills every slot, and a slot may have a title with no challenges.
 
-### 2.2 `StorageAsset` — shifts energy, generates none
+### 2.4 Merged cells
 
-```ts
-interface StorageAsset {
-  storage_id: string;
-  axis: AxisId;                    // 'storage'
-  display_name_en: string;
-  display_name_he: string;
+`C1:D1`, `G1:J1`, `M1:O1`, `Q1:R1` (axis headers) · `A40:A51`, `A52:A60`, `A61:A66` (phase labels) · `B40:B42`, `B43:B48`, `B49:B51` (sub-group labels).
 
-  power_capacity_mw: number;       // discharge rating
-  energy_capacity_mwh: number;     // usable energy
-  round_trip_efficiency: number;   // 0–1
-  cycles_per_year: number;         // expected annual full-equivalent cycles
-  availability_factor: number;     // 0–1, contribution to firm capacity
+### 2.5 Columns
 
-  capex_usd_per_kw: number;
-  fixed_om_usd_per_kw_year: number;
-  economic_lifetime_years: number;
+| Col | `channel_id` | Axis group | Potential MW |
+| :-- | :--- | :--- | --: |
+| C | `efficiency` | efficiency (C–D) | 3,000 |
+| D | `demand_reduction` | efficiency (C–D) | — |
+| E | `renewables_storage` | renewables | 50,000 |
+| F | `regional_interconnection` | electricity_import | 8,000 |
+| G | `lng_import` | natural_gas (G–J) | 10,000 |
+| H | `gas_ccs` | natural_gas (G–J) | 10,000 |
+| I | `pipeline_gas_import` | natural_gas (G–J) | 10,000 |
+| J | `gas_generation_expansion` | natural_gas (G–J) | 10,000 |
+| K | `fuel_supply` | fuels | — |
+| L | `grid_development` | grid | — |
+| M | `geothermal` | future_tech (M–O) | 10,000 |
+| N | `nuclear_smr` | future_tech (M–O) | 8,000 |
+| O | `nuclear_fusion` | future_tech (M–O) | 5,000 |
+| P | `hydrogen_import` | hydrogen | 8,000 |
+| Q | `deepwater_gas_exploration` | domestic_gas (Q–R) | 2,000 |
+| R | `small_gas_fields` | domestic_gas (Q–R) | 1,000 |
+| S | `return_to_coal` | coal | 5,000 |
 
-  source_ref: string;
-}
-```
-
-**A storage asset never appears in `Σ Generation`.** It (a) subtracts round-trip losses from delivered energy, (b) absorbs otherwise-curtailed variable output, (c) contributes firm capacity.
-
-### 2.3 `DemandSector` — consumes energy
-
-```ts
-interface DemandSector {
-  sector_id: 'bau' | 'ev' | 'ai' | 'industry' | 'water';
-  display_name_en: string;
-  display_name_he: string;
-  // Per-milestone demand under each named trajectory
-  projections: Record<TrajectoryId, Record<MilestoneYear, number>>;  // TWh
-  source_ref: string;
-}
-```
-
-Efficiency and DSM are **not** a sector in this list. They are the multiplier `η_Efficiency,t` applied to gross demand (§3.1) — a reduction, never a source. See PRD Appendix A.1.
-
-### 2.4 Trilemma scores
-
-```ts
-interface TrilemmaScores {
-  security: {                      // 5 sub-scores, each 1–5
-    import_dependency: number; fuel_diversity: number; storage_capability: number;
-    grid_reliability: number; system_redundancy: number;
-  };
-  environment: {                   // 5 sub-scores
-    carbon_intensity: number; renewable_fraction: number; conversion_efficiency: number;
-    air_quality: number; methane_leakage: number;
-  };
-  equity: {                        // 4 sub-scores
-    tariff_impact: number; fuel_cost_impact: number;
-    industrial_competitiveness: number; access_equity: number;
-  };
-}
-```
-
-All sub-scores are oriented so **5 is best**. Ingestion asserts this orientation per column and fails loudly on a violation — a silently inverted `import_dependency` would flip the security axis of every chart.
+`channel_id` and axis group ids are the stable keys. They are assigned by the ingestion column map, never derived from Hebrew text.
 
 ---
 
-## 3. Scenario Model
+## 3. Workbook Model
 
-### 3.1 Scenario shape
+The workbook stores its trajectories as **static rounded values**. They are not formulas, but they follow an exact model that ingestion recovers and verifies. Phase 1 **displays the stored values verbatim**; the recovered parameters are what makes Phase 2 scenarios possible.
+
+### 3.1 Dimension averages
+
+```
+DimensionAverage_i,d = mean of the non-blank sub-scores of channel i in dimension d
+                       null if all five are blank
+```
+
+This mirrors `IFERROR(AVERAGE(…),"")`: `AVERAGE` skips blanks and errors on all-blank, which `IFERROR` turns into an empty string.
+
+### 3.2 Generation trajectory (rows 10–13)
+
+```
+Generation_i,t = potential_mw_i × CF_i × HOURS_PER_YEAR / 1e6 × ramp_t        [TWh]
+
+ramp = { 2025: 0.10, 2030: 0.30, 2040: 0.65, 2050: 1.00 }
+```
+
+### 3.3 Emissions trajectory (rows 21–24)
+
+```
+Emissions_i,t = Generation_i,t × CI_i / 1000                                   [MtCO₂e]
+```
+
+Efficiency's negative intensity represents avoided grid emissions.
+
+### 3.4 Recovered parameters
+
+| Col | Channel | CF | CI (g/kWh) | Generation 2050 (TWh) | Emissions 2050 (Mt) |
+| :-- | :--- | --: | --: | --: | --: |
+| C | Energy efficiency | 0.5 | −400 | 13.1 | −5.3 |
+| D | Demand reduction | — | −400 | 13.1 *(copy of C)* | −5.3 |
+| E | Renewables & storage | 0.2 | 0 | 87.6 | 0 |
+| F | Regional interconnection | 0.5 | 300 | 35.0 | 10.5 |
+| G | LNG imports | 0.6 | 450 | 52.6 | 23.7 |
+| H | Gas with CCS | 0.7 | 100 | 61.3 | 6.1 |
+| I | Pipeline gas imports | 0.6 | 400 | 52.6 | 21.0 |
+| J | Gas generation expansion | 0.6 | 400 | 52.6 | 21.0 |
+| K | Fuel supply | — | — | — | — |
+| L | Grid development | — | — | — | — |
+| M | Geothermal | 0.7 | 0 | 61.3 | 0 |
+| N | Nuclear SMR | 0.9 | 0 | 63.1 | 0 |
+| O | Nuclear fusion | 0.8 | 0 | 35.0 | 0 |
+| P | Hydrogen imports | 0.5 | 0 | 35.0 | 0 |
+| Q | Deep-water gas | 0.6 | 400 | 10.5 | 4.2 |
+| R | Small gas fields | 0.6 | 400 | 5.3 | 2.1 |
+| S | Return to coal | 0.7 | 900 | 30.7 | 27.6 |
+
+### 3.5 Recovery procedure (ingestion)
+
+1. `CF_i = Generation_i,2050 / (potential_mw_i × 8760 / 1e6)`, snapped to the nearest 0.1.
+2. `ramp_t = median over columns of Generation_i,t / Generation_i,2050`, snapped to the nearest 0.05.
+3. `CI_i = Emissions_i,2050 / Generation_i,2050 × 1000`, snapped to the nearest 50.
+4. **Verify** every stored value: `|model − stored| ≤ 0.0501`, the workbook's own one-decimal rounding.
+5. A column that fails verification is **not** silently accepted. It is reported with the offending cells, and its parameters are marked unrecovered. Phase 1 still displays its stored values; Phase 2 cannot scenario it until resolved.
+
+Column D has no potential, so its CF cannot be recovered; its values are carried as data (OQ-14).
+
+### 3.6 Price-impact trajectory (rows 32–35)
+
+Static data with no recoverable model and an undefined unit (OQ-12). Displayed verbatim as an index. Not used in any Phase 2 calculation until its meaning is confirmed.
+
+---
+
+## 4. Scenario Engine *(Phase 2+)*
+
+### 4.1 Data gaps
+
+The workbook supports Phase 1 completely. Phase 2 needs data it does not contain:
+
+| Needed for | Data | Workbook |
+| :--- | :--- | :--- |
+| Net demand, ΔE | Sectoral demand projections by trajectory | ❌ |
+| System cost, F-403 | CAPEX, fixed/variable O&M, fuel cost, lifetime per channel | ❌ |
+| Curtailment, firm capacity | Storage power, energy, round-trip efficiency | ❌ bundled in E |
+| Gas balance | Existing domestic gas supply baseline | ❌ |
+
+**Contract for supplementary data (OQ-13):** a second workbook in the same column layout — one column per `channel_id`, same order — so it ingests with the same pipeline and extends the same records. The engine specification below assumes that data arrives. Nothing in Phase 1 depends on it.
+
+### 4.2 Energy roles
+
+The workbook's columns are **alternative pathways, not additive supply** (PRD §3.4). Every column is assigned exactly one role, and totals are only ever summed within the rules below.
+
+| Role | Columns | Behaviour |
+| :--- | :--- | :--- |
+| `demand_reduction` | C | Subtracts from gross demand. Never adds to supply. |
+| `demand_reduction_unconfirmed` | D | Excluded from totals until OQ-14 is answered, to avoid counting efficiency twice. |
+| `generation_variable` | E | Adds to supply; subject to curtailment. |
+| `import_electricity` | F | Adds to supply. |
+| `generation_gas` | J, H | Adds to supply; **constrained by gas availability**. |
+| `fuel_source_gas` | G, I, Q, R | Adds to gas availability, **not** to supply. |
+| `generation_firm` | M, N, O, P, S | Adds to supply; dispatchable or baseload. |
+| `enabler` | K, L | No energy quantity. Displayed; excluded from totals. |
+
+Roles live in the column map, so the assignment is a data change, not a code change (OQ-17).
+
+### 4.3 Scenario shape
 
 ```ts
 interface Scenario {
-  schema_version: 1;               // NFR-5
-  dataset_version: string;         // hash + date of the ingested workbook
+  schema_version: 1;
+  dataset_version: string;
   id: string;
   name_en: string; name_he: string;
-
-  demand: {
-    trajectory: TrajectoryId;                          // F-201 preset
-    sector_overrides: Partial<Record<SectorId, Record<MilestoneYear, number>>>;  // F-202, TWh
-    efficiency_offset: Record<MilestoneYear, number>;  // η, 0–0.20 (F-202 caps DSM at 20%)
-  };
-
-  supply: Record<string, Record<MilestoneYear, number>>;   // channel_id → year → capacity_mw
-  storage: Record<string, Record<MilestoneYear, number>>;  // storage_id → year → power_capacity_mw
-
-  overrides?: Partial<EngineConfig>;   // scenario-local parameter overrides (discount rate, etc.)
+  demand_trajectory: TrajectoryId;
+  demand_overrides: Partial<Record<SectorId, Record<MilestoneYear, number>>>;  // TWh
+  deployment_mw: Record<ChannelId, Record<MilestoneYear, number>>;              // ≤ potential_mw
+  overrides?: Partial<EngineConfig>;
 }
 ```
 
-**Capacity is canonical.** `supply` stores MW. F-301 permits entry in TWh; the UI inverts it immediately (§3.2) and stores the MW. The engine never receives a user-supplied TWh. This removes the PRD v1.0 ambiguity in which `Generation` was both an input and a derived value.
+**Capacity is canonical.** The F-301 in-matrix control sets MW per milestone, capped at the workbook potential. The *workbook preset* sets `deployment_mw_i,t = potential_mw_i × ramp_t` for every column — reproducing the workbook's own trajectories exactly. Every other preset starts from it.
 
-Storage scales by power rating; energy capacity scales with it proportionally to the reference asset's energy-to-power ratio (`energy_capacity_mwh / power_capacity_mw`), which is held constant. A user who wants a different duration configures a different storage asset.
-
-### 3.2 Capacity ↔ energy conversion
+### 4.4 Balance
 
 ```
-generation_twh = capacity_mw × capacity_factor × utilization × HOURS_PER_YEAR / 1e6
-capacity_mw    = generation_twh × 1e6 / (capacity_factor × HOURS_PER_YEAR)     // utilization = 1
+Gen_i,t        = deployment_mw_i,t × CF_i × 8760 / 1e6 × utilization_i,t              [TWh]
+
+GrossDemand_t  = Σ_sectors Demand_s,t
+NetDemand_t    = GrossDemand_t − Σ_{i∈demand_reduction} Gen_i,t
+
+GasAvailable_t = domestic_gas_baseline_twh_t + Σ_{i∈fuel_source_gas} Gen_i,t           [TWh_e]
+GasGen_t       = min( Σ_{i∈generation_gas} Gen_i,t , GasAvailable_t )
+
+Supply_t       = Σ_{i∈{generation_variable, import_electricity, generation_firm}} Gen_i,t
+               + GasGen_t − Curtailment_t − TnDLosses_t
+TnDLosses_t    = NetDemand_t × tnd_loss_rate                              (0.035, OQ-4)
+
+ΔE_t           = Supply_t − NetDemand_t
 ```
 
-TWh-entry inversion assumes full utilization, so entering a TWh figure means "build enough to produce this much if never curtailed or dispatched down". The UI shows the resulting MW immediately so the assumption is visible.
+- Fuel sources are expressed in electricity-equivalent TWh in the workbook (CF 0.6 on nominal MW), so they compare directly with gas-fired generation. When gas-fired generation exceeds availability, `GasGen_t` is capped and a **fuel-availability alert** fires (F-302).
+- `utilization` applies annual merit order to dispatchable roles: must-run output (variable, import, SMR, geothermal) is placed first; residual demand is filled by `generation_gas` and `generation_firm` dispatchables in ascending short-run marginal cost; surplus dispatchables get `utilization < 1`. Without this step, a solar-heavy scenario reports gas plants running at full capacity factor behind free solar — a phantom surplus. Marginal costs come from the supplementary data.
+- `ΔE_t < 0` → deficit alert with unserved energy (TWh) and implied firm-capacity shortfall (MW, §4.7) reported separately. An energy deficit and a capacity deficit are different failures.
 
-### 3.3 Merit-order utilization
-
-Without this, a scenario with 30 GW of solar *and* the existing gas fleet reports both running at full capacity factor, producing an enormous phantom surplus. The engine therefore dispatches down.
+### 4.5 Emissions
 
 ```
-1. Compute must-run output:  variable + baseload + import channels at full CF.
-2. residual = NetDemand − mustRun
-3. If residual ≤ 0:  every dispatchable channel gets utilization = 0.
-   Surplus is then attributed to the must-run group and evaluated for curtailment (§4.4).
-4. If residual > 0:  sort dispatchable channels ascending by short-run marginal cost
-                     (var_om + fuel_cost / conversion_efficiency).
-                     Fill residual in that order; each channel takes
-                     min(remaining residual, its full-CF output).
-                     utilization_i = assigned_twh / full_cf_twh, in [0, 1].
-5. If residual remains after all dispatchable output is exhausted, the deficit
-   flows through to ΔE < 0 (F-302 deficit alert).
+Emissions_t = Σ_{i∈{variable, import, firm}} Gen_i,t × CI_i / 1000
+            + Σ_{f∈gas sources incl. baseline} GasGen_t × share_f,t × CI_f / 1000 × capture_t
+            − 0     (demand reduction lowers demand; its avoided emissions are already
+                     reflected in the lower generation, so its negative CI is NOT added)
 ```
 
-This is an annual-energy merit order, not a chronological dispatch. It cannot represent a plant that is needed for 200 hours a year and idle otherwise — which is exactly what Phase 3's hourly dispatch is for. The limitation is documented in the UI beside the generation mix.
+- Gas-fired generation is allocated to fuel sources pro rata to their availability; each carries its own intensity (LNG 450, pipeline and domestic 400, baseline 400).
+- `capture_t = CI_H / CI_J = 0.25` applied to the CCS share of gas-fired generation.
+- **The workbook's negative intensity for efficiency is a standalone display metric.** In a balanced scenario, adding it on top of the reduced generation would count the avoided emissions twice. The engine asserts this with a dedicated test.
+- Methane leakage (GWP100, OQ-2) is applied only if intensities are confirmed as combustion-only (OQ-3).
 
-`baseload` channels (SMR, geothermal) are must-run by definition. `import` channels are must-run in v1 (contracted take-or-pay assumption); this is a simplification worth revisiting when interconnector contracts are modelled.
+### 4.6 System cost *(requires supplementary data)*
+
+```
+CRF_i          = r(1+r)^n_i / ((1+r)^n_i − 1)                               r = 0.07 (OQ-1)
+AnnualCost_i,t = capex_i × deployment_mw_i,t × 1000 × CRF_i
+               + fixed_om_i × deployment_mw_i,t × 1000
+               + (var_om_i + fuel_cost_i) × Gen_i,t × 1e6
+LCOE_System,t  = Σ_i AnnualCost_i,t / (Supply_t × 1e6)                      [USD/MWh]
+```
+
+Fixed costs are charged on installed capacity and variable costs on actual generation, so a plant held idle by merit order still carries its capital charge. The discount rate is surfaced in the UI as an adjustable assumption: moving from 7% to a ~3% social rate can reverse a nuclear-versus-gas comparison.
+
+**Price direction band (F-403):** `Δ = LCOE_t / LCOE_2025 − 1` → `< −10%` significant reduction · `−10%…+5%` stable · `+5%…+25%` moderate increase · `> +25%` severe spike. Always displayed with the qualifier that it indicates generation-cost direction, not consumer tariffs.
+
+### 4.7 Curtailment, firm capacity, reliability *(proxies until Phase 3)*
+
+```
+Curtailment_t   = max(0, Gen_E,t − α × NetDemand_t − StorageThroughput_t)       α = 0.35 (OQ-10)
+PeakDemand_t    = NetDemand_t × 1e6 / (8760 × load_factor)                      0.62 (OQ-5)
+FirmCapacity_t  = Σ_{firm, gas} deployment_mw × availability + storage_mw + import_mw × 0.5
+ReserveMargin_t = FirmCapacity_t / PeakDemand_t − 1                             target 0.15
+
+Reliability_t   = 100 × mean( autonomy, clamp(ReserveMargin/0.15, 0, 1), dispatchable_share )
+```
+
+Variable generation contributes zero firm capacity in v1. The three reliability components are always displayed with the composite. Every proxy-derived figure is labelled as a proxy.
+
+### 4.8 Portfolio Trilemma
+
+```
+Portfolio_d,t = Σ_i Gen_i,t × DimensionAverage_i,d / Σ_i Gen_i,t      over columns with Gen > 0
+```
+
+Uses the workbook's own dimension averages (§3.1). Columns with a null average for a dimension are excluded from that dimension's weights, not treated as zero.
 
 ---
 
-## 4. Calculation Engine
+## 5. Workbook Presentation Format
 
-Module layout, each file a pure function set with its own unit tests:
+The F-101 – F-106 views are a rendition of `Sheet1`. This section is the design specification. **All colours, spans, rules and axes below are ingested from the workbook** (§6.3), and the values here are what ingestion must reproduce from the current file.
 
-```
-lib/engine/
-  config.ts       EngineConfig + defaults (every OQ default lives here)
-  demand.ts       §4.1
-  generation.ts   §3.2, §3.3
-  balance.ts      §4.2
-  emissions.ts    §4.3
-  curtailment.ts  §4.4
-  cost.ts         §4.5
-  reliability.ts  §4.6
-  trilemma.ts     §4.8
-  index.ts        evaluateScenario() — the single entry point
-```
+### 5.1 Grid
 
-### 4.1 Demand
+- CSS Grid. Column 1 is the label column; columns 2–18 are the 17 channels in workbook order.
+- `dir="rtl"` in Hebrew: label column on the right, column C (efficiency) adjacent to it, S (coal) leftmost — exactly as the workbook renders. `dir="ltr"` in English mirrors it. Grid order is never reversed manually; `dir` does the mirroring.
+- Channel column width uniform, minimum 9.5 rem, so 3–4 word channel names wrap to at most three lines.
+- **Sticky:** the label column (inline-start) and rows 1–3 (axis, channel, potential). The roadmap label columns (phase, sub-group) are also sticky at inline-start.
+- The matrix scrolls in its own container on both axes. The page body never scrolls horizontally.
 
-```
-GrossDemand_t = Σ_s Demand_s,t                          [TWh]   s ∈ {bau, ev, ai, industry, water}
-NetDemand_t   = GrossDemand_t × (1 − η_Efficiency,t)    [TWh]
-```
+### 5.2 Row heights
 
-`Demand_s,t` is the sector override when present, else the selected trajectory's projection. `η_Efficiency,t ∈ [0, 0.20]` (F-202 cap).
+Proportional to the workbook's point heights; base unit 1 pt = 1.33 px at 100% zoom.
 
-### 4.2 Balance
+| Row | Workbook | Web |
+| :--- | --: | :--- |
+| Axis header | 16.5 pt | single line |
+| Channel name | 54.75 pt | up to 3 lines |
+| Potential | 16.5 pt | single line |
+| Score row | 15.75 pt | single line |
+| Sparkline row | 37.5 pt | 50 px |
+| Likelihood | 16.5 pt | single line |
+| Barriers | 32.25 pt | up to 2 lines |
+| Roadmap title / detail / challenges | 36–60 pt | content height |
 
-```
-RawGeneration_t     = Σ_i Generation_i,t                                  [TWh]
-StorageLosses_t     = Σ_k Throughput_k,t × (1 − round_trip_efficiency_k)  [TWh]   (§4.4)
-TnDLosses_t         = NetDemand_t × tnd_loss_rate                         [TWh]   default 0.035 (OQ-4)
-Supply_t            = RawGeneration_t − StorageLosses_t − TnDLosses_t     [TWh]
-ΔE_t                = Supply_t − NetDemand_t                              [TWh]
-```
+### 5.3 Header rows
 
-T&D losses are absent from PRD v1.0 entirely. Omitting them overstates every scenario's adequacy by roughly the loss rate — on ~90 TWh of demand that is over 3 TWh, comparable to a large power station.
+| Element | Fill | Text |
+| :--- | :--- | :--- |
+| Label column cells (rows 1–3; other rows as ingested) | `#A6A6A6` | bold, dark |
+| Potential row | `#A6A6A6` | centered, `3,000 MW`; `-` shown as `-` |
 
-Losses are charged against net demand (delivered energy), not against generation, so that a scenario's losses do not shrink when the supply mix changes — which would be wrong: line losses track the energy delivered, not how it was made.
+Axis header (row 1, spanning its merged columns) and channel name (row 2):
 
-**Deficit reporting (F-302).** When `ΔE_t < 0`:
-- Unserved energy = `|ΔE_t|` TWh.
-- Implied firm-capacity shortfall = `FirmCapacityRequired_t − FirmCapacity_t` MW (§4.6). Reported as a separate figure, because an energy deficit and a capacity deficit are different failures and PRD v1.0's "MW/TWh" shortfall label conflated them.
+| Axis group | Columns | Header fill | Name fill |
+| :--- | :--- | :--- | :--- |
+| efficiency | C–D | `#7030A0` | `#DEBDFF` |
+| renewables | E | `#FFC000` | `#FFE699` |
+| electricity_import | F | `#70AD47` | `#C5E0B4` |
+| natural_gas | G–J | `#5B9BD5` | `#BDD7EE` |
+| fuels | K | `#7030A0` | `#DEBDFF` |
+| grid | L | `#70AD47` | `#C5E0B4` |
+| future_tech | M–O | `#ED7D31` | `#F8CBAD` |
+| hydrogen | P | `#4472C4` | `#B4C7E7` |
+| domestic_gas | Q–R | `#5B9BD5` | `#BDD7EE` |
+| coal | S | `#A6A6A6` | `#7F7F7F` |
 
-### 4.3 Emissions
+Colours are **not unique per axis** — efficiency and fuels share purple, import and grid share green, both gas groups share blue. That is the workbook's choice. Colour is therefore never the sole identifier of an axis: the header text always is. Header text colour is chosen per fill for WCAG AA contrast (white on the saturated fills, dark on tints and `#A6A6A6`).
 
-```
-CombustionEmissions_t = Σ_i (Generation_i,t × carbon_intensity_i) / 1000            [MtCO₂e]
-MethaneEmissions_t    = Σ_i∈gas (FuelThroughput_i,t × methane_leak_rate_i
-                                  × CH4_DENSITY × GWP)                              [MtCO₂e]
-FuelThroughput_i,t    = Generation_i,t / conversion_efficiency_i                     [TWh thermal]
-Emissions_t           = CombustionEmissions_t + MethaneEmissions_t                   [MtCO₂e]
-```
+### 5.4 Score rows and colour scale
 
-- `GWP = 29.8` — IPCC AR6 GWP100 for fossil methane (OQ-2). GWP20 (82.5) is a config switch; the UI displays which horizon is active, because the two differ by ~3× and the choice materially changes gas-heavy scenarios.
-- Channels whose `carbon_intensity_basis` is `lifecycle` already include upstream methane. **Applying the separate methane term to them would double-count**, so the methane term applies only to channels with `basis = 'combustion'`. The engine asserts this and the UI displays the basis (OQ-3).
-- Imported electricity carries the source-country grid intensity (OQ-7), not zero. An interconnector is not automatically clean.
-- Cumulative emissions across milestones use trapezoidal integration between milestone years, and are labelled an approximation (milestones are 5–10 years apart).
+Each Trilemma dimension renders as a **score row** (visible) with an expandable group of five **sub-score rows** (hidden by default, F-102).
 
-### 4.4 Storage throughput and curtailment (proxy)
+Score cell: number with one decimal (`4.2`, `5.0`), fill from the colour scale, text centered. A blank average renders as an empty cell with the neutral row fill.
 
-**This section is a proxy, and every figure derived from it is labelled as such in the UI.** Real curtailment is a chronological phenomenon; v1 has no chronology. Phase 3 replaces this wholesale.
+**Colour scale** — Excel three-colour scale, reproduced exactly:
 
-```
-VRE_t              = Σ_i∈variable Generation_i,t                                     [TWh]
-StorageThroughput_t= Σ_k (energy_capacity_mwh_k × cycles_per_year_k) / 1e6           [TWh]
-AbsorbableVRE_t    = α × NetDemand_t + StorageThroughput_t                           [TWh]
-Curtailment_t      = max(0, VRE_t − AbsorbableVRE_t)                                 [TWh]
-Throughput_k,t     = actual energy cycled through storage k, capped by both its own
-                     capacity and the surplus available to absorb
-```
-
-`α = 0.35` (OQ-10) is the annual variable-renewable energy share the system is assumed to absorb without storage — a stand-in for instantaneous-share limits, minimum stable generation, and inertia constraints. **It must be calibrated against the source workbook if the workbook carries curtailment figures**; otherwise it is an editorial assumption and is presented as one.
-
-Generation reported in the mix chart is post-curtailment; `RawGeneration_t` in §4.2 is net of curtailment for variable channels.
-
-### 4.5 System cost
-
-PRD v1.0's formula added CAPEX (a capital stock, USD) to OPEX and fuel (annual flows, USD/year) and divided by annual generation — dimensionally inconsistent, and it would have made capital-intensive pathways look roughly an order of magnitude more expensive than they are. Corrected:
+| Stop | Position | Colour |
+| :--- | :--- | :--- |
+| low | minimum of the rule's range | `#F8696B` |
+| mid | 50th percentile of the rule's range | `#FFEB84` |
+| high | maximum of the rule's range | `#63BE7B` |
 
 ```
-CRF_i          = r(1+r)^n_i / ((1+r)^n_i − 1)                      capital recovery factor
-AnnualCapex_i  = capex_usd_per_kw_i × capacity_mw_i × 1000 × CRF_i               [USD/yr]
-AnnualFixed_i  = fixed_om_usd_per_kw_year_i × capacity_mw_i × 1000               [USD/yr]
-AnnualVar_i    = (var_om_i + fuel_cost_i / conversion_efficiency_i)
-                 × Generation_i,t × 1e6                                          [USD/yr]
-AnnualCost_i   = AnnualCapex_i + AnnualFixed_i + AnnualVar_i                     [USD/yr]
-
-Cost_storage,t = Σ_k (capex_k × power_mw_k × 1000 × CRF_k + fixed_om_k × power_mw_k × 1000)
-Cost_grid,t    = grid_cost_usd_per_mw_added × Σ(capacity added since baseline)   [USD/yr]
-
-LCOE_System,t  = (Σ_i AnnualCost_i + Cost_storage,t + Cost_grid,t)
-                 / (Σ_i Generation_i,t × 1e6)                                    [USD/MWh]
+v ≤ p50:  colour = lerpRGB(low, mid, (v − min) / (p50 − min))
+v > p50:  colour = lerpRGB(mid, high, (v − p50) / (max − p50))
+min == max: colour = high
 ```
 
-- `r = 0.07` real (OQ-1). A public-sector social discount rate (~3%) roughly halves the apparent cost of capital-intensive pathways — this single parameter can reverse a nuclear-vs-gas comparison, so it is surfaced in the UI as an adjustable assumption, not buried in config.
-- All costs real, base year 2025. No inflation modelling.
-- Fixed costs are charged on **installed capacity**, variable costs on **actual generation**. A dispatchable plant held at low utilization by merit order therefore still carries its full capital charge — which is the economically correct and politically relevant result.
-- `Cost_grid` is a linear placeholder in v1; Phase 3 introduces real grid-upgrade modelling as the PRD roadmap schedules.
+- Percentile uses `PERCENTILE.INC` semantics over the numeric, non-blank cells of the rule's range.
+- **The scale is relative, not absolute 1–5.** Colours depend on the distribution of the whole range.
+- **The rule ranges include the hidden sub-scores together with the average row**, and exclude column D, which has its own rules:
 
-### 4.6 Firm capacity and the reliability index (F-404)
-
-```
-PeakDemand_t      = NetDemand_t × 1e6 / (HOURS_PER_YEAR × load_factor)           [MW]   load_factor = 0.62 (OQ-5)
-FirmCapacity_t    = Σ_i∈{dispatchable,baseload} capacity_mw_i × availability_i
-                  + Σ_k power_capacity_mw_k × availability_factor_k
-                  + Σ_i∈import capacity_mw_i × import_firmness                   [MW]
-ReserveMargin_t   = FirmCapacity_t / PeakDemand_t − 1
-FirmCapacityRequired_t = PeakDemand_t × (1 + target_reserve_margin)              target = 0.15
-```
-
-Variable channels contribute **zero** firm capacity in v1. This is conservative and deliberately so; a capacity-credit treatment for solar requires the hourly model. `import_firmness = 0.5` by default — an interconnector is a real but politically interruptible resource.
-
-Composite index, 0–100:
-
-```
-s_autonomy    = 1 − (imported electricity + imported fuel energy) / total primary energy
-s_adequacy    = clamp(ReserveMargin_t / target_reserve_margin, 0, 1)
-s_dispatchable= (dispatchable + baseload generation + storage throughput) / RawGeneration_t
-
-ReliabilityIndex_t = 100 × (w_a·s_autonomy + w_d·s_adequacy + w_f·s_dispatchable)
-                     w_a = w_d = w_f = 1/3 by default, configurable
-```
-
-The three sub-scores are **always displayed alongside the composite**. A single 0–100 number hides which of three unrelated failure modes is driving it, and this figure will be quoted in policy documents.
-
-### 4.7 Tariff direction index (F-403)
-
-```
-Δ_t = (LCOE_System,t − LCOE_System,2025) / LCOE_System,2025
-```
-
-| Δ | Band |
+| Rule | Range |
 | :--- | :--- |
-| `< −0.10` | Significant reduction |
-| `−0.10 … +0.05` | Stable |
-| `+0.05 … +0.25` | Moderate increase |
-| `> +0.25` | Severe spike |
+| Security | `C4:S8`, `C9`, `E9:S9` |
+| Security (D) | `D9` |
+| Environment | `C15:C20`, `E15:S20` |
+| Environment (D) | `D15:D20` |
+| Equity | `C26:C31`, `E26:S31` |
+| Equity (D) | `D26:D31` |
 
-Thresholds are config values. **Mandatory UI treatment:** the band is displayed with the explicit qualifier that it indicates system generation-cost direction, not consumer tariffs — which additionally embed network charges, taxes, levies, cross-subsidies and regulatory lag. Omitting this qualifier invites a number from this tool being cited as a predicted electricity bill.
+A visible average's colour therefore depends on the hidden sub-scores. The engine computes the scale over exactly these ranges, ingested from the file — never over the visible row alone. Getting this wrong produces plausible but different colours, which only a side-by-side comparison would catch.
 
-### 4.8 Trilemma aggregation
+### 5.5 Sparkline rows
 
-```
-DimensionScore_i,d = mean(sub-scores of dimension d for channel i)        1–5
-PortfolioScore_d   = Σ_i (Generation_i,t × DimensionScore_i,d) / Σ_i Generation_i,t
-```
+One area chart per channel under each score row.
 
-Generation-weighted, so a channel contributing 0.1 TWh does not sway the portfolio score as much as one contributing 40 TWh. Sub-score weights within a dimension default to equal and live in config. The F-102 radar chart plots the three per-channel dimension means; the dashboard plots the three portfolio scores.
+| Row | Data | Axis min | Axis max | Fill |
+| :--- | :--- | --: | --: | :--- |
+| Under security | Generation, TWh | 0 | 90 | `#5B9BD5` |
+| Under environment | Emissions, MtCO₂e | −6 | 30 | `#70AD47` |
+| Under equity | Price-impact index | −5 | 5 | `#ED7D31` |
 
-### 4.9 Engine entry point
+- **Shared fixed y-axis per row**, identical for all 17 columns. This is what makes the renewables sparkline visibly dwarf the efficiency sparkline. Per-chart auto-scaling would destroy that cross-column comparison.
+- Negative values fill **below** the zero baseline — efficiency's emissions, renewables' falling price impact.
+- **Category axis:** four equally spaced points, even though the years are 5, 10 and 10 apart. This matches the workbook. The F-105 drawer's full-size charts use a true time axis and say so.
+- Axes, gridlines, labels and legend hidden. Cell background `#D9D9D9`, chart plot area white, as in the workbook.
+- A column with no data (K, L; F and M in equity) renders the empty white plot frame.
+- Hover/focus shows a tooltip: four `year: value unit` lines.
+- Accessible name per sparkline, e.g. *"Renewables & storage, generation: 8.8, 26.3, 56.9, 87.6 TWh for 2025, 2030, 2040, 2050"*.
+- Axis bounds and fill are ingested from each chart's XML. Ingestion reports charts whose data range and anchor column disagree — three charts (49–51) reference column C's ranges, presumably for column D, whose values are identical.
 
-```ts
-function evaluateScenario(
-  scenario: Scenario,
-  dataset: ReferenceDataset,
-  config?: Partial<EngineConfig>,
-): ScenarioResult;
+### 5.6 Likelihood and barriers
 
-interface ScenarioResult {
-  by_year: Record<MilestoneYear, YearResult>;
-  cumulative_emissions_mtco2e: number;
-  warnings: EngineWarning[];       // capacity over ceiling, proxy in use, missing data, …
-}
+Fill `#BFBFBF`, centered text. Likelihood is written in words and **not colour-coded** — the workbook does not colour it, and inventing red/amber/green would add a judgement the source does not make.
 
-interface YearResult {
-  gross_demand_twh: number; net_demand_twh: number;
-  generation_by_channel_twh: Record<string, number>;
-  raw_generation_twh: number; curtailment_twh: number;
-  storage_losses_twh: number; tnd_losses_twh: number;
-  supply_twh: number; delta_e_twh: number;
-  peak_demand_mw: number; firm_capacity_mw: number;
-  firm_capacity_shortfall_mw: number | null;
-  emissions_mtco2e: number; combustion_mtco2e: number; methane_mtco2e: number;
-  lcoe_system_usd_per_mwh: number | null;
-  tariff_band: TariffBand;
-  reliability: { index: number; autonomy: number; adequacy: number; dispatchable: number };
-  trilemma: { security: number; environment: number; equity: number };
-}
-```
+### 5.7 Roadmap section
 
-`warnings` is not decoration. A scenario exceeding `max_capacity_mw`, or relying on the curtailment proxy, or hitting missing cost data for a channel, must surface that to the user rather than silently producing a confident number.
+| Phase | Label fill (col A) | Body fill |
+| :--- | :--- | :--- |
+| 2025–2030 | `#BDD7EE` | `#DEEBF7` |
+| 2030–2040 | `#F8CBAD` | `#FBE5D6` |
+| 2040–2050 | `#C5E0B4` | `#E2F0D9` |
+
+- Phase label spans its band vertically, text rotated to read along the band, as in the workbook. The sub-group labels (יעדים / צעדים / אימפקט) render the same way within 2025–2030.
+- **Step card**, per channel cell per slot:
+  - **Title** — bold, centered, larger.
+  - **Detail** — small, regular.
+  - **Challenges** — small; the `אתגרים:` prefix bold, the rest regular.
+- Empty slots render as empty body-fill cells. The grid never collapses a slot, so a step title in 2030–2040 slot 2 aligns across all columns.
+- Targets (2025–2030, rows 40–42) render as small text cells; impact rows as their placeholder labels, where present.
+
+### 5.8 Trigger callouts (F-104)
+
+| Anchor | Channel | Text |
+| :--- | :--- | :--- |
+| F49 | Regional interconnection | קצב התקנת מתחדשות אינו מספק, לא התגלו מאגרי גז טבעי. |
+| G53 | LNG imports | השימוש בגז טבעי נמשך, יהיה צורך בתפיסת פחמן. |
+| J53 | Gas generation expansion | השימוש בגז טבעי נמשך. |
+| Q49 | Deep-water gas | השימוש בגז טבעי נמשך, יש צורך בעתודות נוספות. *(duplicated in workbook — OQ-18)* |
+| R49 | Small gas fields | חשש כי הערוצים האחרים לא יביאו לביטחון אספקה. |
+
+- Rounded rectangle, fill `#5B9BD5`, white text, ⚠ icon at inline-start. The workbook's leading `⚠️` character is stripped from the text and rendered as the icon.
+- Positioned within its anchor cell's grid area and overflowing toward the neighbouring phase boundary, as in the workbook — never floating free of the grid, so it cannot detach while scrolling.
+- Accessible as a note associated with its cell (`role="note"`, referenced by the cell).
+
+### 5.9 Column filtering (F-106)
+
+Hidden columns are removed from the grid. An axis header whose columns are partly hidden shrinks its span; fully hidden, it disappears. Colour-scale results do **not** change when columns are hidden — they are always computed over the full workbook ranges, so a cell's colour is stable regardless of filters.
+
+### 5.10 Fidelity rules
+
+1. Column order is the workbook's. No sorting.
+2. Blank is blank. No zeros, dashes or "N/A" where the workbook shows an empty cell. Where the workbook shows `-`, render `-`.
+3. Numbers display with the workbook's precision: scores one decimal, potential with thousands separators.
+4. Workbook text is rendered verbatim in Hebrew, including its typos. Corrections are made in the workbook, not in the UI.
+5. English mode translates labels and names through the catalogue (OQ-11) and shows free text — barriers, steps, callouts — in Hebrew with a "Hebrew source" marker until translations are supplied. Machine translation is not shipped.
+6. Any deliberate deviation from the workbook is recorded in this section with its reason.
+
+**Recorded deviations**
+
+| Deviation | Reason |
+| :--- | :--- |
+| Header text colour chosen per fill for WCAG AA contrast | The workbook's white text on `#FFC000` and on light tints fails contrast (NFR-2) |
+| Sub-score and trajectory rows expandable rather than permanently hidden | Progressive disclosure (F-102); collapsed by default, so the default view matches the workbook |
+| Column filtering toolbar | Additive (F-106); the default state shows all columns as in the workbook |
+| Free text shown in Hebrew with a marker in English mode | No approved translations exist (§5.10 rule 5) |
 
 ---
 
-## 5. Data Layer
+## 6. Data Layer
 
-### 5.1 Storage choice
+### 6.1 Storage
 
-File-based SQLite (`better-sqlite3`) accessed through Drizzle ORM. No server process, no installation. The database holds ingested reference data only; scenarios live in the URL and `localStorage` (PRD §7, no accounts in v1).
+File-based SQLite (`better-sqlite3`) through Drizzle ORM. Postgres-portable schema. Holds ingested reference data and layout metadata only; scenarios live in the URL and `localStorage`.
 
-The schema is written to be Postgres-portable — no SQLite-specific types, timestamps as ISO strings — so Phase 4's public API can move to Postgres by swapping the Drizzle driver.
+### 6.2 Tables
 
-### 5.2 Tables
+**Values**
 
 | Table | Contents |
 | :--- | :--- |
-| `axes` | `axis_id`, `display_name_en`, `display_name_he`, `sort_order` |
-| `supply_channels` | §2.1, flattened; Trilemma sub-scores as columns |
-| `storage_assets` | §2.2 |
-| `demand_sectors` | §2.3 metadata |
-| `demand_projections` | `sector_id`, `trajectory_id`, `year`, `demand_twh` |
-| `roadmap_phases` | `channel_id`, `phase` (2025-2030 / 2030-2040 / 2040-2050), milestone text (en/he), legislative steps, TRL, environmental impact |
-| `bottlenecks` | `channel_id`, `kind`, description (en/he) |
-| `presets` | F-303 baseline scenarios as scenario JSON |
-| `dataset_meta` | `dataset_version`, source filename, SHA-256, ingested_at, row counts |
+| `channels` | `channel_id`, `column_letter`, `column_order`, `axis_group_id`, `name_he`, `name_en`, `potential_mw` (nullable), `potential_raw`, `energy_role`, `cf` (nullable), `ci_g_per_kwh` (nullable), `params_recovered` |
+| `sub_scores` | `channel_id`, `dimension`, `key`, `value` (nullable), `cell_ref` |
+| `dimension_averages` | `channel_id`, `dimension`, `value` (nullable, cached formula result), `cell_ref` |
+| `trajectories` | `channel_id`, `metric` (generation / emissions / price_impact), `year`, `value` (nullable), `cell_ref` |
+| `channel_text` | `channel_id`, `likelihood`, `barriers_he`, `barriers_en`, cell refs |
+| `roadmap_items` | `channel_id`, `phase`, `kind` (target / step / impact), `slot`, `title_he`, `detail_he`, `challenges_he`, `*_en`, `cell_refs` |
+| `callouts` | `callout_id`, `channel_id`, `phase`, `anchor_cell`, `text_he`, `text_en` |
+| `ramp` | `year`, `value` |
+| `dataset_meta` | `dataset_version`, filename, SHA-256, ingested_at, row/column counts |
 
-Every content table carries `source_ref` (NFR-6). Every bilingual field is a pair of columns, not a JSON blob — so a missing Hebrew string is a schema-visible `NULL` that CI can fail on (NFR-8), rather than an absent key discovered in production.
+**Layout metadata**
 
-### 5.3 Ingestion pipeline
+| Table | Contents |
+| :--- | :--- |
+| `axis_groups` | `axis_group_id`, `name_he`, `name_en`, `start_column`, `end_column`, `header_fill`, `name_fill` |
+| `row_labels` | `row`, `key`, `label_he`, `label_en`, `visible`, `height_pt` |
+| `color_scale_rules` | `rule_id`, `dimension`, `ranges` (A1 list), `low`, `mid`, `high`, `mid_percentile` |
+| `sparkline_specs` | `dimension`, `metric`, `axis_min`, `axis_max`, `fill` |
+| `phase_bands` | `phase`, `start_row`, `end_row`, `label_fill`, `body_fill`, `sub_groups` |
 
-`scripts/ingest-xlsx.ts`, run manually when the workbook changes — not at build time, not at runtime.
+Every value carries its `cell_ref` (NFR-6). Bilingual text is column pairs, so a missing translation is a `NULL` that CI can count.
+
+### 6.3 Ingestion pipeline
+
+`scripts/ingest-workbook.ts`, run manually when the workbook changes. Parses the OOXML package directly (`jszip` + `fast-xml-parser`): common spreadsheet libraries read cell values but not chart axes, drawing anchors or conditional-formatting rules, all of which the format depends on.
 
 ```
-xlsx  →  parse (SheetJS)
-      →  map columns to domain fields via an explicit, committed column map
-      →  validate with Zod (types, ranges, score orientation, required fields)
-      →  reconcile (unit normalization, efficiency → demand-side, storage → storage_assets)
-      →  write db/reference.sqlite
-      →  write db/snapshot.json          ← committed to git
-      →  write db/ingest-report.md       ← committed to git
+xlsx
+ ├─ xl/workbook.xml, sheet1.xml ── cells, shared strings, merges, row heights/hidden, rightToLeft
+ ├─ xl/styles.xml + theme1.xml ─── fills, resolving theme colour + tint (ECMA-376 HSL tint)
+ ├─ sheet1.xml conditionalFormatting ── colour-scale rules and ranges
+ ├─ xl/drawings/drawing1.xml ───── chart anchors, callout shapes and anchors
+ └─ xl/charts/chartN.xml ───────── data ranges, axis min/max, series fill
+      │
+      ▼
+ structural assertions   (row labels, merged ranges, column count, phase labels — §6.4)
+ column map               (letter → channel_id, axis_group_id, energy_role)
+ value extraction         (scores, averages, trajectories, text, roadmap, callouts)
+ model recovery + verify  (§3.5)
+ Zod validation           (types, 1–5 score ranges, likelihood vocabulary)
+      │
+      ▼
+ db/reference.sqlite     (gitignored)
+ db/snapshot.json        (committed — diffable record of every value and layout attribute)
+ db/ingest-report.md     (committed — findings, warnings, recovered parameters)
 ```
 
-- **`db/snapshot.json` is committed.** A binary SQLite file produces no reviewable diff. When the workbook is revised, the JSON snapshot shows exactly which figures moved — essential when the outputs inform policy.
-- **`db/ingest-report.md`** records row counts, the resolved channel list, every value coerced or defaulted, and every validation warning. This is where OQ-6 gets answered empirically: how many channels actually exist, and whether efficiency appears as supply or demand in the source.
-- **Ingestion fails closed.** A range violation or an unmapped required column aborts the run. It does not write a partial database.
-- `dataset_version` = `YYYYMMDD` of the workbook + first 8 characters of its SHA-256.
+**Fails closed.** A failed structural assertion or validation error aborts without writing. Model-verification failures and data anomalies are warnings in the report, not aborts, because the workbook remains displayable.
 
-### 5.4 Scenario encoding
+The current workbook's report must list at least: D copies C with no potential (OQ-14); K and L have no quantities (OQ-15); row 37 empty (OQ-16); duplicate callout at Q49 (OQ-18); charts 49–51 range/anchor mismatch; blank equity scores for F and M; blank security sub-scores for D.
 
-- **URL** — scenario JSON, minified through a short-key codec, deflate-compressed, base64url-encoded, in the query string. Target under 1,800 characters for a full scenario, keeping it inside every browser and mail-client URL limit. If a scenario exceeds the budget the UI offers file export instead of a truncated link.
-- **`localStorage`** — the working scenario plus a named list, under a versioned key (`eps:scenarios:v1`). All access wrapped in try/catch; the app is fully functional with storage unavailable.
-- **File** — `.json` export of the raw `Scenario` object, human-readable and diffable.
+### 6.4 Structural assertions (NFR-9)
 
-All three carry `schema_version` and `dataset_version`. Loading a scenario whose `dataset_version` differs from the current dataset evaluates it against the current data and shows a non-dismissable notice naming both versions (NFR-5).
+Ingestion asserts, and aborts if any fails:
 
----
+- Sheet count 1; channel columns exactly `C:S`.
+- Column A labels at rows 1, 2, 3, 9, 20, 31, 38, 39 match §2.2.
+- Rows 10–13, 21–24, 32–35 have column A labels 2025, 2030, 2040, 2050.
+- Phase merges `A40:A51`, `A52:A60`, `A61:A66` exist with labels `2025-2030`, `2030-2040`, `2040-2050`.
+- Average formulas in rows 9, 20, 31 reference rows 4–8, 15–19, 26–30.
+- Exactly three sparkline rows' worth of charts, one per column per dimension (duplicates reported).
 
-## 6. API Contract
-
-Next.js route handlers. No authentication (PRD §7). All responses JSON unless noted.
-
-| Method | Route | Purpose |
-| :--- | :--- | :--- |
-| `GET` | `/api/dataset` | Full reference dataset + `dataset_version`. Immutable-cached by version. |
-| `GET` | `/api/dataset/channels/:id` | Single channel with roadmap and bottlenecks (F-102) |
-| `GET` | `/api/presets` | F-303 preset scenarios |
-| `POST` | `/api/scenario/evaluate` | Server-side evaluation. Same `lib/engine`; exists for export and future API consumers, **not** for interactive use. |
-| `POST` | `/api/export/json` | Scenario + results as a download |
-| `POST` | `/api/export/xlsx` | Results workbook (Phase 2) |
-| `POST` | `/api/export/pdf` | Executive summary (Phase 4) |
-| `POST` | `/api/permalink` | Store an oversized scenario, return a short id (Phase 4) |
-
-**The client never calls `/api/scenario/evaluate` on slider input.** It imports `lib/engine` directly. The route exists so exports and any future external consumer run the same code path — one implementation, two call sites (PRD §5.1).
-
-Errors: `{ error: { code, message_en, message_he, details? } }` with conventional status codes. Validation failures return 422 with the Zod issue list.
+A structural change in a revised workbook therefore stops ingestion with a message naming the moved row or column, rather than shifting every value into the wrong field.
 
 ---
 
-## 7. Internationalization Contract
+## 7. API Contract
 
-i18next with Next.js App Router, locale as the first path segment: `/he/...` (default) and `/en/...`.
+Next.js route handlers. No authentication.
 
-- `<html lang>` and `<html dir>` are set per locale at the layout level. `dir` is never set below the root.
-- **CSS logical properties only** — `margin-inline-start`, `padding-inline-end`, `inset-inline-start`. Physical `left`/`right` in component CSS fails lint. Tailwind logical utilities (`ms-`, `me-`, `ps-`, `pe-`, `start-`, `end-`) exclusively.
-- **Charts mirror; data does not.** Axis placement and legend position follow `dir`; a time axis always runs earliest→latest in reading order, and numerals are always Western Arabic in both locales (standard in Hebrew technical writing).
-- Numbers and units via `Intl.NumberFormat` with the active locale. Unit symbols (TWh, MW, gCO₂e/kWh) stay Latin in both locales — this is Israeli energy-sector convention; translating them would reduce clarity for the primary persona.
-- Key naming: `module.feature.element` — e.g. `explorer.matrix.column.capacity`.
-- **Hebrew domain terminology is client-owned.** The glossary in `docs/glossary.he.md` is authored with the domain lead before Module 1 UI work; engineering does not invent Hebrew terms for regulated energy concepts.
-- CI fails on any key present in one catalogue and absent from the other (NFR-8).
+| Method | Route | Phase | Purpose |
+| :--- | :--- | :-: | :--- |
+| `GET` | `/api/workbook` | 1 | Complete values + layout metadata + `dataset_version`. Immutable-cached per version. The matrix renders from this single payload. |
+| `GET` | `/api/channels/:id` | 1 | One column in full, with cell references (F-105) |
+| `GET` | `/api/presets` | 2 | Scenario presets, including the workbook preset |
+| `POST` | `/api/scenario/evaluate` | 2 | Server-side evaluation via the same `lib/engine`, for export and future consumers — never for interactive use |
+| `POST` | `/api/export/json` | 2 | Scenario + results |
+| `POST` | `/api/export/xlsx` | 4 | Scenario results written back in the workbook's layout |
+| `POST` | `/api/export/pdf` | 4 | Executive summary in workbook format |
+
+Errors: `{ error: { code, message_en, message_he, details? } }`; validation failures return 422 with Zod issues.
 
 ---
 
-## 8. Testing Strategy
+## 8. Internationalization
+
+- Locale path segment: `/he` (default), `/en`. `lang` and `dir` set at the root layout only.
+- CSS logical properties and Tailwind logical utilities only; physical `left`/`right` fails lint. The matrix's RTL fidelity depends entirely on this.
+- Western Arabic numerals in both locales. Unit symbols (MW, TWh, MtCO₂e) Latin in both.
+- Catalogue keys `module.feature.element`. Row labels, axis names and channel names come from the database's `*_he` / `*_en` columns, not the catalogue, since they originate in the workbook.
+- Hebrew terminology is client-owned; English names are pending approval (OQ-11) and flagged in the UI until approved.
+- CI fails on catalogue key mismatch.
+
+---
+
+## 9. Testing Strategy
 
 | Layer | Approach |
 | :--- | :--- |
-| **Engine unit** | Every function in `lib/engine` with hand-computed expected values. Includes the degenerate cases: empty scenario, zero demand, single channel, capacity above ceiling, storage without generation. |
-| **Parity (AC-1)** | Golden fixtures generated from the workbook's baseline scenario. Asserts generation, ΔE, emissions and LCOE within ±0.5% for each milestone year. Regenerated only by an explicit script run, never automatically — the point is that it breaks when the engine drifts. |
-| **Property** | Round-trip: `encode(decode(s)) === s` for randomized scenarios (AC-3). Monotonicity: adding capacity to a zero-carbon channel never increases emissions; raising efficiency never increases net demand. |
-| **Ingestion** | Runs against a fixture workbook committed to the repo, asserting the validation rules fire — including deliberately malformed rows. |
-| **Component** | Matrix sorting/filtering, detail drawer, slider→KPI wiring. |
-| **i18n** | Key parity; RTL visual regression on every Phase 1 screen (AC-4). |
-| **Accessibility** | `axe` scan in CI on all Phase 1 screens in both locales (AC-5). |
-| **Performance** | Engine compute budget asserted at ≤16 ms for a full scenario (NFR-1). |
+| **Workbook parity (AC-1)** | Golden fixtures from the workbook: averages exact (1e-9); recomputed trajectories within ±0.0501 of stored values; stored values rendered verbatim. |
+| **Colour scale** | Expected fill for every score and sub-score cell, computed independently from the workbook's rule ranges. Includes the `min == max` case (column D). |
+| **Format fidelity (AC-2)** | DOM structural test: 17 columns in order; axis spans; header, name, band and sparkline fills; sticky elements; hidden-by-default sub-score groups; callouts inside their anchor cells; blank cells blank. Visual regression against a committed baseline in both locales. |
+| **Ingestion** | Fixture workbooks with a moved row, an extra column, a broken merge, an out-of-range score — each must abort with a precise message. |
+| **Engine (Phase 2)** | Unit tests per function; role rules (fuel sources never add to supply; D and enablers excluded); efficiency's negative intensity never double-counted; gas availability cap; the workbook preset reproduces the workbook trajectories. |
+| **Property** | Scenario encode/decode round-trip; adding zero-carbon capacity never raises emissions. |
+| **Accessibility (AC-5)** | axe in both locales; keyboard grid navigation; sparkline accessible names. |
+| **Performance** | Full matrix first render ≤ 1 s; engine ≤ 16 ms. |
 
 ---
 
-## 9. Traceability Matrix
+## 10. Traceability
 
-| PRD feature | Spec section | Engine module |
+| PRD feature | Spec | Workbook source |
 | :--- | :--- | :--- |
-| F-101 matrix | §2.1, §5.2 | — |
-| F-102 detail sheet | §2.4, §4.8, §5.2 | `trilemma.ts` |
-| F-201/202 demand | §3.1, §4.1 | `demand.ts` |
-| F-203 composition | §4.1 | `demand.ts` |
-| F-301 supply config | §3.1, §3.2 | `generation.ts` |
-| F-302 balance & alerts | §3.3, §4.2, §4.4 | `balance.ts`, `curtailment.ts` |
-| F-303 presets | §5.2 | — |
-| F-304 persistence | §5.4, §6 | — |
-| F-401 mix breakdown | §3.3, §4.4 | `generation.ts` |
-| F-402 GHG | §4.3 | `emissions.ts` |
-| F-403 cost & tariff | §4.5, §4.7 | `cost.ts` |
-| F-404 reliability | §4.6 | `reliability.ts` |
+| F-101 matrix | §5.1–5.6, §5.10 | rows 1–39 |
+| F-102 disclosure | §3.1, §5.4, §5.5 | hidden rows 4–8, 10–13, 15–19, 21–24, 26–30, 32–35 |
+| F-103 roadmap | §2.3, §5.7 | rows 40–66 |
+| F-104 callouts | §5.8 | drawing1.xml shapes |
+| F-105 detail drawer | §3, §7 | full column |
+| F-106 filtering | §5.9 | — |
+| F-201 – F-203 demand | §4.1, §4.4 | supplementary data |
+| F-301 – F-304 scenarios | §4.2 – §4.4 | recovered parameters (§3.4) |
+| F-401 mix | §4.4 | — |
+| F-402 GHG | §4.5 | recovered CI (§3.4) |
+| F-403 cost | §4.6 | supplementary data |
+| F-404 reliability | §4.7 | supplementary data |
