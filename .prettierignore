@@ -1,0 +1,11 @@
+node_modules
+.next
+db/reference.sqlite
+db/snapshot.json
+public
+.vscode
+
+# Normative reference docs — formatting is not ours to change.
+docs/PRD.md
+docs/SPEC.md
+docs/DEV-PLAN.md
