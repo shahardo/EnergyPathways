@@ -1,0 +1,5874 @@
+{
+  "datasetMeta": {
+    "datasetVersion": "a42326b533e46f9f",
+    "filename": "Israel 2050 Pathways 06092026.xlsx",
+    "sha256": "a42326b533e46f9f7ef7505d1b817d60b2320b44c70de84fd747f15daee6beda",
+    "ingestedAt": "2026-09-17T20:19:05.293Z",
+    "rowCount": 78,
+    "columnCount": 17
+  },
+  "channels": [
+    {
+      "channelId": "efficiency",
+      "columnLetter": "C",
+      "columnOrder": 1,
+      "axisGroupId": "efficiency",
+      "nameHe": "התייעלות",
+      "nameEn": "",
+      "potentialMw": 3000,
+      "potentialRaw": "3,000 MW",
+      "energyRole": "demand_reduction",
+      "cf": 0.5,
+      "ciGPerKwh": -400,
+      "paramsRecovered": true
+    },
+    {
+      "channelId": "demand_reduction",
+      "columnLetter": "D",
+      "columnOrder": 2,
+      "axisGroupId": "efficiency",
+      "nameHe": "הפחתת ביקושים",
+      "nameEn": "",
+      "potentialMw": null,
+      "potentialRaw": null,
+      "energyRole": "demand_reduction_unconfirmed",
+      "cf": null,
+      "ciGPerKwh": -400,
+      "paramsRecovered": false
+    },
+    {
+      "channelId": "renewables_storage",
+      "columnLetter": "E",
+      "columnOrder": 3,
+      "axisGroupId": "renewables",
+      "nameHe": "מתחדשות ואגירה",
+      "nameEn": "",
+      "potentialMw": 50000,
+      "potentialRaw": "50,000 MW",
+      "energyRole": "generation_variable",
+      "cf": 0.2,
+      "ciGPerKwh": 0,
+      "paramsRecovered": true
+    },
+    {
+      "channelId": "regional_interconnection",
+      "columnLetter": "F",
+      "columnOrder": 4,
+      "axisGroupId": "electricity_import",
+      "nameHe": "קישוריות אזורית חשמלית",
+      "nameEn": "",
+      "potentialMw": 8000,
+      "potentialRaw": "8,000 MW",
+      "energyRole": "import_electricity",
+      "cf": 0.5,
+      "ciGPerKwh": 300,
+      "paramsRecovered": true
+    },
+    {
+      "channelId": "lng_import",
+      "columnLetter": "G",
+      "columnOrder": 5,
+      "axisGroupId": "natural_gas",
+      "nameHe": "ייבוא גז טבעי מונזל (LNG)",
+      "nameEn": "",
+      "potentialMw": 10000,
+      "potentialRaw": "10,000 MW",
+      "energyRole": "fuel_source_gas",
+      "cf": 0.6000000000000001,
+      "ciGPerKwh": 450,
+      "paramsRecovered": true
+    },
+    {
+      "channelId": "gas_ccs",
+      "columnLetter": "H",
+      "columnOrder": 6,
+      "axisGroupId": "natural_gas",
+      "nameHe": "שימוש בגז עם לכידת פחמן (CCS)",
+      "nameEn": "",
+      "potentialMw": 10000,
+      "potentialRaw": "10,000 MW",
+      "energyRole": "generation_gas",
+      "cf": 0.7000000000000001,
+      "ciGPerKwh": 100,
+      "paramsRecovered": true
+    },
+    {
+      "channelId": "pipeline_gas_import",
+      "columnLetter": "I",
+      "columnOrder": 7,
+      "axisGroupId": "natural_gas",
+      "nameHe": "ייבוא גז טבעי בצינור",
+      "nameEn": "",
+      "potentialMw": 10000,
+      "potentialRaw": "10,000 MW",
+      "energyRole": "fuel_source_gas",
+      "cf": 0.6000000000000001,
+      "ciGPerKwh": 400,
+      "paramsRecovered": true
+    },
+    {
+      "channelId": "gas_generation_expansion",
+      "columnLetter": "J",
+      "columnOrder": 8,
+      "axisGroupId": "natural_gas",
+      "nameHe": "הרחבת ייצור חשמל מגז טבעי",
+      "nameEn": "",
+      "potentialMw": 10000,
+      "potentialRaw": "10,000 MW",
+      "energyRole": "generation_gas",
+      "cf": 0.6000000000000001,
+      "ciGPerKwh": 400,
+      "paramsRecovered": true
+    },
+    {
+      "channelId": "fuel_supply",
+      "columnLetter": "K",
+      "columnOrder": 9,
+      "axisGroupId": "fuels",
+      "nameHe": "אספקת דלקים",
+      "nameEn": "",
+      "potentialMw": null,
+      "potentialRaw": "-",
+      "energyRole": "enabler",
+      "cf": null,
+      "ciGPerKwh": null,
+      "paramsRecovered": false
+    },
+    {
+      "channelId": "grid_development",
+      "columnLetter": "L",
+      "columnOrder": 10,
+      "axisGroupId": "grid",
+      "nameHe": "פיתוח הרשת",
+      "nameEn": "",
+      "potentialMw": null,
+      "potentialRaw": null,
+      "energyRole": "enabler",
+      "cf": null,
+      "ciGPerKwh": null,
+      "paramsRecovered": false
+    },
+    {
+      "channelId": "geothermal",
+      "columnLetter": "M",
+      "columnOrder": 11,
+      "axisGroupId": "future_tech",
+      "nameHe": "אנרגיה גיאותרמית",
+      "nameEn": "",
+      "potentialMw": 10000,
+      "potentialRaw": "10,000 MW",
+      "energyRole": "generation_firm",
+      "cf": 0.7000000000000001,
+      "ciGPerKwh": 0,
+      "paramsRecovered": true
+    },
+    {
+      "channelId": "nuclear_smr",
+      "columnLetter": "N",
+      "columnOrder": 12,
+      "axisGroupId": "future_tech",
+      "nameHe": "ביקוע גרעיני (SMR)",
+      "nameEn": "",
+      "potentialMw": 8000,
+      "potentialRaw": "8,000 MW",
+      "energyRole": "generation_firm",
+      "cf": 0.9,
+      "ciGPerKwh": 0,
+      "paramsRecovered": true
+    },
+    {
+      "channelId": "nuclear_fusion",
+      "columnLetter": "O",
+      "columnOrder": 13,
+      "axisGroupId": "future_tech",
+      "nameHe": "היתוך גרעיני",
+      "nameEn": "",
+      "potentialMw": 5000,
+      "potentialRaw": "5,000 MW",
+      "energyRole": "generation_firm",
+      "cf": 0.8,
+      "ciGPerKwh": 0,
+      "paramsRecovered": true
+    },
+    {
+      "channelId": "hydrogen_import",
+      "columnLetter": "P",
+      "columnOrder": 14,
+      "axisGroupId": "hydrogen",
+      "nameHe": "ייבוא מימן",
+      "nameEn": "",
+      "potentialMw": 8000,
+      "potentialRaw": "8,000 MW",
+      "energyRole": "generation_firm",
+      "cf": 0.5,
+      "ciGPerKwh": 0,
+      "paramsRecovered": true
+    },
+    {
+      "channelId": "deepwater_gas_exploration",
+      "columnLetter": "Q",
+      "columnOrder": 15,
+      "axisGroupId": "domestic_gas",
+      "nameHe": "תימרוץ חיפוש ופיתוח מאגרי גז במים עמוקים",
+      "nameEn": "",
+      "potentialMw": 2000,
+      "potentialRaw": "2,000 MW",
+      "energyRole": "fuel_source_gas",
+      "cf": 0.6000000000000001,
+      "ciGPerKwh": 400,
+      "paramsRecovered": true
+    },
+    {
+      "channelId": "small_gas_fields",
+      "columnLetter": "R",
+      "columnOrder": 16,
+      "axisGroupId": "domestic_gas",
+      "nameHe": "תימרוץ חיפוש ופיתוח מאגרי גז טבעי קטנים",
+      "nameEn": "",
+      "potentialMw": 1000,
+      "potentialRaw": "1,000 MW",
+      "energyRole": "fuel_source_gas",
+      "cf": 0.6000000000000001,
+      "ciGPerKwh": 400,
+      "paramsRecovered": true
+    },
+    {
+      "channelId": "return_to_coal",
+      "columnLetter": "S",
+      "columnOrder": 17,
+      "axisGroupId": "coal",
+      "nameHe": "חזרה לייצור בפחם",
+      "nameEn": "",
+      "potentialMw": 5000,
+      "potentialRaw": "5,000 MW",
+      "energyRole": "generation_firm",
+      "cf": 0.7000000000000001,
+      "ciGPerKwh": 900,
+      "paramsRecovered": true
+    }
+  ],
+  "subScores": [
+    {
+      "channelId": "efficiency",
+      "dimension": "security",
+      "key": "import_dependency",
+      "value": 5,
+      "cellRef": "C4"
+    },
+    {
+      "channelId": "demand_reduction",
+      "dimension": "security",
+      "key": "import_dependency",
+      "value": null,
+      "cellRef": "D4"
+    },
+    {
+      "channelId": "renewables_storage",
+      "dimension": "security",
+      "key": "import_dependency",
+      "value": 5,
+      "cellRef": "E4"
+    },
+    {
+      "channelId": "regional_interconnection",
+      "dimension": "security",
+      "key": "import_dependency",
+      "value": 2,
+      "cellRef": "F4"
+    },
+    {
+      "channelId": "lng_import",
+      "dimension": "security",
+      "key": "import_dependency",
+      "value": 2,
+      "cellRef": "G4"
+    },
+    {
+      "channelId": "gas_ccs",
+      "dimension": "security",
+      "key": "import_dependency",
+      "value": 4,
+      "cellRef": "H4"
+    },
+    {
+      "channelId": "pipeline_gas_import",
+      "dimension": "security",
+      "key": "import_dependency",
+      "value": 2,
+      "cellRef": "I4"
+    },
+    {
+      "channelId": "gas_generation_expansion",
+      "dimension": "security",
+      "key": "import_dependency",
+      "value": 4,
+      "cellRef": "J4"
+    },
+    {
+      "channelId": "fuel_supply",
+      "dimension": "security",
+      "key": "import_dependency",
+      "value": null,
+      "cellRef": "K4"
+    },
+    {
+      "channelId": "grid_development",
+      "dimension": "security",
+      "key": "import_dependency",
+      "value": 5,
+      "cellRef": "L4"
+    },
+    {
+      "channelId": "geothermal",
+      "dimension": "security",
+      "key": "import_dependency",
+      "value": 5,
+      "cellRef": "M4"
+    },
+    {
+      "channelId": "nuclear_smr",
+      "dimension": "security",
+      "key": "import_dependency",
+      "value": 3,
+      "cellRef": "N4"
+    },
+    {
+      "channelId": "nuclear_fusion",
+      "dimension": "security",
+      "key": "import_dependency",
+      "value": 4,
+      "cellRef": "O4"
+    },
+    {
+      "channelId": "hydrogen_import",
+      "dimension": "security",
+      "key": "import_dependency",
+      "value": 2,
+      "cellRef": "P4"
+    },
+    {
+      "channelId": "deepwater_gas_exploration",
+      "dimension": "security",
+      "key": "import_dependency",
+      "value": 5,
+      "cellRef": "Q4"
+    },
+    {
+      "channelId": "small_gas_fields",
+      "dimension": "security",
+      "key": "import_dependency",
+      "value": 5,
+      "cellRef": "R4"
+    },
+    {
+      "channelId": "return_to_coal",
+      "dimension": "security",
+      "key": "import_dependency",
+      "value": 2,
+      "cellRef": "S4"
+    },
+    {
+      "channelId": "efficiency",
+      "dimension": "security",
+      "key": "diversity",
+      "value": 5,
+      "cellRef": "C5"
+    },
+    {
+      "channelId": "demand_reduction",
+      "dimension": "security",
+      "key": "diversity",
+      "value": null,
+      "cellRef": "D5"
+    },
+    {
+      "channelId": "renewables_storage",
+      "dimension": "security",
+      "key": "diversity",
+      "value": 5,
+      "cellRef": "E5"
+    },
+    {
+      "channelId": "regional_interconnection",
+      "dimension": "security",
+      "key": "diversity",
+      "value": 4,
+      "cellRef": "F5"
+    },
+    {
+      "channelId": "lng_import",
+      "dimension": "security",
+      "key": "diversity",
+      "value": 4,
+      "cellRef": "G5"
+    },
+    {
+      "channelId": "gas_ccs",
+      "dimension": "security",
+      "key": "diversity",
+      "value": 3,
+      "cellRef": "H5"
+    },
+    {
+      "channelId": "pipeline_gas_import",
+      "dimension": "security",
+      "key": "diversity",
+      "value": 4,
+      "cellRef": "I5"
+    },
+    {
+      "channelId": "gas_generation_expansion",
+      "dimension": "security",
+      "key": "diversity",
+      "value": 2,
+      "cellRef": "J5"
+    },
+    {
+      "channelId": "fuel_supply",
+      "dimension": "security",
+      "key": "diversity",
+      "value": null,
+      "cellRef": "K5"
+    },
+    {
+      "channelId": "grid_development",
+      "dimension": "security",
+      "key": "diversity",
+      "value": 5,
+      "cellRef": "L5"
+    },
+    {
+      "channelId": "geothermal",
+      "dimension": "security",
+      "key": "diversity",
+      "value": 4,
+      "cellRef": "M5"
+    },
+    {
+      "channelId": "nuclear_smr",
+      "dimension": "security",
+      "key": "diversity",
+      "value": 5,
+      "cellRef": "N5"
+    },
+    {
+      "channelId": "nuclear_fusion",
+      "dimension": "security",
+      "key": "diversity",
+      "value": 5,
+      "cellRef": "O5"
+    },
+    {
+      "channelId": "hydrogen_import",
+      "dimension": "security",
+      "key": "diversity",
+      "value": 4,
+      "cellRef": "P5"
+    },
+    {
+      "channelId": "deepwater_gas_exploration",
+      "dimension": "security",
+      "key": "diversity",
+      "value": 3,
+      "cellRef": "Q5"
+    },
+    {
+      "channelId": "small_gas_fields",
+      "dimension": "security",
+      "key": "diversity",
+      "value": 3,
+      "cellRef": "R5"
+    },
+    {
+      "channelId": "return_to_coal",
+      "dimension": "security",
+      "key": "diversity",
+      "value": 4,
+      "cellRef": "S5"
+    },
+    {
+      "channelId": "efficiency",
+      "dimension": "security",
+      "key": "storage_capability",
+      "value": 1,
+      "cellRef": "C6"
+    },
+    {
+      "channelId": "demand_reduction",
+      "dimension": "security",
+      "key": "storage_capability",
+      "value": null,
+      "cellRef": "D6"
+    },
+    {
+      "channelId": "renewables_storage",
+      "dimension": "security",
+      "key": "storage_capability",
+      "value": 5,
+      "cellRef": "E6"
+    },
+    {
+      "channelId": "regional_interconnection",
+      "dimension": "security",
+      "key": "storage_capability",
+      "value": 1,
+      "cellRef": "F6"
+    },
+    {
+      "channelId": "lng_import",
+      "dimension": "security",
+      "key": "storage_capability",
+      "value": 4,
+      "cellRef": "G6"
+    },
+    {
+      "channelId": "gas_ccs",
+      "dimension": "security",
+      "key": "storage_capability",
+      "value": 1,
+      "cellRef": "H6"
+    },
+    {
+      "channelId": "pipeline_gas_import",
+      "dimension": "security",
+      "key": "storage_capability",
+      "value": 1,
+      "cellRef": "I6"
+    },
+    {
+      "channelId": "gas_generation_expansion",
+      "dimension": "security",
+      "key": "storage_capability",
+      "value": 1,
+      "cellRef": "J6"
+    },
+    {
+      "channelId": "fuel_supply",
+      "dimension": "security",
+      "key": "storage_capability",
+      "value": null,
+      "cellRef": "K6"
+    },
+    {
+      "channelId": "grid_development",
+      "dimension": "security",
+      "key": "storage_capability",
+      "value": 5,
+      "cellRef": "L6"
+    },
+    {
+      "channelId": "geothermal",
+      "dimension": "security",
+      "key": "storage_capability",
+      "value": 1,
+      "cellRef": "M6"
+    },
+    {
+      "channelId": "nuclear_smr",
+      "dimension": "security",
+      "key": "storage_capability",
+      "value": 1,
+      "cellRef": "N6"
+    },
+    {
+      "channelId": "nuclear_fusion",
+      "dimension": "security",
+      "key": "storage_capability",
+      "value": 1,
+      "cellRef": "O6"
+    },
+    {
+      "channelId": "hydrogen_import",
+      "dimension": "security",
+      "key": "storage_capability",
+      "value": 5,
+      "cellRef": "P6"
+    },
+    {
+      "channelId": "deepwater_gas_exploration",
+      "dimension": "security",
+      "key": "storage_capability",
+      "value": 1,
+      "cellRef": "Q6"
+    },
+    {
+      "channelId": "small_gas_fields",
+      "dimension": "security",
+      "key": "storage_capability",
+      "value": 1,
+      "cellRef": "R6"
+    },
+    {
+      "channelId": "return_to_coal",
+      "dimension": "security",
+      "key": "storage_capability",
+      "value": 5,
+      "cellRef": "S6"
+    },
+    {
+      "channelId": "efficiency",
+      "dimension": "security",
+      "key": "grid_reliability",
+      "value": 5,
+      "cellRef": "C7"
+    },
+    {
+      "channelId": "demand_reduction",
+      "dimension": "security",
+      "key": "grid_reliability",
+      "value": null,
+      "cellRef": "D7"
+    },
+    {
+      "channelId": "renewables_storage",
+      "dimension": "security",
+      "key": "grid_reliability",
+      "value": 3,
+      "cellRef": "E7"
+    },
+    {
+      "channelId": "regional_interconnection",
+      "dimension": "security",
+      "key": "grid_reliability",
+      "value": 4,
+      "cellRef": "F7"
+    },
+    {
+      "channelId": "lng_import",
+      "dimension": "security",
+      "key": "grid_reliability",
+      "value": 5,
+      "cellRef": "G7"
+    },
+    {
+      "channelId": "gas_ccs",
+      "dimension": "security",
+      "key": "grid_reliability",
+      "value": 5,
+      "cellRef": "H7"
+    },
+    {
+      "channelId": "pipeline_gas_import",
+      "dimension": "security",
+      "key": "grid_reliability",
+      "value": 5,
+      "cellRef": "I7"
+    },
+    {
+      "channelId": "gas_generation_expansion",
+      "dimension": "security",
+      "key": "grid_reliability",
+      "value": 5,
+      "cellRef": "J7"
+    },
+    {
+      "channelId": "fuel_supply",
+      "dimension": "security",
+      "key": "grid_reliability",
+      "value": null,
+      "cellRef": "K7"
+    },
+    {
+      "channelId": "grid_development",
+      "dimension": "security",
+      "key": "grid_reliability",
+      "value": 5,
+      "cellRef": "L7"
+    },
+    {
+      "channelId": "geothermal",
+      "dimension": "security",
+      "key": "grid_reliability",
+      "value": 5,
+      "cellRef": "M7"
+    },
+    {
+      "channelId": "nuclear_smr",
+      "dimension": "security",
+      "key": "grid_reliability",
+      "value": 5,
+      "cellRef": "N7"
+    },
+    {
+      "channelId": "nuclear_fusion",
+      "dimension": "security",
+      "key": "grid_reliability",
+      "value": 5,
+      "cellRef": "O7"
+    },
+    {
+      "channelId": "hydrogen_import",
+      "dimension": "security",
+      "key": "grid_reliability",
+      "value": 4,
+      "cellRef": "P7"
+    },
+    {
+      "channelId": "deepwater_gas_exploration",
+      "dimension": "security",
+      "key": "grid_reliability",
+      "value": 5,
+      "cellRef": "Q7"
+    },
+    {
+      "channelId": "small_gas_fields",
+      "dimension": "security",
+      "key": "grid_reliability",
+      "value": 5,
+      "cellRef": "R7"
+    },
+    {
+      "channelId": "return_to_coal",
+      "dimension": "security",
+      "key": "grid_reliability",
+      "value": 5,
+      "cellRef": "S7"
+    },
+    {
+      "channelId": "efficiency",
+      "dimension": "security",
+      "key": "redundancy",
+      "value": 5,
+      "cellRef": "C8"
+    },
+    {
+      "channelId": "demand_reduction",
+      "dimension": "security",
+      "key": "redundancy",
+      "value": null,
+      "cellRef": "D8"
+    },
+    {
+      "channelId": "renewables_storage",
+      "dimension": "security",
+      "key": "redundancy",
+      "value": 4,
+      "cellRef": "E8"
+    },
+    {
+      "channelId": "regional_interconnection",
+      "dimension": "security",
+      "key": "redundancy",
+      "value": 4,
+      "cellRef": "F8"
+    },
+    {
+      "channelId": "lng_import",
+      "dimension": "security",
+      "key": "redundancy",
+      "value": 4,
+      "cellRef": "G8"
+    },
+    {
+      "channelId": "gas_ccs",
+      "dimension": "security",
+      "key": "redundancy",
+      "value": 4,
+      "cellRef": "H8"
+    },
+    {
+      "channelId": "pipeline_gas_import",
+      "dimension": "security",
+      "key": "redundancy",
+      "value": 4,
+      "cellRef": "I8"
+    },
+    {
+      "channelId": "gas_generation_expansion",
+      "dimension": "security",
+      "key": "redundancy",
+      "value": 4,
+      "cellRef": "J8"
+    },
+    {
+      "channelId": "fuel_supply",
+      "dimension": "security",
+      "key": "redundancy",
+      "value": null,
+      "cellRef": "K8"
+    },
+    {
+      "channelId": "grid_development",
+      "dimension": "security",
+      "key": "redundancy",
+      "value": 5,
+      "cellRef": "L8"
+    },
+    {
+      "channelId": "geothermal",
+      "dimension": "security",
+      "key": "redundancy",
+      "value": 4,
+      "cellRef": "M8"
+    },
+    {
+      "channelId": "nuclear_smr",
+      "dimension": "security",
+      "key": "redundancy",
+      "value": 4,
+      "cellRef": "N8"
+    },
+    {
+      "channelId": "nuclear_fusion",
+      "dimension": "security",
+      "key": "redundancy",
+      "value": 4,
+      "cellRef": "O8"
+    },
+    {
+      "channelId": "hydrogen_import",
+      "dimension": "security",
+      "key": "redundancy",
+      "value": 4,
+      "cellRef": "P8"
+    },
+    {
+      "channelId": "deepwater_gas_exploration",
+      "dimension": "security",
+      "key": "redundancy",
+      "value": 4,
+      "cellRef": "Q8"
+    },
+    {
+      "channelId": "small_gas_fields",
+      "dimension": "security",
+      "key": "redundancy",
+      "value": 4,
+      "cellRef": "R8"
+    },
+    {
+      "channelId": "return_to_coal",
+      "dimension": "security",
+      "key": "redundancy",
+      "value": 4,
+      "cellRef": "S8"
+    },
+    {
+      "channelId": "efficiency",
+      "dimension": "environment",
+      "key": "co2_intensity",
+      "value": 5,
+      "cellRef": "C15"
+    },
+    {
+      "channelId": "demand_reduction",
+      "dimension": "environment",
+      "key": "co2_intensity",
+      "value": 5,
+      "cellRef": "D15"
+    },
+    {
+      "channelId": "renewables_storage",
+      "dimension": "environment",
+      "key": "co2_intensity",
+      "value": 5,
+      "cellRef": "E15"
+    },
+    {
+      "channelId": "regional_interconnection",
+      "dimension": "environment",
+      "key": "co2_intensity",
+      "value": 3,
+      "cellRef": "F15"
+    },
+    {
+      "channelId": "lng_import",
+      "dimension": "environment",
+      "key": "co2_intensity",
+      "value": 2,
+      "cellRef": "G15"
+    },
+    {
+      "channelId": "gas_ccs",
+      "dimension": "environment",
+      "key": "co2_intensity",
+      "value": 4,
+      "cellRef": "H15"
+    },
+    {
+      "channelId": "pipeline_gas_import",
+      "dimension": "environment",
+      "key": "co2_intensity",
+      "value": 2,
+      "cellRef": "I15"
+    },
+    {
+      "channelId": "gas_generation_expansion",
+      "dimension": "environment",
+      "key": "co2_intensity",
+      "value": 2,
+      "cellRef": "J15"
+    },
+    {
+      "channelId": "fuel_supply",
+      "dimension": "environment",
+      "key": "co2_intensity",
+      "value": null,
+      "cellRef": "K15"
+    },
+    {
+      "channelId": "grid_development",
+      "dimension": "environment",
+      "key": "co2_intensity",
+      "value": null,
+      "cellRef": "L15"
+    },
+    {
+      "channelId": "geothermal",
+      "dimension": "environment",
+      "key": "co2_intensity",
+      "value": 5,
+      "cellRef": "M15"
+    },
+    {
+      "channelId": "nuclear_smr",
+      "dimension": "environment",
+      "key": "co2_intensity",
+      "value": 5,
+      "cellRef": "N15"
+    },
+    {
+      "channelId": "nuclear_fusion",
+      "dimension": "environment",
+      "key": "co2_intensity",
+      "value": 5,
+      "cellRef": "O15"
+    },
+    {
+      "channelId": "hydrogen_import",
+      "dimension": "environment",
+      "key": "co2_intensity",
+      "value": 5,
+      "cellRef": "P15"
+    },
+    {
+      "channelId": "deepwater_gas_exploration",
+      "dimension": "environment",
+      "key": "co2_intensity",
+      "value": 2,
+      "cellRef": "Q15"
+    },
+    {
+      "channelId": "small_gas_fields",
+      "dimension": "environment",
+      "key": "co2_intensity",
+      "value": 2,
+      "cellRef": "R15"
+    },
+    {
+      "channelId": "return_to_coal",
+      "dimension": "environment",
+      "key": "co2_intensity",
+      "value": 1,
+      "cellRef": "S15"
+    },
+    {
+      "channelId": "efficiency",
+      "dimension": "environment",
+      "key": "renewable_share",
+      "value": 5,
+      "cellRef": "C16"
+    },
+    {
+      "channelId": "demand_reduction",
+      "dimension": "environment",
+      "key": "renewable_share",
+      "value": 5,
+      "cellRef": "D16"
+    },
+    {
+      "channelId": "renewables_storage",
+      "dimension": "environment",
+      "key": "renewable_share",
+      "value": 5,
+      "cellRef": "E16"
+    },
+    {
+      "channelId": "regional_interconnection",
+      "dimension": "environment",
+      "key": "renewable_share",
+      "value": 3,
+      "cellRef": "F16"
+    },
+    {
+      "channelId": "lng_import",
+      "dimension": "environment",
+      "key": "renewable_share",
+      "value": 1,
+      "cellRef": "G16"
+    },
+    {
+      "channelId": "gas_ccs",
+      "dimension": "environment",
+      "key": "renewable_share",
+      "value": 1,
+      "cellRef": "H16"
+    },
+    {
+      "channelId": "pipeline_gas_import",
+      "dimension": "environment",
+      "key": "renewable_share",
+      "value": 1,
+      "cellRef": "I16"
+    },
+    {
+      "channelId": "gas_generation_expansion",
+      "dimension": "environment",
+      "key": "renewable_share",
+      "value": 1,
+      "cellRef": "J16"
+    },
+    {
+      "channelId": "fuel_supply",
+      "dimension": "environment",
+      "key": "renewable_share",
+      "value": null,
+      "cellRef": "K16"
+    },
+    {
+      "channelId": "grid_development",
+      "dimension": "environment",
+      "key": "renewable_share",
+      "value": null,
+      "cellRef": "L16"
+    },
+    {
+      "channelId": "geothermal",
+      "dimension": "environment",
+      "key": "renewable_share",
+      "value": 5,
+      "cellRef": "M16"
+    },
+    {
+      "channelId": "nuclear_smr",
+      "dimension": "environment",
+      "key": "renewable_share",
+      "value": 5,
+      "cellRef": "N16"
+    },
+    {
+      "channelId": "nuclear_fusion",
+      "dimension": "environment",
+      "key": "renewable_share",
+      "value": 5,
+      "cellRef": "O16"
+    },
+    {
+      "channelId": "hydrogen_import",
+      "dimension": "environment",
+      "key": "renewable_share",
+      "value": 5,
+      "cellRef": "P16"
+    },
+    {
+      "channelId": "deepwater_gas_exploration",
+      "dimension": "environment",
+      "key": "renewable_share",
+      "value": 1,
+      "cellRef": "Q16"
+    },
+    {
+      "channelId": "small_gas_fields",
+      "dimension": "environment",
+      "key": "renewable_share",
+      "value": 1,
+      "cellRef": "R16"
+    },
+    {
+      "channelId": "return_to_coal",
+      "dimension": "environment",
+      "key": "renewable_share",
+      "value": 1,
+      "cellRef": "S16"
+    },
+    {
+      "channelId": "efficiency",
+      "dimension": "environment",
+      "key": "efficiency",
+      "value": 5,
+      "cellRef": "C17"
+    },
+    {
+      "channelId": "demand_reduction",
+      "dimension": "environment",
+      "key": "efficiency",
+      "value": 5,
+      "cellRef": "D17"
+    },
+    {
+      "channelId": "renewables_storage",
+      "dimension": "environment",
+      "key": "efficiency",
+      "value": 4,
+      "cellRef": "E17"
+    },
+    {
+      "channelId": "regional_interconnection",
+      "dimension": "environment",
+      "key": "efficiency",
+      "value": 4,
+      "cellRef": "F17"
+    },
+    {
+      "channelId": "lng_import",
+      "dimension": "environment",
+      "key": "efficiency",
+      "value": 4,
+      "cellRef": "G17"
+    },
+    {
+      "channelId": "gas_ccs",
+      "dimension": "environment",
+      "key": "efficiency",
+      "value": 3,
+      "cellRef": "H17"
+    },
+    {
+      "channelId": "pipeline_gas_import",
+      "dimension": "environment",
+      "key": "efficiency",
+      "value": 4,
+      "cellRef": "I17"
+    },
+    {
+      "channelId": "gas_generation_expansion",
+      "dimension": "environment",
+      "key": "efficiency",
+      "value": 4,
+      "cellRef": "J17"
+    },
+    {
+      "channelId": "fuel_supply",
+      "dimension": "environment",
+      "key": "efficiency",
+      "value": null,
+      "cellRef": "K17"
+    },
+    {
+      "channelId": "grid_development",
+      "dimension": "environment",
+      "key": "efficiency",
+      "value": null,
+      "cellRef": "L17"
+    },
+    {
+      "channelId": "geothermal",
+      "dimension": "environment",
+      "key": "efficiency",
+      "value": 4,
+      "cellRef": "M17"
+    },
+    {
+      "channelId": "nuclear_smr",
+      "dimension": "environment",
+      "key": "efficiency",
+      "value": 4,
+      "cellRef": "N17"
+    },
+    {
+      "channelId": "nuclear_fusion",
+      "dimension": "environment",
+      "key": "efficiency",
+      "value": 4,
+      "cellRef": "O17"
+    },
+    {
+      "channelId": "hydrogen_import",
+      "dimension": "environment",
+      "key": "efficiency",
+      "value": 4,
+      "cellRef": "P17"
+    },
+    {
+      "channelId": "deepwater_gas_exploration",
+      "dimension": "environment",
+      "key": "efficiency",
+      "value": 4,
+      "cellRef": "Q17"
+    },
+    {
+      "channelId": "small_gas_fields",
+      "dimension": "environment",
+      "key": "efficiency",
+      "value": 4,
+      "cellRef": "R17"
+    },
+    {
+      "channelId": "return_to_coal",
+      "dimension": "environment",
+      "key": "efficiency",
+      "value": 3,
+      "cellRef": "S17"
+    },
+    {
+      "channelId": "efficiency",
+      "dimension": "environment",
+      "key": "air_quality",
+      "value": 5,
+      "cellRef": "C18"
+    },
+    {
+      "channelId": "demand_reduction",
+      "dimension": "environment",
+      "key": "air_quality",
+      "value": 5,
+      "cellRef": "D18"
+    },
+    {
+      "channelId": "renewables_storage",
+      "dimension": "environment",
+      "key": "air_quality",
+      "value": 5,
+      "cellRef": "E18"
+    },
+    {
+      "channelId": "regional_interconnection",
+      "dimension": "environment",
+      "key": "air_quality",
+      "value": 4,
+      "cellRef": "F18"
+    },
+    {
+      "channelId": "lng_import",
+      "dimension": "environment",
+      "key": "air_quality",
+      "value": 3,
+      "cellRef": "G18"
+    },
+    {
+      "channelId": "gas_ccs",
+      "dimension": "environment",
+      "key": "air_quality",
+      "value": 3,
+      "cellRef": "H18"
+    },
+    {
+      "channelId": "pipeline_gas_import",
+      "dimension": "environment",
+      "key": "air_quality",
+      "value": 3,
+      "cellRef": "I18"
+    },
+    {
+      "channelId": "gas_generation_expansion",
+      "dimension": "environment",
+      "key": "air_quality",
+      "value": 3,
+      "cellRef": "J18"
+    },
+    {
+      "channelId": "fuel_supply",
+      "dimension": "environment",
+      "key": "air_quality",
+      "value": null,
+      "cellRef": "K18"
+    },
+    {
+      "channelId": "grid_development",
+      "dimension": "environment",
+      "key": "air_quality",
+      "value": null,
+      "cellRef": "L18"
+    },
+    {
+      "channelId": "geothermal",
+      "dimension": "environment",
+      "key": "air_quality",
+      "value": 5,
+      "cellRef": "M18"
+    },
+    {
+      "channelId": "nuclear_smr",
+      "dimension": "environment",
+      "key": "air_quality",
+      "value": 5,
+      "cellRef": "N18"
+    },
+    {
+      "channelId": "nuclear_fusion",
+      "dimension": "environment",
+      "key": "air_quality",
+      "value": 5,
+      "cellRef": "O18"
+    },
+    {
+      "channelId": "hydrogen_import",
+      "dimension": "environment",
+      "key": "air_quality",
+      "value": 5,
+      "cellRef": "P18"
+    },
+    {
+      "channelId": "deepwater_gas_exploration",
+      "dimension": "environment",
+      "key": "air_quality",
+      "value": 3,
+      "cellRef": "Q18"
+    },
+    {
+      "channelId": "small_gas_fields",
+      "dimension": "environment",
+      "key": "air_quality",
+      "value": 3,
+      "cellRef": "R18"
+    },
+    {
+      "channelId": "return_to_coal",
+      "dimension": "environment",
+      "key": "air_quality",
+      "value": 1,
+      "cellRef": "S18"
+    },
+    {
+      "channelId": "efficiency",
+      "dimension": "environment",
+      "key": "methane_emissions",
+      "value": 5,
+      "cellRef": "C19"
+    },
+    {
+      "channelId": "demand_reduction",
+      "dimension": "environment",
+      "key": "methane_emissions",
+      "value": 5,
+      "cellRef": "D19"
+    },
+    {
+      "channelId": "renewables_storage",
+      "dimension": "environment",
+      "key": "methane_emissions",
+      "value": 5,
+      "cellRef": "E19"
+    },
+    {
+      "channelId": "regional_interconnection",
+      "dimension": "environment",
+      "key": "methane_emissions",
+      "value": 5,
+      "cellRef": "F19"
+    },
+    {
+      "channelId": "lng_import",
+      "dimension": "environment",
+      "key": "methane_emissions",
+      "value": 2,
+      "cellRef": "G19"
+    },
+    {
+      "channelId": "gas_ccs",
+      "dimension": "environment",
+      "key": "methane_emissions",
+      "value": 2,
+      "cellRef": "H19"
+    },
+    {
+      "channelId": "pipeline_gas_import",
+      "dimension": "environment",
+      "key": "methane_emissions",
+      "value": 2,
+      "cellRef": "I19"
+    },
+    {
+      "channelId": "gas_generation_expansion",
+      "dimension": "environment",
+      "key": "methane_emissions",
+      "value": 2,
+      "cellRef": "J19"
+    },
+    {
+      "channelId": "fuel_supply",
+      "dimension": "environment",
+      "key": "methane_emissions",
+      "value": null,
+      "cellRef": "K19"
+    },
+    {
+      "channelId": "grid_development",
+      "dimension": "environment",
+      "key": "methane_emissions",
+      "value": null,
+      "cellRef": "L19"
+    },
+    {
+      "channelId": "geothermal",
+      "dimension": "environment",
+      "key": "methane_emissions",
+      "value": 5,
+      "cellRef": "M19"
+    },
+    {
+      "channelId": "nuclear_smr",
+      "dimension": "environment",
+      "key": "methane_emissions",
+      "value": 5,
+      "cellRef": "N19"
+    },
+    {
+      "channelId": "nuclear_fusion",
+      "dimension": "environment",
+      "key": "methane_emissions",
+      "value": 5,
+      "cellRef": "O19"
+    },
+    {
+      "channelId": "hydrogen_import",
+      "dimension": "environment",
+      "key": "methane_emissions",
+      "value": 5,
+      "cellRef": "P19"
+    },
+    {
+      "channelId": "deepwater_gas_exploration",
+      "dimension": "environment",
+      "key": "methane_emissions",
+      "value": 2,
+      "cellRef": "Q19"
+    },
+    {
+      "channelId": "small_gas_fields",
+      "dimension": "environment",
+      "key": "methane_emissions",
+      "value": 2,
+      "cellRef": "R19"
+    },
+    {
+      "channelId": "return_to_coal",
+      "dimension": "environment",
+      "key": "methane_emissions",
+      "value": 4,
+      "cellRef": "S19"
+    },
+    {
+      "channelId": "efficiency",
+      "dimension": "equity",
+      "key": "access_to_electricity",
+      "value": 5,
+      "cellRef": "C26"
+    },
+    {
+      "channelId": "demand_reduction",
+      "dimension": "equity",
+      "key": "access_to_electricity",
+      "value": 5,
+      "cellRef": "D26"
+    },
+    {
+      "channelId": "renewables_storage",
+      "dimension": "equity",
+      "key": "access_to_electricity",
+      "value": 5,
+      "cellRef": "E26"
+    },
+    {
+      "channelId": "regional_interconnection",
+      "dimension": "equity",
+      "key": "access_to_electricity",
+      "value": null,
+      "cellRef": "F26"
+    },
+    {
+      "channelId": "lng_import",
+      "dimension": "equity",
+      "key": "access_to_electricity",
+      "value": 5,
+      "cellRef": "G26"
+    },
+    {
+      "channelId": "gas_ccs",
+      "dimension": "equity",
+      "key": "access_to_electricity",
+      "value": 5,
+      "cellRef": "H26"
+    },
+    {
+      "channelId": "pipeline_gas_import",
+      "dimension": "equity",
+      "key": "access_to_electricity",
+      "value": 5,
+      "cellRef": "I26"
+    },
+    {
+      "channelId": "gas_generation_expansion",
+      "dimension": "equity",
+      "key": "access_to_electricity",
+      "value": 5,
+      "cellRef": "J26"
+    },
+    {
+      "channelId": "fuel_supply",
+      "dimension": "equity",
+      "key": "access_to_electricity",
+      "value": null,
+      "cellRef": "K26"
+    },
+    {
+      "channelId": "grid_development",
+      "dimension": "equity",
+      "key": "access_to_electricity",
+      "value": null,
+      "cellRef": "L26"
+    },
+    {
+      "channelId": "geothermal",
+      "dimension": "equity",
+      "key": "access_to_electricity",
+      "value": null,
+      "cellRef": "M26"
+    },
+    {
+      "channelId": "nuclear_smr",
+      "dimension": "equity",
+      "key": "access_to_electricity",
+      "value": 5,
+      "cellRef": "N26"
+    },
+    {
+      "channelId": "nuclear_fusion",
+      "dimension": "equity",
+      "key": "access_to_electricity",
+      "value": 5,
+      "cellRef": "O26"
+    },
+    {
+      "channelId": "hydrogen_import",
+      "dimension": "equity",
+      "key": "access_to_electricity",
+      "value": 5,
+      "cellRef": "P26"
+    },
+    {
+      "channelId": "deepwater_gas_exploration",
+      "dimension": "equity",
+      "key": "access_to_electricity",
+      "value": 5,
+      "cellRef": "Q26"
+    },
+    {
+      "channelId": "small_gas_fields",
+      "dimension": "equity",
+      "key": "access_to_electricity",
+      "value": 5,
+      "cellRef": "R26"
+    },
+    {
+      "channelId": "return_to_coal",
+      "dimension": "equity",
+      "key": "access_to_electricity",
+      "value": 5,
+      "cellRef": "S26"
+    },
+    {
+      "channelId": "efficiency",
+      "dimension": "equity",
+      "key": "clean_cooking",
+      "value": 5,
+      "cellRef": "C27"
+    },
+    {
+      "channelId": "demand_reduction",
+      "dimension": "equity",
+      "key": "clean_cooking",
+      "value": 5,
+      "cellRef": "D27"
+    },
+    {
+      "channelId": "renewables_storage",
+      "dimension": "equity",
+      "key": "clean_cooking",
+      "value": 5,
+      "cellRef": "E27"
+    },
+    {
+      "channelId": "regional_interconnection",
+      "dimension": "equity",
+      "key": "clean_cooking",
+      "value": null,
+      "cellRef": "F27"
+    },
+    {
+      "channelId": "lng_import",
+      "dimension": "equity",
+      "key": "clean_cooking",
+      "value": 4,
+      "cellRef": "G27"
+    },
+    {
+      "channelId": "gas_ccs",
+      "dimension": "equity",
+      "key": "clean_cooking",
+      "value": 4,
+      "cellRef": "H27"
+    },
+    {
+      "channelId": "pipeline_gas_import",
+      "dimension": "equity",
+      "key": "clean_cooking",
+      "value": 4,
+      "cellRef": "I27"
+    },
+    {
+      "channelId": "gas_generation_expansion",
+      "dimension": "equity",
+      "key": "clean_cooking",
+      "value": 4,
+      "cellRef": "J27"
+    },
+    {
+      "channelId": "fuel_supply",
+      "dimension": "equity",
+      "key": "clean_cooking",
+      "value": null,
+      "cellRef": "K27"
+    },
+    {
+      "channelId": "grid_development",
+      "dimension": "equity",
+      "key": "clean_cooking",
+      "value": null,
+      "cellRef": "L27"
+    },
+    {
+      "channelId": "geothermal",
+      "dimension": "equity",
+      "key": "clean_cooking",
+      "value": null,
+      "cellRef": "M27"
+    },
+    {
+      "channelId": "nuclear_smr",
+      "dimension": "equity",
+      "key": "clean_cooking",
+      "value": 5,
+      "cellRef": "N27"
+    },
+    {
+      "channelId": "nuclear_fusion",
+      "dimension": "equity",
+      "key": "clean_cooking",
+      "value": 5,
+      "cellRef": "O27"
+    },
+    {
+      "channelId": "hydrogen_import",
+      "dimension": "equity",
+      "key": "clean_cooking",
+      "value": 5,
+      "cellRef": "P27"
+    },
+    {
+      "channelId": "deepwater_gas_exploration",
+      "dimension": "equity",
+      "key": "clean_cooking",
+      "value": 4,
+      "cellRef": "Q27"
+    },
+    {
+      "channelId": "small_gas_fields",
+      "dimension": "equity",
+      "key": "clean_cooking",
+      "value": 4,
+      "cellRef": "R27"
+    },
+    {
+      "channelId": "return_to_coal",
+      "dimension": "equity",
+      "key": "clean_cooking",
+      "value": 2,
+      "cellRef": "S27"
+    },
+    {
+      "channelId": "efficiency",
+      "dimension": "equity",
+      "key": "electricity_price",
+      "value": 5,
+      "cellRef": "C28"
+    },
+    {
+      "channelId": "demand_reduction",
+      "dimension": "equity",
+      "key": "electricity_price",
+      "value": 5,
+      "cellRef": "D28"
+    },
+    {
+      "channelId": "renewables_storage",
+      "dimension": "equity",
+      "key": "electricity_price",
+      "value": 4,
+      "cellRef": "E28"
+    },
+    {
+      "channelId": "regional_interconnection",
+      "dimension": "equity",
+      "key": "electricity_price",
+      "value": null,
+      "cellRef": "F28"
+    },
+    {
+      "channelId": "lng_import",
+      "dimension": "equity",
+      "key": "electricity_price",
+      "value": 4,
+      "cellRef": "G28"
+    },
+    {
+      "channelId": "gas_ccs",
+      "dimension": "equity",
+      "key": "electricity_price",
+      "value": 2,
+      "cellRef": "H28"
+    },
+    {
+      "channelId": "pipeline_gas_import",
+      "dimension": "equity",
+      "key": "electricity_price",
+      "value": 4,
+      "cellRef": "I28"
+    },
+    {
+      "channelId": "gas_generation_expansion",
+      "dimension": "equity",
+      "key": "electricity_price",
+      "value": 4,
+      "cellRef": "J28"
+    },
+    {
+      "channelId": "fuel_supply",
+      "dimension": "equity",
+      "key": "electricity_price",
+      "value": null,
+      "cellRef": "K28"
+    },
+    {
+      "channelId": "grid_development",
+      "dimension": "equity",
+      "key": "electricity_price",
+      "value": null,
+      "cellRef": "L28"
+    },
+    {
+      "channelId": "geothermal",
+      "dimension": "equity",
+      "key": "electricity_price",
+      "value": null,
+      "cellRef": "M28"
+    },
+    {
+      "channelId": "nuclear_smr",
+      "dimension": "equity",
+      "key": "electricity_price",
+      "value": 2,
+      "cellRef": "N28"
+    },
+    {
+      "channelId": "nuclear_fusion",
+      "dimension": "equity",
+      "key": "electricity_price",
+      "value": 2,
+      "cellRef": "O28"
+    },
+    {
+      "channelId": "hydrogen_import",
+      "dimension": "equity",
+      "key": "electricity_price",
+      "value": 1,
+      "cellRef": "P28"
+    },
+    {
+      "channelId": "deepwater_gas_exploration",
+      "dimension": "equity",
+      "key": "electricity_price",
+      "value": 4,
+      "cellRef": "Q28"
+    },
+    {
+      "channelId": "small_gas_fields",
+      "dimension": "equity",
+      "key": "electricity_price",
+      "value": 4,
+      "cellRef": "R28"
+    },
+    {
+      "channelId": "return_to_coal",
+      "dimension": "equity",
+      "key": "electricity_price",
+      "value": 4,
+      "cellRef": "S28"
+    },
+    {
+      "channelId": "efficiency",
+      "dimension": "equity",
+      "key": "fuel_price",
+      "value": 5,
+      "cellRef": "C29"
+    },
+    {
+      "channelId": "demand_reduction",
+      "dimension": "equity",
+      "key": "fuel_price",
+      "value": 5,
+      "cellRef": "D29"
+    },
+    {
+      "channelId": "renewables_storage",
+      "dimension": "equity",
+      "key": "fuel_price",
+      "value": 5,
+      "cellRef": "E29"
+    },
+    {
+      "channelId": "regional_interconnection",
+      "dimension": "equity",
+      "key": "fuel_price",
+      "value": null,
+      "cellRef": "F29"
+    },
+    {
+      "channelId": "lng_import",
+      "dimension": "equity",
+      "key": "fuel_price",
+      "value": 4,
+      "cellRef": "G29"
+    },
+    {
+      "channelId": "gas_ccs",
+      "dimension": "equity",
+      "key": "fuel_price",
+      "value": 4,
+      "cellRef": "H29"
+    },
+    {
+      "channelId": "pipeline_gas_import",
+      "dimension": "equity",
+      "key": "fuel_price",
+      "value": 4,
+      "cellRef": "I29"
+    },
+    {
+      "channelId": "gas_generation_expansion",
+      "dimension": "equity",
+      "key": "fuel_price",
+      "value": 4,
+      "cellRef": "J29"
+    },
+    {
+      "channelId": "fuel_supply",
+      "dimension": "equity",
+      "key": "fuel_price",
+      "value": null,
+      "cellRef": "K29"
+    },
+    {
+      "channelId": "grid_development",
+      "dimension": "equity",
+      "key": "fuel_price",
+      "value": null,
+      "cellRef": "L29"
+    },
+    {
+      "channelId": "geothermal",
+      "dimension": "equity",
+      "key": "fuel_price",
+      "value": null,
+      "cellRef": "M29"
+    },
+    {
+      "channelId": "nuclear_smr",
+      "dimension": "equity",
+      "key": "fuel_price",
+      "value": 5,
+      "cellRef": "N29"
+    },
+    {
+      "channelId": "nuclear_fusion",
+      "dimension": "equity",
+      "key": "fuel_price",
+      "value": 5,
+      "cellRef": "O29"
+    },
+    {
+      "channelId": "hydrogen_import",
+      "dimension": "equity",
+      "key": "fuel_price",
+      "value": 2,
+      "cellRef": "P29"
+    },
+    {
+      "channelId": "deepwater_gas_exploration",
+      "dimension": "equity",
+      "key": "fuel_price",
+      "value": 4,
+      "cellRef": "Q29"
+    },
+    {
+      "channelId": "small_gas_fields",
+      "dimension": "equity",
+      "key": "fuel_price",
+      "value": 4,
+      "cellRef": "R29"
+    },
+    {
+      "channelId": "return_to_coal",
+      "dimension": "equity",
+      "key": "fuel_price",
+      "value": 4,
+      "cellRef": "S29"
+    },
+    {
+      "channelId": "efficiency",
+      "dimension": "equity",
+      "key": "industrial_price",
+      "value": 5,
+      "cellRef": "C30"
+    },
+    {
+      "channelId": "demand_reduction",
+      "dimension": "equity",
+      "key": "industrial_price",
+      "value": 5,
+      "cellRef": "D30"
+    },
+    {
+      "channelId": "renewables_storage",
+      "dimension": "equity",
+      "key": "industrial_price",
+      "value": 4,
+      "cellRef": "E30"
+    },
+    {
+      "channelId": "regional_interconnection",
+      "dimension": "equity",
+      "key": "industrial_price",
+      "value": null,
+      "cellRef": "F30"
+    },
+    {
+      "channelId": "lng_import",
+      "dimension": "equity",
+      "key": "industrial_price",
+      "value": 4,
+      "cellRef": "G30"
+    },
+    {
+      "channelId": "gas_ccs",
+      "dimension": "equity",
+      "key": "industrial_price",
+      "value": 2,
+      "cellRef": "H30"
+    },
+    {
+      "channelId": "pipeline_gas_import",
+      "dimension": "equity",
+      "key": "industrial_price",
+      "value": 4,
+      "cellRef": "I30"
+    },
+    {
+      "channelId": "gas_generation_expansion",
+      "dimension": "equity",
+      "key": "industrial_price",
+      "value": 4,
+      "cellRef": "J30"
+    },
+    {
+      "channelId": "fuel_supply",
+      "dimension": "equity",
+      "key": "industrial_price",
+      "value": null,
+      "cellRef": "K30"
+    },
+    {
+      "channelId": "grid_development",
+      "dimension": "equity",
+      "key": "industrial_price",
+      "value": null,
+      "cellRef": "L30"
+    },
+    {
+      "channelId": "geothermal",
+      "dimension": "equity",
+      "key": "industrial_price",
+      "value": null,
+      "cellRef": "M30"
+    },
+    {
+      "channelId": "nuclear_smr",
+      "dimension": "equity",
+      "key": "industrial_price",
+      "value": 2,
+      "cellRef": "N30"
+    },
+    {
+      "channelId": "nuclear_fusion",
+      "dimension": "equity",
+      "key": "industrial_price",
+      "value": 2,
+      "cellRef": "O30"
+    },
+    {
+      "channelId": "hydrogen_import",
+      "dimension": "equity",
+      "key": "industrial_price",
+      "value": 1,
+      "cellRef": "P30"
+    },
+    {
+      "channelId": "deepwater_gas_exploration",
+      "dimension": "equity",
+      "key": "industrial_price",
+      "value": 4,
+      "cellRef": "Q30"
+    },
+    {
+      "channelId": "small_gas_fields",
+      "dimension": "equity",
+      "key": "industrial_price",
+      "value": 4,
+      "cellRef": "R30"
+    },
+    {
+      "channelId": "return_to_coal",
+      "dimension": "equity",
+      "key": "industrial_price",
+      "value": 4,
+      "cellRef": "S30"
+    }
+  ],
+  "dimensionAverages": [
+    {
+      "channelId": "efficiency",
+      "dimension": "security",
+      "value": 4.2,
+      "cellRef": "C9"
+    },
+    {
+      "channelId": "demand_reduction",
+      "dimension": "security",
+      "value": null,
+      "cellRef": "D9"
+    },
+    {
+      "channelId": "renewables_storage",
+      "dimension": "security",
+      "value": 4.4,
+      "cellRef": "E9"
+    },
+    {
+      "channelId": "regional_interconnection",
+      "dimension": "security",
+      "value": 3,
+      "cellRef": "F9"
+    },
+    {
+      "channelId": "lng_import",
+      "dimension": "security",
+      "value": 3.8,
+      "cellRef": "G9"
+    },
+    {
+      "channelId": "gas_ccs",
+      "dimension": "security",
+      "value": 3.4,
+      "cellRef": "H9"
+    },
+    {
+      "channelId": "pipeline_gas_import",
+      "dimension": "security",
+      "value": 3.2,
+      "cellRef": "I9"
+    },
+    {
+      "channelId": "gas_generation_expansion",
+      "dimension": "security",
+      "value": 3.2,
+      "cellRef": "J9"
+    },
+    {
+      "channelId": "fuel_supply",
+      "dimension": "security",
+      "value": null,
+      "cellRef": "K9"
+    },
+    {
+      "channelId": "grid_development",
+      "dimension": "security",
+      "value": 5,
+      "cellRef": "L9"
+    },
+    {
+      "channelId": "geothermal",
+      "dimension": "security",
+      "value": 3.8,
+      "cellRef": "M9"
+    },
+    {
+      "channelId": "nuclear_smr",
+      "dimension": "security",
+      "value": 3.6,
+      "cellRef": "N9"
+    },
+    {
+      "channelId": "nuclear_fusion",
+      "dimension": "security",
+      "value": 3.8,
+      "cellRef": "O9"
+    },
+    {
+      "channelId": "hydrogen_import",
+      "dimension": "security",
+      "value": 3.8,
+      "cellRef": "P9"
+    },
+    {
+      "channelId": "deepwater_gas_exploration",
+      "dimension": "security",
+      "value": 3.6,
+      "cellRef": "Q9"
+    },
+    {
+      "channelId": "small_gas_fields",
+      "dimension": "security",
+      "value": 3.6,
+      "cellRef": "R9"
+    },
+    {
+      "channelId": "return_to_coal",
+      "dimension": "security",
+      "value": 4,
+      "cellRef": "S9"
+    },
+    {
+      "channelId": "efficiency",
+      "dimension": "environment",
+      "value": 5,
+      "cellRef": "C20"
+    },
+    {
+      "channelId": "demand_reduction",
+      "dimension": "environment",
+      "value": 5,
+      "cellRef": "D20"
+    },
+    {
+      "channelId": "renewables_storage",
+      "dimension": "environment",
+      "value": 4.8,
+      "cellRef": "E20"
+    },
+    {
+      "channelId": "regional_interconnection",
+      "dimension": "environment",
+      "value": 3.8,
+      "cellRef": "F20"
+    },
+    {
+      "channelId": "lng_import",
+      "dimension": "environment",
+      "value": 2.4,
+      "cellRef": "G20"
+    },
+    {
+      "channelId": "gas_ccs",
+      "dimension": "environment",
+      "value": 2.6,
+      "cellRef": "H20"
+    },
+    {
+      "channelId": "pipeline_gas_import",
+      "dimension": "environment",
+      "value": 2.4,
+      "cellRef": "I20"
+    },
+    {
+      "channelId": "gas_generation_expansion",
+      "dimension": "environment",
+      "value": 2.4,
+      "cellRef": "J20"
+    },
+    {
+      "channelId": "fuel_supply",
+      "dimension": "environment",
+      "value": null,
+      "cellRef": "K20"
+    },
+    {
+      "channelId": "grid_development",
+      "dimension": "environment",
+      "value": null,
+      "cellRef": "L20"
+    },
+    {
+      "channelId": "geothermal",
+      "dimension": "environment",
+      "value": 4.8,
+      "cellRef": "M20"
+    },
+    {
+      "channelId": "nuclear_smr",
+      "dimension": "environment",
+      "value": 4.8,
+      "cellRef": "N20"
+    },
+    {
+      "channelId": "nuclear_fusion",
+      "dimension": "environment",
+      "value": 4.8,
+      "cellRef": "O20"
+    },
+    {
+      "channelId": "hydrogen_import",
+      "dimension": "environment",
+      "value": 4.8,
+      "cellRef": "P20"
+    },
+    {
+      "channelId": "deepwater_gas_exploration",
+      "dimension": "environment",
+      "value": 2.4,
+      "cellRef": "Q20"
+    },
+    {
+      "channelId": "small_gas_fields",
+      "dimension": "environment",
+      "value": 2.4,
+      "cellRef": "R20"
+    },
+    {
+      "channelId": "return_to_coal",
+      "dimension": "environment",
+      "value": 2,
+      "cellRef": "S20"
+    },
+    {
+      "channelId": "efficiency",
+      "dimension": "equity",
+      "value": 5,
+      "cellRef": "C31"
+    },
+    {
+      "channelId": "demand_reduction",
+      "dimension": "equity",
+      "value": 5,
+      "cellRef": "D31"
+    },
+    {
+      "channelId": "renewables_storage",
+      "dimension": "equity",
+      "value": 4.6,
+      "cellRef": "E31"
+    },
+    {
+      "channelId": "regional_interconnection",
+      "dimension": "equity",
+      "value": null,
+      "cellRef": "F31"
+    },
+    {
+      "channelId": "lng_import",
+      "dimension": "equity",
+      "value": 4.2,
+      "cellRef": "G31"
+    },
+    {
+      "channelId": "gas_ccs",
+      "dimension": "equity",
+      "value": 3.4,
+      "cellRef": "H31"
+    },
+    {
+      "channelId": "pipeline_gas_import",
+      "dimension": "equity",
+      "value": 4.2,
+      "cellRef": "I31"
+    },
+    {
+      "channelId": "gas_generation_expansion",
+      "dimension": "equity",
+      "value": 4.2,
+      "cellRef": "J31"
+    },
+    {
+      "channelId": "fuel_supply",
+      "dimension": "equity",
+      "value": null,
+      "cellRef": "K31"
+    },
+    {
+      "channelId": "grid_development",
+      "dimension": "equity",
+      "value": null,
+      "cellRef": "L31"
+    },
+    {
+      "channelId": "geothermal",
+      "dimension": "equity",
+      "value": null,
+      "cellRef": "M31"
+    },
+    {
+      "channelId": "nuclear_smr",
+      "dimension": "equity",
+      "value": 3.8,
+      "cellRef": "N31"
+    },
+    {
+      "channelId": "nuclear_fusion",
+      "dimension": "equity",
+      "value": 3.8,
+      "cellRef": "O31"
+    },
+    {
+      "channelId": "hydrogen_import",
+      "dimension": "equity",
+      "value": 2.8,
+      "cellRef": "P31"
+    },
+    {
+      "channelId": "deepwater_gas_exploration",
+      "dimension": "equity",
+      "value": 4.2,
+      "cellRef": "Q31"
+    },
+    {
+      "channelId": "small_gas_fields",
+      "dimension": "equity",
+      "value": 4.2,
+      "cellRef": "R31"
+    },
+    {
+      "channelId": "return_to_coal",
+      "dimension": "equity",
+      "value": 3.8,
+      "cellRef": "S31"
+    }
+  ],
+  "trajectories": [
+    {
+      "channelId": "efficiency",
+      "metric": "generation",
+      "year": 2025,
+      "value": 1.3,
+      "cellRef": "C10"
+    },
+    {
+      "channelId": "demand_reduction",
+      "metric": "generation",
+      "year": 2025,
+      "value": 1.3,
+      "cellRef": "D10"
+    },
+    {
+      "channelId": "renewables_storage",
+      "metric": "generation",
+      "year": 2025,
+      "value": 8.8,
+      "cellRef": "E10"
+    },
+    {
+      "channelId": "regional_interconnection",
+      "metric": "generation",
+      "year": 2025,
+      "value": 3.5,
+      "cellRef": "F10"
+    },
+    {
+      "channelId": "lng_import",
+      "metric": "generation",
+      "year": 2025,
+      "value": 5.3,
+      "cellRef": "G10"
+    },
+    {
+      "channelId": "gas_ccs",
+      "metric": "generation",
+      "year": 2025,
+      "value": 6.1,
+      "cellRef": "H10"
+    },
+    {
+      "channelId": "pipeline_gas_import",
+      "metric": "generation",
+      "year": 2025,
+      "value": 5.3,
+      "cellRef": "I10"
+    },
+    {
+      "channelId": "gas_generation_expansion",
+      "metric": "generation",
+      "year": 2025,
+      "value": 5.3,
+      "cellRef": "J10"
+    },
+    {
+      "channelId": "fuel_supply",
+      "metric": "generation",
+      "year": 2025,
+      "value": null,
+      "cellRef": "K10"
+    },
+    {
+      "channelId": "grid_development",
+      "metric": "generation",
+      "year": 2025,
+      "value": null,
+      "cellRef": "L10"
+    },
+    {
+      "channelId": "geothermal",
+      "metric": "generation",
+      "year": 2025,
+      "value": 6.1,
+      "cellRef": "M10"
+    },
+    {
+      "channelId": "nuclear_smr",
+      "metric": "generation",
+      "year": 2025,
+      "value": 6.3,
+      "cellRef": "N10"
+    },
+    {
+      "channelId": "nuclear_fusion",
+      "metric": "generation",
+      "year": 2025,
+      "value": 3.5,
+      "cellRef": "O10"
+    },
+    {
+      "channelId": "hydrogen_import",
+      "metric": "generation",
+      "year": 2025,
+      "value": 3.5,
+      "cellRef": "P10"
+    },
+    {
+      "channelId": "deepwater_gas_exploration",
+      "metric": "generation",
+      "year": 2025,
+      "value": 1.1,
+      "cellRef": "Q10"
+    },
+    {
+      "channelId": "small_gas_fields",
+      "metric": "generation",
+      "year": 2025,
+      "value": 0.5,
+      "cellRef": "R10"
+    },
+    {
+      "channelId": "return_to_coal",
+      "metric": "generation",
+      "year": 2025,
+      "value": 3.1,
+      "cellRef": "S10"
+    },
+    {
+      "channelId": "efficiency",
+      "metric": "generation",
+      "year": 2030,
+      "value": 3.9,
+      "cellRef": "C11"
+    },
+    {
+      "channelId": "demand_reduction",
+      "metric": "generation",
+      "year": 2030,
+      "value": 3.9,
+      "cellRef": "D11"
+    },
+    {
+      "channelId": "renewables_storage",
+      "metric": "generation",
+      "year": 2030,
+      "value": 26.3,
+      "cellRef": "E11"
+    },
+    {
+      "channelId": "regional_interconnection",
+      "metric": "generation",
+      "year": 2030,
+      "value": 10.5,
+      "cellRef": "F11"
+    },
+    {
+      "channelId": "lng_import",
+      "metric": "generation",
+      "year": 2030,
+      "value": 15.8,
+      "cellRef": "G11"
+    },
+    {
+      "channelId": "gas_ccs",
+      "metric": "generation",
+      "year": 2030,
+      "value": 18.4,
+      "cellRef": "H11"
+    },
+    {
+      "channelId": "pipeline_gas_import",
+      "metric": "generation",
+      "year": 2030,
+      "value": 15.8,
+      "cellRef": "I11"
+    },
+    {
+      "channelId": "gas_generation_expansion",
+      "metric": "generation",
+      "year": 2030,
+      "value": 15.8,
+      "cellRef": "J11"
+    },
+    {
+      "channelId": "fuel_supply",
+      "metric": "generation",
+      "year": 2030,
+      "value": null,
+      "cellRef": "K11"
+    },
+    {
+      "channelId": "grid_development",
+      "metric": "generation",
+      "year": 2030,
+      "value": null,
+      "cellRef": "L11"
+    },
+    {
+      "channelId": "geothermal",
+      "metric": "generation",
+      "year": 2030,
+      "value": 18.4,
+      "cellRef": "M11"
+    },
+    {
+      "channelId": "nuclear_smr",
+      "metric": "generation",
+      "year": 2030,
+      "value": 18.9,
+      "cellRef": "N11"
+    },
+    {
+      "channelId": "nuclear_fusion",
+      "metric": "generation",
+      "year": 2030,
+      "value": 10.5,
+      "cellRef": "O11"
+    },
+    {
+      "channelId": "hydrogen_import",
+      "metric": "generation",
+      "year": 2030,
+      "value": 10.5,
+      "cellRef": "P11"
+    },
+    {
+      "channelId": "deepwater_gas_exploration",
+      "metric": "generation",
+      "year": 2030,
+      "value": 3.2,
+      "cellRef": "Q11"
+    },
+    {
+      "channelId": "small_gas_fields",
+      "metric": "generation",
+      "year": 2030,
+      "value": 1.6,
+      "cellRef": "R11"
+    },
+    {
+      "channelId": "return_to_coal",
+      "metric": "generation",
+      "year": 2030,
+      "value": 9.2,
+      "cellRef": "S11"
+    },
+    {
+      "channelId": "efficiency",
+      "metric": "generation",
+      "year": 2040,
+      "value": 8.5,
+      "cellRef": "C12"
+    },
+    {
+      "channelId": "demand_reduction",
+      "metric": "generation",
+      "year": 2040,
+      "value": 8.5,
+      "cellRef": "D12"
+    },
+    {
+      "channelId": "renewables_storage",
+      "metric": "generation",
+      "year": 2040,
+      "value": 56.9,
+      "cellRef": "E12"
+    },
+    {
+      "channelId": "regional_interconnection",
+      "metric": "generation",
+      "year": 2040,
+      "value": 22.8,
+      "cellRef": "F12"
+    },
+    {
+      "channelId": "lng_import",
+      "metric": "generation",
+      "year": 2040,
+      "value": 34.2,
+      "cellRef": "G12"
+    },
+    {
+      "channelId": "gas_ccs",
+      "metric": "generation",
+      "year": 2040,
+      "value": 39.9,
+      "cellRef": "H12"
+    },
+    {
+      "channelId": "pipeline_gas_import",
+      "metric": "generation",
+      "year": 2040,
+      "value": 34.2,
+      "cellRef": "I12"
+    },
+    {
+      "channelId": "gas_generation_expansion",
+      "metric": "generation",
+      "year": 2040,
+      "value": 34.2,
+      "cellRef": "J12"
+    },
+    {
+      "channelId": "fuel_supply",
+      "metric": "generation",
+      "year": 2040,
+      "value": null,
+      "cellRef": "K12"
+    },
+    {
+      "channelId": "grid_development",
+      "metric": "generation",
+      "year": 2040,
+      "value": null,
+      "cellRef": "L12"
+    },
+    {
+      "channelId": "geothermal",
+      "metric": "generation",
+      "year": 2040,
+      "value": 39.9,
+      "cellRef": "M12"
+    },
+    {
+      "channelId": "nuclear_smr",
+      "metric": "generation",
+      "year": 2040,
+      "value": 41,
+      "cellRef": "N12"
+    },
+    {
+      "channelId": "nuclear_fusion",
+      "metric": "generation",
+      "year": 2040,
+      "value": 22.8,
+      "cellRef": "O12"
+    },
+    {
+      "channelId": "hydrogen_import",
+      "metric": "generation",
+      "year": 2040,
+      "value": 22.8,
+      "cellRef": "P12"
+    },
+    {
+      "channelId": "deepwater_gas_exploration",
+      "metric": "generation",
+      "year": 2040,
+      "value": 6.8,
+      "cellRef": "Q12"
+    },
+    {
+      "channelId": "small_gas_fields",
+      "metric": "generation",
+      "year": 2040,
+      "value": 3.4,
+      "cellRef": "R12"
+    },
+    {
+      "channelId": "return_to_coal",
+      "metric": "generation",
+      "year": 2040,
+      "value": 19.9,
+      "cellRef": "S12"
+    },
+    {
+      "channelId": "efficiency",
+      "metric": "generation",
+      "year": 2050,
+      "value": 13.1,
+      "cellRef": "C13"
+    },
+    {
+      "channelId": "demand_reduction",
+      "metric": "generation",
+      "year": 2050,
+      "value": 13.1,
+      "cellRef": "D13"
+    },
+    {
+      "channelId": "renewables_storage",
+      "metric": "generation",
+      "year": 2050,
+      "value": 87.6,
+      "cellRef": "E13"
+    },
+    {
+      "channelId": "regional_interconnection",
+      "metric": "generation",
+      "year": 2050,
+      "value": 35,
+      "cellRef": "F13"
+    },
+    {
+      "channelId": "lng_import",
+      "metric": "generation",
+      "year": 2050,
+      "value": 52.6,
+      "cellRef": "G13"
+    },
+    {
+      "channelId": "gas_ccs",
+      "metric": "generation",
+      "year": 2050,
+      "value": 61.3,
+      "cellRef": "H13"
+    },
+    {
+      "channelId": "pipeline_gas_import",
+      "metric": "generation",
+      "year": 2050,
+      "value": 52.6,
+      "cellRef": "I13"
+    },
+    {
+      "channelId": "gas_generation_expansion",
+      "metric": "generation",
+      "year": 2050,
+      "value": 52.6,
+      "cellRef": "J13"
+    },
+    {
+      "channelId": "fuel_supply",
+      "metric": "generation",
+      "year": 2050,
+      "value": null,
+      "cellRef": "K13"
+    },
+    {
+      "channelId": "grid_development",
+      "metric": "generation",
+      "year": 2050,
+      "value": null,
+      "cellRef": "L13"
+    },
+    {
+      "channelId": "geothermal",
+      "metric": "generation",
+      "year": 2050,
+      "value": 61.3,
+      "cellRef": "M13"
+    },
+    {
+      "channelId": "nuclear_smr",
+      "metric": "generation",
+      "year": 2050,
+      "value": 63.1,
+      "cellRef": "N13"
+    },
+    {
+      "channelId": "nuclear_fusion",
+      "metric": "generation",
+      "year": 2050,
+      "value": 35,
+      "cellRef": "O13"
+    },
+    {
+      "channelId": "hydrogen_import",
+      "metric": "generation",
+      "year": 2050,
+      "value": 35,
+      "cellRef": "P13"
+    },
+    {
+      "channelId": "deepwater_gas_exploration",
+      "metric": "generation",
+      "year": 2050,
+      "value": 10.5,
+      "cellRef": "Q13"
+    },
+    {
+      "channelId": "small_gas_fields",
+      "metric": "generation",
+      "year": 2050,
+      "value": 5.3,
+      "cellRef": "R13"
+    },
+    {
+      "channelId": "return_to_coal",
+      "metric": "generation",
+      "year": 2050,
+      "value": 30.7,
+      "cellRef": "S13"
+    },
+    {
+      "channelId": "efficiency",
+      "metric": "emissions",
+      "year": 2025,
+      "value": -0.5,
+      "cellRef": "C21"
+    },
+    {
+      "channelId": "demand_reduction",
+      "metric": "emissions",
+      "year": 2025,
+      "value": -0.5,
+      "cellRef": "D21"
+    },
+    {
+      "channelId": "renewables_storage",
+      "metric": "emissions",
+      "year": 2025,
+      "value": 0,
+      "cellRef": "E21"
+    },
+    {
+      "channelId": "regional_interconnection",
+      "metric": "emissions",
+      "year": 2025,
+      "value": 1.1,
+      "cellRef": "F21"
+    },
+    {
+      "channelId": "lng_import",
+      "metric": "emissions",
+      "year": 2025,
+      "value": 2.4,
+      "cellRef": "G21"
+    },
+    {
+      "channelId": "gas_ccs",
+      "metric": "emissions",
+      "year": 2025,
+      "value": 0.6,
+      "cellRef": "H21"
+    },
+    {
+      "channelId": "pipeline_gas_import",
+      "metric": "emissions",
+      "year": 2025,
+      "value": 2.1,
+      "cellRef": "I21"
+    },
+    {
+      "channelId": "gas_generation_expansion",
+      "metric": "emissions",
+      "year": 2025,
+      "value": 2.1,
+      "cellRef": "J21"
+    },
+    {
+      "channelId": "fuel_supply",
+      "metric": "emissions",
+      "year": 2025,
+      "value": null,
+      "cellRef": "K21"
+    },
+    {
+      "channelId": "grid_development",
+      "metric": "emissions",
+      "year": 2025,
+      "value": null,
+      "cellRef": "L21"
+    },
+    {
+      "channelId": "geothermal",
+      "metric": "emissions",
+      "year": 2025,
+      "value": 0,
+      "cellRef": "M21"
+    },
+    {
+      "channelId": "nuclear_smr",
+      "metric": "emissions",
+      "year": 2025,
+      "value": 0,
+      "cellRef": "N21"
+    },
+    {
+      "channelId": "nuclear_fusion",
+      "metric": "emissions",
+      "year": 2025,
+      "value": 0,
+      "cellRef": "O21"
+    },
+    {
+      "channelId": "hydrogen_import",
+      "metric": "emissions",
+      "year": 2025,
+      "value": 0,
+      "cellRef": "P21"
+    },
+    {
+      "channelId": "deepwater_gas_exploration",
+      "metric": "emissions",
+      "year": 2025,
+      "value": 0.4,
+      "cellRef": "Q21"
+    },
+    {
+      "channelId": "small_gas_fields",
+      "metric": "emissions",
+      "year": 2025,
+      "value": 0.2,
+      "cellRef": "R21"
+    },
+    {
+      "channelId": "return_to_coal",
+      "metric": "emissions",
+      "year": 2025,
+      "value": 2.8,
+      "cellRef": "S21"
+    },
+    {
+      "channelId": "efficiency",
+      "metric": "emissions",
+      "year": 2030,
+      "value": -1.6,
+      "cellRef": "C22"
+    },
+    {
+      "channelId": "demand_reduction",
+      "metric": "emissions",
+      "year": 2030,
+      "value": -1.6,
+      "cellRef": "D22"
+    },
+    {
+      "channelId": "renewables_storage",
+      "metric": "emissions",
+      "year": 2030,
+      "value": 0,
+      "cellRef": "E22"
+    },
+    {
+      "channelId": "regional_interconnection",
+      "metric": "emissions",
+      "year": 2030,
+      "value": 3.2,
+      "cellRef": "F22"
+    },
+    {
+      "channelId": "lng_import",
+      "metric": "emissions",
+      "year": 2030,
+      "value": 7.1,
+      "cellRef": "G22"
+    },
+    {
+      "channelId": "gas_ccs",
+      "metric": "emissions",
+      "year": 2030,
+      "value": 1.8,
+      "cellRef": "H22"
+    },
+    {
+      "channelId": "pipeline_gas_import",
+      "metric": "emissions",
+      "year": 2030,
+      "value": 6.3,
+      "cellRef": "I22"
+    },
+    {
+      "channelId": "gas_generation_expansion",
+      "metric": "emissions",
+      "year": 2030,
+      "value": 6.3,
+      "cellRef": "J22"
+    },
+    {
+      "channelId": "fuel_supply",
+      "metric": "emissions",
+      "year": 2030,
+      "value": null,
+      "cellRef": "K22"
+    },
+    {
+      "channelId": "grid_development",
+      "metric": "emissions",
+      "year": 2030,
+      "value": null,
+      "cellRef": "L22"
+    },
+    {
+      "channelId": "geothermal",
+      "metric": "emissions",
+      "year": 2030,
+      "value": 0,
+      "cellRef": "M22"
+    },
+    {
+      "channelId": "nuclear_smr",
+      "metric": "emissions",
+      "year": 2030,
+      "value": 0,
+      "cellRef": "N22"
+    },
+    {
+      "channelId": "nuclear_fusion",
+      "metric": "emissions",
+      "year": 2030,
+      "value": 0,
+      "cellRef": "O22"
+    },
+    {
+      "channelId": "hydrogen_import",
+      "metric": "emissions",
+      "year": 2030,
+      "value": 0,
+      "cellRef": "P22"
+    },
+    {
+      "channelId": "deepwater_gas_exploration",
+      "metric": "emissions",
+      "year": 2030,
+      "value": 1.3,
+      "cellRef": "Q22"
+    },
+    {
+      "channelId": "small_gas_fields",
+      "metric": "emissions",
+      "year": 2030,
+      "value": 0.6,
+      "cellRef": "R22"
+    },
+    {
+      "channelId": "return_to_coal",
+      "metric": "emissions",
+      "year": 2030,
+      "value": 8.3,
+      "cellRef": "S22"
+    },
+    {
+      "channelId": "efficiency",
+      "metric": "emissions",
+      "year": 2040,
+      "value": -3.4,
+      "cellRef": "C23"
+    },
+    {
+      "channelId": "demand_reduction",
+      "metric": "emissions",
+      "year": 2040,
+      "value": -3.4,
+      "cellRef": "D23"
+    },
+    {
+      "channelId": "renewables_storage",
+      "metric": "emissions",
+      "year": 2040,
+      "value": 0,
+      "cellRef": "E23"
+    },
+    {
+      "channelId": "regional_interconnection",
+      "metric": "emissions",
+      "year": 2040,
+      "value": 6.8,
+      "cellRef": "F23"
+    },
+    {
+      "channelId": "lng_import",
+      "metric": "emissions",
+      "year": 2040,
+      "value": 15.4,
+      "cellRef": "G23"
+    },
+    {
+      "channelId": "gas_ccs",
+      "metric": "emissions",
+      "year": 2040,
+      "value": 4,
+      "cellRef": "H23"
+    },
+    {
+      "channelId": "pipeline_gas_import",
+      "metric": "emissions",
+      "year": 2040,
+      "value": 13.7,
+      "cellRef": "I23"
+    },
+    {
+      "channelId": "gas_generation_expansion",
+      "metric": "emissions",
+      "year": 2040,
+      "value": 13.7,
+      "cellRef": "J23"
+    },
+    {
+      "channelId": "fuel_supply",
+      "metric": "emissions",
+      "year": 2040,
+      "value": null,
+      "cellRef": "K23"
+    },
+    {
+      "channelId": "grid_development",
+      "metric": "emissions",
+      "year": 2040,
+      "value": null,
+      "cellRef": "L23"
+    },
+    {
+      "channelId": "geothermal",
+      "metric": "emissions",
+      "year": 2040,
+      "value": 0,
+      "cellRef": "M23"
+    },
+    {
+      "channelId": "nuclear_smr",
+      "metric": "emissions",
+      "year": 2040,
+      "value": 0,
+      "cellRef": "N23"
+    },
+    {
+      "channelId": "nuclear_fusion",
+      "metric": "emissions",
+      "year": 2040,
+      "value": 0,
+      "cellRef": "O23"
+    },
+    {
+      "channelId": "hydrogen_import",
+      "metric": "emissions",
+      "year": 2040,
+      "value": 0,
+      "cellRef": "P23"
+    },
+    {
+      "channelId": "deepwater_gas_exploration",
+      "metric": "emissions",
+      "year": 2040,
+      "value": 2.7,
+      "cellRef": "Q23"
+    },
+    {
+      "channelId": "small_gas_fields",
+      "metric": "emissions",
+      "year": 2040,
+      "value": 1.4,
+      "cellRef": "R23"
+    },
+    {
+      "channelId": "return_to_coal",
+      "metric": "emissions",
+      "year": 2040,
+      "value": 17.9,
+      "cellRef": "S23"
+    },
+    {
+      "channelId": "efficiency",
+      "metric": "emissions",
+      "year": 2050,
+      "value": -5.3,
+      "cellRef": "C24"
+    },
+    {
+      "channelId": "demand_reduction",
+      "metric": "emissions",
+      "year": 2050,
+      "value": -5.3,
+      "cellRef": "D24"
+    },
+    {
+      "channelId": "renewables_storage",
+      "metric": "emissions",
+      "year": 2050,
+      "value": 0,
+      "cellRef": "E24"
+    },
+    {
+      "channelId": "regional_interconnection",
+      "metric": "emissions",
+      "year": 2050,
+      "value": 10.5,
+      "cellRef": "F24"
+    },
+    {
+      "channelId": "lng_import",
+      "metric": "emissions",
+      "year": 2050,
+      "value": 23.7,
+      "cellRef": "G24"
+    },
+    {
+      "channelId": "gas_ccs",
+      "metric": "emissions",
+      "year": 2050,
+      "value": 6.1,
+      "cellRef": "H24"
+    },
+    {
+      "channelId": "pipeline_gas_import",
+      "metric": "emissions",
+      "year": 2050,
+      "value": 21,
+      "cellRef": "I24"
+    },
+    {
+      "channelId": "gas_generation_expansion",
+      "metric": "emissions",
+      "year": 2050,
+      "value": 21,
+      "cellRef": "J24"
+    },
+    {
+      "channelId": "fuel_supply",
+      "metric": "emissions",
+      "year": 2050,
+      "value": null,
+      "cellRef": "K24"
+    },
+    {
+      "channelId": "grid_development",
+      "metric": "emissions",
+      "year": 2050,
+      "value": null,
+      "cellRef": "L24"
+    },
+    {
+      "channelId": "geothermal",
+      "metric": "emissions",
+      "year": 2050,
+      "value": 0,
+      "cellRef": "M24"
+    },
+    {
+      "channelId": "nuclear_smr",
+      "metric": "emissions",
+      "year": 2050,
+      "value": 0,
+      "cellRef": "N24"
+    },
+    {
+      "channelId": "nuclear_fusion",
+      "metric": "emissions",
+      "year": 2050,
+      "value": 0,
+      "cellRef": "O24"
+    },
+    {
+      "channelId": "hydrogen_import",
+      "metric": "emissions",
+      "year": 2050,
+      "value": 0,
+      "cellRef": "P24"
+    },
+    {
+      "channelId": "deepwater_gas_exploration",
+      "metric": "emissions",
+      "year": 2050,
+      "value": 4.2,
+      "cellRef": "Q24"
+    },
+    {
+      "channelId": "small_gas_fields",
+      "metric": "emissions",
+      "year": 2050,
+      "value": 2.1,
+      "cellRef": "R24"
+    },
+    {
+      "channelId": "return_to_coal",
+      "metric": "emissions",
+      "year": 2050,
+      "value": 27.6,
+      "cellRef": "S24"
+    },
+    {
+      "channelId": "efficiency",
+      "metric": "price_impact",
+      "year": 2025,
+      "value": -0.5,
+      "cellRef": "C32"
+    },
+    {
+      "channelId": "demand_reduction",
+      "metric": "price_impact",
+      "year": 2025,
+      "value": -0.5,
+      "cellRef": "D32"
+    },
+    {
+      "channelId": "renewables_storage",
+      "metric": "price_impact",
+      "year": 2025,
+      "value": 0.5,
+      "cellRef": "E32"
+    },
+    {
+      "channelId": "regional_interconnection",
+      "metric": "price_impact",
+      "year": 2025,
+      "value": null,
+      "cellRef": "F32"
+    },
+    {
+      "channelId": "lng_import",
+      "metric": "price_impact",
+      "year": 2025,
+      "value": 1,
+      "cellRef": "G32"
+    },
+    {
+      "channelId": "gas_ccs",
+      "metric": "price_impact",
+      "year": 2025,
+      "value": 1,
+      "cellRef": "H32"
+    },
+    {
+      "channelId": "pipeline_gas_import",
+      "metric": "price_impact",
+      "year": 2025,
+      "value": 0,
+      "cellRef": "I32"
+    },
+    {
+      "channelId": "gas_generation_expansion",
+      "metric": "price_impact",
+      "year": 2025,
+      "value": 0,
+      "cellRef": "J32"
+    },
+    {
+      "channelId": "fuel_supply",
+      "metric": "price_impact",
+      "year": 2025,
+      "value": null,
+      "cellRef": "K32"
+    },
+    {
+      "channelId": "grid_development",
+      "metric": "price_impact",
+      "year": 2025,
+      "value": null,
+      "cellRef": "L32"
+    },
+    {
+      "channelId": "geothermal",
+      "metric": "price_impact",
+      "year": 2025,
+      "value": null,
+      "cellRef": "M32"
+    },
+    {
+      "channelId": "nuclear_smr",
+      "metric": "price_impact",
+      "year": 2025,
+      "value": 1.5,
+      "cellRef": "N32"
+    },
+    {
+      "channelId": "nuclear_fusion",
+      "metric": "price_impact",
+      "year": 2025,
+      "value": 3,
+      "cellRef": "O32"
+    },
+    {
+      "channelId": "hydrogen_import",
+      "metric": "price_impact",
+      "year": 2025,
+      "value": 3,
+      "cellRef": "P32"
+    },
+    {
+      "channelId": "deepwater_gas_exploration",
+      "metric": "price_impact",
+      "year": 2025,
+      "value": 0,
+      "cellRef": "Q32"
+    },
+    {
+      "channelId": "small_gas_fields",
+      "metric": "price_impact",
+      "year": 2025,
+      "value": 0,
+      "cellRef": "R32"
+    },
+    {
+      "channelId": "return_to_coal",
+      "metric": "price_impact",
+      "year": 2025,
+      "value": 0,
+      "cellRef": "S32"
+    },
+    {
+      "channelId": "efficiency",
+      "metric": "price_impact",
+      "year": 2030,
+      "value": -1,
+      "cellRef": "C33"
+    },
+    {
+      "channelId": "demand_reduction",
+      "metric": "price_impact",
+      "year": 2030,
+      "value": -1,
+      "cellRef": "D33"
+    },
+    {
+      "channelId": "renewables_storage",
+      "metric": "price_impact",
+      "year": 2030,
+      "value": -0.5,
+      "cellRef": "E33"
+    },
+    {
+      "channelId": "regional_interconnection",
+      "metric": "price_impact",
+      "year": 2030,
+      "value": null,
+      "cellRef": "F33"
+    },
+    {
+      "channelId": "lng_import",
+      "metric": "price_impact",
+      "year": 2030,
+      "value": 1.5,
+      "cellRef": "G33"
+    },
+    {
+      "channelId": "gas_ccs",
+      "metric": "price_impact",
+      "year": 2030,
+      "value": 2,
+      "cellRef": "H33"
+    },
+    {
+      "channelId": "pipeline_gas_import",
+      "metric": "price_impact",
+      "year": 2030,
+      "value": 0,
+      "cellRef": "I33"
+    },
+    {
+      "channelId": "gas_generation_expansion",
+      "metric": "price_impact",
+      "year": 2030,
+      "value": 0,
+      "cellRef": "J33"
+    },
+    {
+      "channelId": "fuel_supply",
+      "metric": "price_impact",
+      "year": 2030,
+      "value": null,
+      "cellRef": "K33"
+    },
+    {
+      "channelId": "grid_development",
+      "metric": "price_impact",
+      "year": 2030,
+      "value": null,
+      "cellRef": "L33"
+    },
+    {
+      "channelId": "geothermal",
+      "metric": "price_impact",
+      "year": 2030,
+      "value": null,
+      "cellRef": "M33"
+    },
+    {
+      "channelId": "nuclear_smr",
+      "metric": "price_impact",
+      "year": 2030,
+      "value": 2.5,
+      "cellRef": "N33"
+    },
+    {
+      "channelId": "nuclear_fusion",
+      "metric": "price_impact",
+      "year": 2030,
+      "value": 4,
+      "cellRef": "O33"
+    },
+    {
+      "channelId": "hydrogen_import",
+      "metric": "price_impact",
+      "year": 2030,
+      "value": 4,
+      "cellRef": "P33"
+    },
+    {
+      "channelId": "deepwater_gas_exploration",
+      "metric": "price_impact",
+      "year": 2030,
+      "value": 0,
+      "cellRef": "Q33"
+    },
+    {
+      "channelId": "small_gas_fields",
+      "metric": "price_impact",
+      "year": 2030,
+      "value": 0,
+      "cellRef": "R33"
+    },
+    {
+      "channelId": "return_to_coal",
+      "metric": "price_impact",
+      "year": 2030,
+      "value": 1.5,
+      "cellRef": "S33"
+    },
+    {
+      "channelId": "efficiency",
+      "metric": "price_impact",
+      "year": 2040,
+      "value": -1.5,
+      "cellRef": "C34"
+    },
+    {
+      "channelId": "demand_reduction",
+      "metric": "price_impact",
+      "year": 2040,
+      "value": -1.5,
+      "cellRef": "D34"
+    },
+    {
+      "channelId": "renewables_storage",
+      "metric": "price_impact",
+      "year": 2040,
+      "value": -1.5,
+      "cellRef": "E34"
+    },
+    {
+      "channelId": "regional_interconnection",
+      "metric": "price_impact",
+      "year": 2040,
+      "value": null,
+      "cellRef": "F34"
+    },
+    {
+      "channelId": "lng_import",
+      "metric": "price_impact",
+      "year": 2040,
+      "value": 2,
+      "cellRef": "G34"
+    },
+    {
+      "channelId": "gas_ccs",
+      "metric": "price_impact",
+      "year": 2040,
+      "value": 3.5,
+      "cellRef": "H34"
+    },
+    {
+      "channelId": "pipeline_gas_import",
+      "metric": "price_impact",
+      "year": 2040,
+      "value": 0.5,
+      "cellRef": "I34"
+    },
+    {
+      "channelId": "gas_generation_expansion",
+      "metric": "price_impact",
+      "year": 2040,
+      "value": 0.5,
+      "cellRef": "J34"
+    },
+    {
+      "channelId": "fuel_supply",
+      "metric": "price_impact",
+      "year": 2040,
+      "value": null,
+      "cellRef": "K34"
+    },
+    {
+      "channelId": "grid_development",
+      "metric": "price_impact",
+      "year": 2040,
+      "value": null,
+      "cellRef": "L34"
+    },
+    {
+      "channelId": "geothermal",
+      "metric": "price_impact",
+      "year": 2040,
+      "value": null,
+      "cellRef": "M34"
+    },
+    {
+      "channelId": "nuclear_smr",
+      "metric": "price_impact",
+      "year": 2040,
+      "value": 3,
+      "cellRef": "N34"
+    },
+    {
+      "channelId": "nuclear_fusion",
+      "metric": "price_impact",
+      "year": 2040,
+      "value": 5,
+      "cellRef": "O34"
+    },
+    {
+      "channelId": "hydrogen_import",
+      "metric": "price_impact",
+      "year": 2040,
+      "value": 5,
+      "cellRef": "P34"
+    },
+    {
+      "channelId": "deepwater_gas_exploration",
+      "metric": "price_impact",
+      "year": 2040,
+      "value": 0.5,
+      "cellRef": "Q34"
+    },
+    {
+      "channelId": "small_gas_fields",
+      "metric": "price_impact",
+      "year": 2040,
+      "value": 0.5,
+      "cellRef": "R34"
+    },
+    {
+      "channelId": "return_to_coal",
+      "metric": "price_impact",
+      "year": 2040,
+      "value": 3,
+      "cellRef": "S34"
+    },
+    {
+      "channelId": "efficiency",
+      "metric": "price_impact",
+      "year": 2050,
+      "value": -2,
+      "cellRef": "C35"
+    },
+    {
+      "channelId": "demand_reduction",
+      "metric": "price_impact",
+      "year": 2050,
+      "value": -2,
+      "cellRef": "D35"
+    },
+    {
+      "channelId": "renewables_storage",
+      "metric": "price_impact",
+      "year": 2050,
+      "value": -3,
+      "cellRef": "E35"
+    },
+    {
+      "channelId": "regional_interconnection",
+      "metric": "price_impact",
+      "year": 2050,
+      "value": null,
+      "cellRef": "F35"
+    },
+    {
+      "channelId": "lng_import",
+      "metric": "price_impact",
+      "year": 2050,
+      "value": 2.5,
+      "cellRef": "G35"
+    },
+    {
+      "channelId": "gas_ccs",
+      "metric": "price_impact",
+      "year": 2050,
+      "value": 4.5,
+      "cellRef": "H35"
+    },
+    {
+      "channelId": "pipeline_gas_import",
+      "metric": "price_impact",
+      "year": 2050,
+      "value": 1,
+      "cellRef": "I35"
+    },
+    {
+      "channelId": "gas_generation_expansion",
+      "metric": "price_impact",
+      "year": 2050,
+      "value": 1,
+      "cellRef": "J35"
+    },
+    {
+      "channelId": "fuel_supply",
+      "metric": "price_impact",
+      "year": 2050,
+      "value": null,
+      "cellRef": "K35"
+    },
+    {
+      "channelId": "grid_development",
+      "metric": "price_impact",
+      "year": 2050,
+      "value": null,
+      "cellRef": "L35"
+    },
+    {
+      "channelId": "geothermal",
+      "metric": "price_impact",
+      "year": 2050,
+      "value": null,
+      "cellRef": "M35"
+    },
+    {
+      "channelId": "nuclear_smr",
+      "metric": "price_impact",
+      "year": 2050,
+      "value": 3.5,
+      "cellRef": "N35"
+    },
+    {
+      "channelId": "nuclear_fusion",
+      "metric": "price_impact",
+      "year": 2050,
+      "value": 4.5,
+      "cellRef": "O35"
+    },
+    {
+      "channelId": "hydrogen_import",
+      "metric": "price_impact",
+      "year": 2050,
+      "value": 4.5,
+      "cellRef": "P35"
+    },
+    {
+      "channelId": "deepwater_gas_exploration",
+      "metric": "price_impact",
+      "year": 2050,
+      "value": 1,
+      "cellRef": "Q35"
+    },
+    {
+      "channelId": "small_gas_fields",
+      "metric": "price_impact",
+      "year": 2050,
+      "value": 1,
+      "cellRef": "R35"
+    },
+    {
+      "channelId": "return_to_coal",
+      "metric": "price_impact",
+      "year": 2050,
+      "value": 5,
+      "cellRef": "S35"
+    }
+  ],
+  "channelText": [
+    {
+      "channelId": "efficiency",
+      "likelihood": "high",
+      "likelihoodCellRef": "C38",
+      "barriersHe": "עצלנות",
+      "barriersEn": null,
+      "barriersCellRef": "C39"
+    },
+    {
+      "channelId": "demand_reduction",
+      "likelihood": null,
+      "likelihoodCellRef": "D38",
+      "barriersHe": null,
+      "barriersEn": null,
+      "barriersCellRef": "D39"
+    },
+    {
+      "channelId": "renewables_storage",
+      "likelihood": "high",
+      "likelihoodCellRef": "E38",
+      "barriersHe": "שטח, עלות לדו-שימוש",
+      "barriersEn": null,
+      "barriersCellRef": "E39"
+    },
+    {
+      "channelId": "regional_interconnection",
+      "likelihood": "high",
+      "likelihoodCellRef": "F38",
+      "barriersHe": "גיאופוליטיקה",
+      "barriersEn": null,
+      "barriersCellRef": "F39"
+    },
+    {
+      "channelId": "lng_import",
+      "likelihood": "medium",
+      "likelihoodCellRef": "G38",
+      "barriersHe": "מחיר, שטח למסוף קליטה",
+      "barriersEn": null,
+      "barriersCellRef": "G39"
+    },
+    {
+      "channelId": "gas_ccs",
+      "likelihood": "medium",
+      "likelihoodCellRef": "H38",
+      "barriersHe": "מחיר, בשלות טכנולוגית",
+      "barriersEn": null,
+      "barriersCellRef": "H39"
+    },
+    {
+      "channelId": "pipeline_gas_import",
+      "likelihood": "medium",
+      "likelihoodCellRef": "I38",
+      "barriersHe": "מחיר, גיאופוליטיקה",
+      "barriersEn": null,
+      "barriersCellRef": "I39"
+    },
+    {
+      "channelId": "gas_generation_expansion",
+      "likelihood": "high",
+      "likelihoodCellRef": "J38",
+      "barriersHe": "התנגדות ציבורית",
+      "barriersEn": null,
+      "barriersCellRef": "J39"
+    },
+    {
+      "channelId": "fuel_supply",
+      "likelihood": null,
+      "likelihoodCellRef": "K38",
+      "barriersHe": "-",
+      "barriersEn": null,
+      "barriersCellRef": "K39"
+    },
+    {
+      "channelId": "grid_development",
+      "likelihood": null,
+      "likelihoodCellRef": "L38",
+      "barriersHe": null,
+      "barriersEn": null,
+      "barriersCellRef": "L39"
+    },
+    {
+      "channelId": "geothermal",
+      "likelihood": "low",
+      "likelihoodCellRef": "M38",
+      "barriersHe": "טכנולוגיה",
+      "barriersEn": null,
+      "barriersCellRef": "M39"
+    },
+    {
+      "channelId": "nuclear_smr",
+      "likelihood": "low",
+      "likelihoodCellRef": "N38",
+      "barriersHe": "גיאופוליטיקה, מחיר",
+      "barriersEn": null,
+      "barriersCellRef": "N39"
+    },
+    {
+      "channelId": "nuclear_fusion",
+      "likelihood": "low",
+      "likelihoodCellRef": "O38",
+      "barriersHe": "טכנולוגיה",
+      "barriersEn": null,
+      "barriersCellRef": "O39"
+    },
+    {
+      "channelId": "hydrogen_import",
+      "likelihood": "low",
+      "likelihoodCellRef": "P38",
+      "barriersHe": "מחיר, גיאופוליטיקה",
+      "barriersEn": null,
+      "barriersCellRef": "P39"
+    },
+    {
+      "channelId": "deepwater_gas_exploration",
+      "likelihood": "medium",
+      "likelihoodCellRef": "Q38",
+      "barriersHe": "מחיר, יעדים בינ\"ל",
+      "barriersEn": null,
+      "barriersCellRef": "Q39"
+    },
+    {
+      "channelId": "small_gas_fields",
+      "likelihood": "medium",
+      "likelihoodCellRef": "R38",
+      "barriersHe": "מחיר, יעדים בינ\"ל",
+      "barriersEn": null,
+      "barriersCellRef": "R39"
+    },
+    {
+      "channelId": "return_to_coal",
+      "likelihood": "low",
+      "likelihoodCellRef": "S38",
+      "barriersHe": "התנגדות ציבורית",
+      "barriersEn": null,
+      "barriersCellRef": "S39"
+    }
+  ],
+  "roadmapItems": [
+    {
+      "channelId": "efficiency",
+      "phase": "2025-2030",
+      "kind": "target",
+      "slot": 1,
+      "titleHe": "עצימות X TWh\\מ\"שח תמ\"ג",
+      "detailHe": null,
+      "challengesHe": null,
+      "titleEn": null,
+      "detailEn": null,
+      "challengesEn": null,
+      "cellRefs": [
+        "C40"
+      ]
+    },
+    {
+      "channelId": "efficiency",
+      "phase": "2025-2030",
+      "kind": "step",
+      "slot": 1,
+      "titleHe": "פרסום תוכנית לאומית להתייעלות",
+      "detailHe": null,
+      "challengesHe": null,
+      "titleEn": null,
+      "detailEn": null,
+      "challengesEn": null,
+      "cellRefs": [
+        "C43",
+        "C44",
+        "C45"
+      ]
+    },
+    {
+      "channelId": "efficiency",
+      "phase": "2025-2030",
+      "kind": "step",
+      "slot": 2,
+      "titleHe": "תוכנית לחישמול מלא של המבנים",
+      "detailHe": null,
+      "challengesHe": null,
+      "titleEn": null,
+      "detailEn": null,
+      "challengesEn": null,
+      "cellRefs": [
+        "C46",
+        "C47",
+        "C48"
+      ]
+    },
+    {
+      "channelId": "demand_reduction",
+      "phase": "2025-2030",
+      "kind": "step",
+      "slot": 1,
+      "titleHe": "רגולציה על בקשות לחוות שרתים",
+      "detailHe": null,
+      "challengesHe": null,
+      "titleEn": null,
+      "detailEn": null,
+      "challengesEn": null,
+      "cellRefs": [
+        "D43",
+        "D44",
+        "D45"
+      ]
+    },
+    {
+      "channelId": "demand_reduction",
+      "phase": "2025-2030",
+      "kind": "step",
+      "slot": 2,
+      "titleHe": "רגולציית ניתוק (decoupling)",
+      "detailHe": "פיתוח רגולציה המנתקת את הכנסות הספקיות מצריכת החשמל - תגמול על הפחתת צריכה",
+      "challengesHe": null,
+      "titleEn": null,
+      "detailEn": null,
+      "challengesEn": null,
+      "cellRefs": [
+        "D46",
+        "D47",
+        "D48"
+      ]
+    },
+    {
+      "channelId": "renewables_storage",
+      "phase": "2025-2030",
+      "kind": "target",
+      "slot": 1,
+      "titleHe": "30% מתחדשות ב-2030",
+      "detailHe": null,
+      "challengesHe": null,
+      "titleEn": null,
+      "detailEn": null,
+      "challengesEn": null,
+      "cellRefs": [
+        "E40"
+      ]
+    },
+    {
+      "channelId": "renewables_storage",
+      "phase": "2025-2030",
+      "kind": "step",
+      "slot": 1,
+      "titleHe": "רגולציית אגרו-וולטאי",
+      "detailHe": "אישור תמ\"א ופרסום הנחיות לדו-שימוש חקלאי שתאפשר פריסת פאנלים מעל גידולים להקטנת מצוקת הקרקע.",
+      "challengesHe": "מחלוקות מתמשכות עם משרד החקלאות על יעדי יבול בצל הפאנלים.",
+      "titleEn": null,
+      "detailEn": null,
+      "challengesEn": null,
+      "cellRefs": [
+        "E43",
+        "E44",
+        "E45"
+      ]
+    },
+    {
+      "channelId": "renewables_storage",
+      "phase": "2025-2030",
+      "kind": "step",
+      "slot": 2,
+      "titleHe": "חובת פאנלים במבנים חדשים",
+      "detailHe": "חקיקה המחייבת התקנת פאנלים ואגירה זעירה בכל מבנה מגורים או מסחר חדש או משופץ.",
+      "challengesHe": "עיכובי תקינה ופיקוח של רשות הכבאות.",
+      "titleEn": null,
+      "detailEn": null,
+      "challengesEn": null,
+      "cellRefs": [
+        "E46",
+        "E47",
+        "E48"
+      ]
+    },
+    {
+      "channelId": "renewables_storage",
+      "phase": "2025-2030",
+      "kind": "impact",
+      "slot": 1,
+      "titleHe": "אימפקט תעסוקתי",
+      "detailHe": null,
+      "challengesHe": null,
+      "titleEn": null,
+      "detailEn": null,
+      "challengesEn": null,
+      "cellRefs": [
+        "E49"
+      ]
+    },
+    {
+      "channelId": "renewables_storage",
+      "phase": "2025-2030",
+      "kind": "impact",
+      "slot": 2,
+      "titleHe": "אימפקט חברתי",
+      "detailHe": null,
+      "challengesHe": null,
+      "titleEn": null,
+      "detailEn": null,
+      "challengesEn": null,
+      "cellRefs": [
+        "E50"
+      ]
+    },
+    {
+      "channelId": "renewables_storage",
+      "phase": "2025-2030",
+      "kind": "impact",
+      "slot": 3,
+      "titleHe": "אימפקט חוסן וביטחון לאומי",
+      "detailHe": null,
+      "challengesHe": null,
+      "titleEn": null,
+      "detailEn": null,
+      "challengesEn": null,
+      "cellRefs": [
+        "E51"
+      ]
+    },
+    {
+      "channelId": "regional_interconnection",
+      "phase": "2025-2030",
+      "kind": "step",
+      "slot": 1,
+      "titleHe": "פרויקט Prosperity (ירדן)",
+      "detailHe": "גיבוש סופי של עסקת החלפת מים תמורת חשמל סולארי (600MW) המיוצר בירדן.",
+      "challengesHe": "גיאופוליטיקה ומתיחות בינלאומית.",
+      "titleEn": null,
+      "detailEn": null,
+      "challengesEn": null,
+      "cellRefs": [
+        "F43",
+        "F44",
+        "F45"
+      ]
+    },
+    {
+      "channelId": "regional_interconnection",
+      "phase": "2025-2030",
+      "kind": "step",
+      "slot": 2,
+      "titleHe": "סקר לכבל Great Sea",
+      "detailHe": "תחילת מדידות קרקעית הים לסלילת כבל החשמל (GSI) שיחבר בין ישראל לקפריסין ויוון.",
+      "challengesHe": "חציית המים הכלכליים של טורקיה.",
+      "titleEn": null,
+      "detailEn": null,
+      "challengesEn": null,
+      "cellRefs": [
+        "F46",
+        "F47",
+        "F48"
+      ]
+    },
+    {
+      "channelId": "gas_ccs",
+      "phase": "2025-2030",
+      "kind": "step",
+      "slot": 1,
+      "titleHe": "קידום שינויי חקיקה נדרשים",
+      "detailHe": "סיום תיקוני החקיקה הנדשים להסדרת תת הקרקע, בין אם במסלול תיקון פקודת המכרות ובין אם בהכנת תמ\"א.",
+      "challengesHe": "מורכבות ההליך , בעלי עניין רבים, התנגדות הציבור.",
+      "titleEn": null,
+      "detailEn": null,
+      "challengesEn": null,
+      "cellRefs": [
+        "H43",
+        "H44",
+        "H45"
+      ]
+    },
+    {
+      "channelId": "gas_ccs",
+      "phase": "2025-2030",
+      "kind": "step",
+      "slot": 2,
+      "titleHe": "קידום פיילוט CCS",
+      "detailHe": "פרסום קול קורא והקצאת תקציב לקידום פרויקט ראשון להטמנת פד\"ח.",
+      "challengesHe": "פיילוט מורכב בעלויות גבוהות.",
+      "titleEn": null,
+      "detailEn": null,
+      "challengesEn": null,
+      "cellRefs": [
+        "H46",
+        "H47",
+        "H48"
+      ]
+    },
+    {
+      "channelId": "pipeline_gas_import",
+      "phase": "2025-2030",
+      "kind": "step",
+      "slot": 1,
+      "titleHe": " בחינת הסכמי יבוא ארוכי טווח",
+      "detailHe": "משא ומתן עם ספקיות מרכזיות כמו מצרים, סעודיה וקטאר על חוזים ארוכי טווח.",
+      "challengesHe": "מרחקים גדולים, גיאופוליטיקה.",
+      "titleEn": null,
+      "detailEn": null,
+      "challengesEn": null,
+      "cellRefs": [
+        "I43",
+        "I44",
+        "I45"
+      ]
+    },
+    {
+      "channelId": "gas_generation_expansion",
+      "phase": "2025-2030",
+      "kind": "step",
+      "slot": 1,
+      "titleHe": "איחסון גז אסטרטגי",
+      "detailHe": null,
+      "challengesHe": null,
+      "titleEn": null,
+      "detailEn": null,
+      "challengesEn": null,
+      "cellRefs": [
+        "J43",
+        "J44",
+        "J45"
+      ]
+    },
+    {
+      "channelId": "geothermal",
+      "phase": "2025-2030",
+      "kind": "step",
+      "slot": 1,
+      "titleHe": "מיפוי סיסמולוגי מקיף",
+      "detailHe": "ביצוע סקרים גאולוגיים עמוקים ברמת הגולן לאיתור כיסי חום תת-קרקעיים מניבים.",
+      "challengesHe": "עלויות סקרים יקרות מאד וסיכון השקעה גבוה לחברות.",
+      "titleEn": null,
+      "detailEn": null,
+      "challengesEn": null,
+      "cellRefs": [
+        "M43",
+        "M44",
+        "M45"
+      ]
+    },
+    {
+      "channelId": "geothermal",
+      "phase": "2025-2030",
+      "kind": "step",
+      "slot": 2,
+      "titleHe": "חקר הידרולוגי בערבה",
+      "detailHe": "פיילוטים הבוחנים שימוש במים מליחים להולכת חום ממערכות סלע עמוקות (EGS).",
+      "challengesHe": "סכנת פגיעה באקוויפרים ובמי תהום.",
+      "titleEn": null,
+      "detailEn": null,
+      "challengesEn": null,
+      "cellRefs": [
+        "M46",
+        "M47",
+        "M48"
+      ]
+    },
+    {
+      "channelId": "nuclear_smr",
+      "phase": "2025-2030",
+      "kind": "step",
+      "slot": 1,
+      "titleHe": "חוק הגרעין האזרחי",
+      "detailHe": "הקמת רשות בטיחות גרעינית (רגולטור בלתי תלוי) ויישור קו עם אמנות בינלאומיות (NPT/IAEA).",
+      "challengesHe": "חסמים פוליטיים מול ארה\"ב וקבוצת המדינות המייצרות (NSG).",
+      "titleEn": null,
+      "detailEn": null,
+      "challengesEn": null,
+      "cellRefs": [
+        "N43",
+        "N44",
+        "N45"
+      ]
+    },
+    {
+      "channelId": "nuclear_smr",
+      "phase": "2025-2030",
+      "kind": "step",
+      "slot": 2,
+      "titleHe": "בחירת אתר ל-SMR",
+      "detailHe": "הפשרת קרקעות בנגב (אזור שבטה או מתחמי AI) והכנת תשתיות קירור וחילוץ.",
+      "challengesHe": "התנגדות ציבורית (תסמונת NIMBY) מצד רשויות מקומיות בדרום.",
+      "titleEn": null,
+      "detailEn": null,
+      "challengesEn": null,
+      "cellRefs": [
+        "N46",
+        "N47",
+        "N48"
+      ]
+    },
+    {
+      "channelId": "nuclear_fusion",
+      "phase": "2025-2030",
+      "kind": "step",
+      "slot": 1,
+      "titleHe": "פורום היתוך לאומי",
+      "detailHe": "הקמת אקוסיסטם משותף לממשלה, אקדמיה וחברות הזנק (כגון nT-Tao) לקידום המחקר.",
+      "challengesHe": "חוסר בתקצוב ממשלתי ייעודי למו\"פ ארוך טווח.",
+      "titleEn": null,
+      "detailEn": null,
+      "challengesEn": null,
+      "cellRefs": [
+        "O43",
+        "O44",
+        "O45"
+      ]
+    },
+    {
+      "channelId": "nuclear_fusion",
+      "phase": "2025-2030",
+      "kind": "step",
+      "slot": 2,
+      "titleHe": "מתקני הוכחת היתכנות (POC)",
+      "detailHe": "בניית מודלים מוקטנים באקדמיה להוכחת רווח אנרגטי חיובי בחימום פלזמה.",
+      "challengesHe": "אתגרים בפיזיקה של הפלזמה וייצובה לאורך זמן.",
+      "titleEn": null,
+      "detailEn": null,
+      "challengesEn": null,
+      "cellRefs": [
+        "O46",
+        "O47",
+        "O48"
+      ]
+    },
+    {
+      "channelId": "hydrogen_import",
+      "phase": "2025-2030",
+      "kind": "step",
+      "slot": 1,
+      "titleHe": "פיילוט תדלוק מימן",
+      "detailHe": "הקמת 2-3 תחנות תדלוק במימן דחוס לצי של אוטובוסים ומשאיות במפרץ חיפה ואשדוד.",
+      "challengesHe": "עלות ייצור מימן ירוק גבוהה מאד (כרגע לא כלכלי מול סולר).",
+      "titleEn": null,
+      "detailEn": null,
+      "challengesEn": null,
+      "cellRefs": [
+        "P43",
+        "P44",
+        "P45"
+      ]
+    },
+    {
+      "channelId": "hydrogen_import",
+      "phase": "2025-2030",
+      "kind": "step",
+      "slot": 2,
+      "titleHe": "תכנון מסדרון IMEC",
+      "detailHe": "עבודת מטה עם סעודיה והאמירויות לבחינת נתיב צנרת הובלת המימן לים התיכון.",
+      "challengesHe": "תלוי בהסכמי נורמליזציה אזוריים יציבים (היום שאחרי).",
+      "titleEn": null,
+      "detailEn": null,
+      "challengesEn": null,
+      "cellRefs": [
+        "P46",
+        "P47",
+        "P48"
+      ]
+    },
+    {
+      "channelId": "efficiency",
+      "phase": "2030-2040",
+      "kind": "step",
+      "slot": 1,
+      "titleHe": "חובת בניה מאופסת אנרגיה",
+      "detailHe": null,
+      "challengesHe": null,
+      "titleEn": null,
+      "detailEn": null,
+      "challengesEn": null,
+      "cellRefs": [
+        "C52",
+        "C53",
+        "C54"
+      ]
+    },
+    {
+      "channelId": "efficiency",
+      "phase": "2030-2040",
+      "kind": "step",
+      "slot": 2,
+      "titleHe": "עידוד חישמול תהליכי ייצור",
+      "detailHe": null,
+      "challengesHe": null,
+      "titleEn": null,
+      "detailEn": null,
+      "challengesEn": null,
+      "cellRefs": [
+        "C55",
+        "C56",
+        "C57"
+      ]
+    },
+    {
+      "channelId": "efficiency",
+      "phase": "2030-2040",
+      "kind": "step",
+      "slot": 3,
+      "titleHe": "הנחיות לתכנון עירוני ייעיל",
+      "detailHe": "בניה ירוקה בסטנדרט גבוה, הקטנת אפקט אי החום העירוני, עירוב שימושים, הצללות, עידוד תחבורה ציבורית וחלופות תחבורה",
+      "challengesHe": null,
+      "titleEn": null,
+      "detailEn": null,
+      "challengesEn": null,
+      "cellRefs": [
+        "C58",
+        "C59",
+        "C60"
+      ]
+    },
+    {
+      "channelId": "demand_reduction",
+      "phase": "2030-2040",
+      "kind": "step",
+      "slot": 1,
+      "titleHe": "תעריף חשמל מדורג למשקי בית",
+      "detailHe": "תעריף נמוך לצריכה בסיסית, תעריף רגיל לצריכה סבירה ותעריף גבוה על צריכה עודפת",
+      "challengesHe": null,
+      "titleEn": null,
+      "detailEn": null,
+      "challengesEn": null,
+      "cellRefs": [
+        "D52",
+        "D53",
+        "D54"
+      ]
+    },
+    {
+      "channelId": "demand_reduction",
+      "phase": "2030-2040",
+      "kind": "step",
+      "slot": 2,
+      "titleHe": "רגולציה להפחתת ביקושים",
+      "detailHe": "קביעת סף טמפ' חימום וקירור, כיבוי מזגנים אוטו', כיבוי שלטים ותאורה דקורטיבית, ועוד",
+      "challengesHe": null,
+      "titleEn": null,
+      "detailEn": null,
+      "challengesEn": null,
+      "cellRefs": [
+        "D55",
+        "D56",
+        "D57"
+      ]
+    },
+    {
+      "channelId": "demand_reduction",
+      "phase": "2030-2040",
+      "kind": "step",
+      "slot": 3,
+      "titleHe": "קמפיין חיסכון בחשמל",
+      "detailHe": "הסבר על סף טמפ' חימום וקירור, לבוש קל בקיץ, ועוד",
+      "challengesHe": null,
+      "titleEn": null,
+      "detailEn": null,
+      "challengesEn": null,
+      "cellRefs": [
+        "D58",
+        "D59",
+        "D60"
+      ]
+    },
+    {
+      "channelId": "renewables_storage",
+      "phase": "2030-2040",
+      "kind": "step",
+      "slot": 1,
+      "titleHe": "מיצוי הגגות גדולים",
+      "detailHe": "שימוש במקלות וגזרים כדי שעל כל גג גדול בישראל תוקם מערכת סולאריות עם אגירה.",
+      "challengesHe": "יהיה צורך בתקנות מחייבות  קשיחות. לא כל גג נמצא באזור עם רשת מספיק חזקה.",
+      "titleEn": null,
+      "detailEn": null,
+      "challengesEn": null,
+      "cellRefs": [
+        "E52",
+        "E53",
+        "E54"
+      ]
+    },
+    {
+      "channelId": "renewables_storage",
+      "phase": "2030-2040",
+      "kind": "step",
+      "slot": 2,
+      "titleHe": "קידום פרויקטי דגל",
+      "detailHe": "קידום פרויקטים סולאריים גדולים מאד כגון אורון-צין בכדי להתקדם במהירות להגשת יעדי המתחדשות.",
+      "challengesHe": "עלויות כריית ליתיום ואורך חיי הסוללות בחום הישראלי.",
+      "titleEn": null,
+      "detailEn": null,
+      "challengesEn": null,
+      "cellRefs": [
+        "E55",
+        "E56",
+        "E57"
+      ]
+    },
+    {
+      "channelId": "renewables_storage",
+      "phase": "2030-2040",
+      "kind": "step",
+      "slot": 3,
+      "titleHe": "קידום רשת חכמה (Smart Grid)",
+      "detailHe": "שדרוג יכולת הולכת החשמל הארצית לניהול מבוזר מבוסס AI המאזן ביקושים בזמן אמת ומתמודד עם אחוז גבוה מאד של מתחדשות.",
+      "challengesHe": "מגבלות סטטוטוריות בהעברת קווי מתח עליון חדשים ברחבי הארץ.",
+      "titleEn": null,
+      "detailEn": null,
+      "challengesEn": null,
+      "cellRefs": [
+        "E58",
+        "E59",
+        "E60"
+      ]
+    },
+    {
+      "channelId": "regional_interconnection",
+      "phase": "2030-2040",
+      "kind": "step",
+      "slot": 1,
+      "titleHe": "הפעלת כבל GSI",
+      "detailHe": "סיום הנחת הכבל והפעלת מקטע קפריסין-ישראל בהיקף של 1,000MW כתשתית גיבוי לאומית.",
+      "challengesHe": "עלויות תחזוקה גבוהות ופגיעות אסטרטגית לחבלה ימית.",
+      "titleEn": null,
+      "detailEn": null,
+      "challengesEn": null,
+      "cellRefs": [
+        "F52",
+        "F53",
+        "F54"
+      ]
+    },
+    {
+      "channelId": "regional_interconnection",
+      "phase": "2030-2040",
+      "kind": "step",
+      "slot": 2,
+      "titleHe": "בחינת חיבוריות למדינות שכנות",
+      "detailHe": "בחינת החיבוריות למצרים, סעודיה, ירדן, סוריה ולבנון. כולל הקמת מתקנים סולאריים\\רוח במדינות אלו.",
+      "challengesHe": "תיאום טכני של תדרי הרשתות ורגולציית סחר בינלאומית וגיאופוליטיקה.",
+      "titleEn": null,
+      "detailEn": null,
+      "challengesEn": null,
+      "cellRefs": [
+        "F55",
+        "F56",
+        "F57"
+      ]
+    },
+    {
+      "channelId": "lng_import",
+      "phase": "2030-2040",
+      "kind": "step",
+      "slot": 1,
+      "titleHe": "הסדרת רגולציה לייבוא מזדמן ",
+      "detailHe": "יצירת מסגרת רגולטורית שתאפשר לרכוש מטעני LNG בשוק החופשי (Spot Market) ולהזרים לרשת הארצית, ",
+      "challengesHe": "קיבולת מוגבלת של מערכת ההולכה בנקודות הכניסה מהים.",
+      "titleEn": null,
+      "detailEn": null,
+      "challengesEn": null,
+      "cellRefs": [
+        "G52",
+        "G53",
+        "G54"
+      ]
+    },
+    {
+      "channelId": "lng_import",
+      "phase": "2030-2040",
+      "kind": "step",
+      "slot": 2,
+      "titleHe": "ייבוא דרך מצוף ימי",
+      "detailHe": "שדרוג והרחבת השימוש באונייה צפה מגזזת (FSRU) המחוברת למצוף הימי, כדי לאפשר קבלת מטעני LNG בספיקה גבוהה. ",
+      "challengesHe": "זמינות מוגבלת של אוניות FSRU בשוק העולמי ותחרות על חוזי חכירה.",
+      "titleEn": null,
+      "detailEn": null,
+      "challengesEn": null,
+      "cellRefs": [
+        "G55",
+        "G56",
+        "G57"
+      ]
+    },
+    {
+      "channelId": "lng_import",
+      "phase": "2030-2040",
+      "kind": "step",
+      "slot": 3,
+      "titleHe": "תכנון והקמת תשתיות לייבוא LNG",
+      "detailHe": "תכנון והקמה של מתקני קבלה ואחסון יבשתיים או צפים וחיבורים לרשת ההולכה. קבלת החלטת ממשלה, הקמת מנהלת והקצאת תקציבים. ",
+      "challengesHe": "התנגדויות מקומיות (NIMBY) ודרישות בטיחות מחמירות (מרחקי הפרדה) באזורים צפופי אוכלוסין.",
+      "titleEn": null,
+      "detailEn": null,
+      "challengesEn": null,
+      "cellRefs": [
+        "G58",
+        "G59",
+        "G60"
+      ]
+    },
+    {
+      "channelId": "gas_ccs",
+      "phase": "2030-2040",
+      "kind": "step",
+      "slot": 2,
+      "titleHe": "תכנון והקמה של אתרים להטמנת פד\"ח",
+      "detailHe": "איתור, תכנון, והקמה של אתרים המתאימים להטמנת פד\"ח.",
+      "challengesHe": "מחסור במאגרי הטמנה תת-קרקעיים מאושרים ובטוחים בישראל.",
+      "titleEn": null,
+      "detailEn": null,
+      "challengesEn": null,
+      "cellRefs": [
+        "H55",
+        "H56",
+        "H57"
+      ]
+    },
+    {
+      "channelId": "gas_ccs",
+      "phase": "2030-2040",
+      "kind": "step",
+      "slot": 3,
+      "titleHe": "תכנון והקמה של רשת הולכה ארצית לפד\"ח",
+      "detailHe": "תכנון והקמה של רשת הולכה ארצית לפד\"ח שתאסוף את הפד\"ח מתחנות כוח ומפעלי תעשיה ותוביל אותו לאתרי הטמנה.",
+      "challengesHe": "הליך תכנוני ארוך ופרויקט גדול ויקר לביצוע",
+      "titleEn": null,
+      "detailEn": null,
+      "challengesEn": null,
+      "cellRefs": [
+        "H58",
+        "H59",
+        "H60"
+      ]
+    },
+    {
+      "channelId": "pipeline_gas_import",
+      "phase": "2030-2040",
+      "kind": "step",
+      "slot": 1,
+      "titleHe": "הרחבת תשתיות יבוא והפצה",
+      "detailHe": "בניית מסופי LNG נוספים וצינורות חיבור לרשת החלוקה הארצית.",
+      "challengesHe": "עיכובים בירוקרטיים ובעיות שטח עם רשויות מקומיות מאטים את הביצוע.",
+      "titleEn": null,
+      "detailEn": null,
+      "challengesEn": null,
+      "cellRefs": [
+        "I52",
+        "I53",
+        "I54"
+      ]
+    },
+    {
+      "channelId": "pipeline_gas_import",
+      "phase": "2030-2040",
+      "kind": "step",
+      "slot": 2,
+      "titleHe": "בניית יכולות אחסון תת-קרקעי",
+      "detailHe": "פיתוח מאגרי אחסון גז טבעי תת-קרקעיים לשמירה על ביטחון אנרגטי עונתי.",
+      "challengesHe": "מחסור בידע הנדסי מקומי, סיכונים גיאולוגיים ורגולציה מורכבת.",
+      "titleEn": null,
+      "detailEn": null,
+      "challengesEn": null,
+      "cellRefs": [
+        "I55",
+        "I56",
+        "I57"
+      ]
+    },
+    {
+      "channelId": "gas_generation_expansion",
+      "phase": "2030-2040",
+      "kind": "step",
+      "slot": 2,
+      "titleHe": "תוכנית הקמה וחידוש תחנות כוח בגז טבעי",
+      "detailHe": null,
+      "challengesHe": null,
+      "titleEn": null,
+      "detailEn": null,
+      "challengesEn": null,
+      "cellRefs": [
+        "J55",
+        "J56",
+        "J57"
+      ]
+    },
+    {
+      "channelId": "gas_generation_expansion",
+      "phase": "2030-2040",
+      "kind": "step",
+      "slot": 3,
+      "titleHe": "הסמכת יזמים להקמה וחידוש של תחנות כוח",
+      "detailHe": null,
+      "challengesHe": null,
+      "titleEn": null,
+      "detailEn": null,
+      "challengesEn": null,
+      "cellRefs": [
+        "J58",
+        "J59",
+        "J60"
+      ]
+    },
+    {
+      "channelId": "geothermal",
+      "phase": "2030-2040",
+      "kind": "step",
+      "slot": 1,
+      "titleHe": "קידוחים עמוקים בסלע",
+      "detailHe": "יישום טכניקות קידוח מתקדמות (Superhot rock) לעומקים של 4-6 ק\"מ להגעה לטמפרטורות קיצון.",
+      "challengesHe": "שחיקת ציוד מהירה במיוחד בקידוחים בסלעים לוהטים.",
+      "titleEn": null,
+      "detailEn": null,
+      "challengesEn": null,
+      "cellRefs": [
+        "M52",
+        "M53",
+        "M54"
+      ]
+    },
+    {
+      "channelId": "geothermal",
+      "phase": "2030-2040",
+      "kind": "step",
+      "slot": 2,
+      "titleHe": "תחנת פיילוט (50MW)",
+      "detailHe": "חיבור לרשת של תחנת ניסוי גיאותרמית ראשונה שתספק אנרגיית בסיס (Baseload) רציפה.",
+      "challengesHe": "חשש גיאולוגי מגרימת רעידות אדמה מקומיות זעירות (Induced Seismicity).",
+      "titleEn": null,
+      "detailEn": null,
+      "challengesEn": null,
+      "cellRefs": [
+        "M55",
+        "M56",
+        "M57"
+      ]
+    },
+    {
+      "channelId": "nuclear_smr",
+      "phase": "2030-2040",
+      "kind": "step",
+      "slot": 1,
+      "titleHe": "מכרזי FEED ואפיון",
+      "detailHe": "סיום שלב התכנון ההנדסי ובחירת ספק הטכנולוגיה המרכזי לכור דרך מכרז בינלאומי.",
+      "challengesHe": "דרישת ארה\"ב לפיקוח צמוד על הטכנולוגיה.",
+      "titleEn": null,
+      "detailEn": null,
+      "challengesEn": null,
+      "cellRefs": [
+        "N52",
+        "N53",
+        "N54"
+      ]
+    },
+    {
+      "channelId": "nuclear_smr",
+      "phase": "2030-2040",
+      "kind": "step",
+      "slot": 2,
+      "titleHe": "תחילת בניית כורי SMR",
+      "detailHe": "תחילת עבודות אזרחיות במודל זכיינות (PPP) לבניית יחידות הספק של 300MW בנגב.",
+      "challengesHe": "מורכבות פיננסית עליונה וקושי בגיוס הון פרויקטלי.",
+      "titleEn": null,
+      "detailEn": null,
+      "challengesEn": null,
+      "cellRefs": [
+        "N55",
+        "N56",
+        "N57"
+      ]
+    },
+    {
+      "channelId": "nuclear_fusion",
+      "phase": "2030-2040",
+      "kind": "step",
+      "slot": 1,
+      "titleHe": "תכנון מתקן הדגמה",
+      "detailHe": "תחילת תכנון ההנדסה למתקן מסחרי ראשון בישראל בהתבסס על פריצות דרך בינלאומיות.",
+      "challengesHe": "תלות מוחלטת בהתקדמות מיזם ITER העולמי וסטארט-אפים זרים.",
+      "titleEn": null,
+      "detailEn": null,
+      "challengesEn": null,
+      "cellRefs": [
+        "O52",
+        "O53",
+        "O54"
+      ]
+    },
+    {
+      "channelId": "nuclear_fusion",
+      "phase": "2030-2040",
+      "kind": "step",
+      "slot": 2,
+      "titleHe": "השתלבות בהייטק הגלובלי",
+      "detailHe": "יצוא פתרונות תוכנה ישראליים לבקרת מגנטים ושליטה בפלזמה עבור חברות היתוך עולמיות.",
+      "challengesHe": "הגבלות ייצוא ביטחוני-אסטרטגי (דו-שימושי).",
+      "titleEn": null,
+      "detailEn": null,
+      "challengesEn": null,
+      "cellRefs": [
+        "O55",
+        "O56",
+        "O57"
+      ]
+    },
+    {
+      "channelId": "hydrogen_import",
+      "phase": "2030-2040",
+      "kind": "step",
+      "slot": 1,
+      "titleHe": "צינור NEOM לישראל",
+      "detailHe": "סיום הקמת הצנרת מסעודיה דרך ירדן המאפשרת הזרמת מימן ירוק זול יחסית למפרץ חיפה.",
+      "challengesHe": "תלוי לחלוטין בהצלחת ה\"מגה-פרויקט\" הסעודי וביציבות האזורית.",
+      "titleEn": null,
+      "detailEn": null,
+      "challengesEn": null,
+      "cellRefs": [
+        "P52",
+        "P53",
+        "P54"
+      ]
+    },
+    {
+      "channelId": "hydrogen_import",
+      "phase": "2030-2040",
+      "kind": "step",
+      "slot": 2,
+      "titleHe": "יבוא לתעשייה כבדה",
+      "detailHe": "מפעלים מזהמים (מלט, פלדה, דשנים) עוברים לשימוש תעשייתי מסחרי במימן כתחליף לגז טבעי.",
+      "challengesHe": "עלויות הסבת תשתיות המפעלים מכבידות על כושר התחרות שלהם.",
+      "titleEn": null,
+      "detailEn": null,
+      "challengesEn": null,
+      "cellRefs": [
+        "P55",
+        "P56",
+        "P57"
+      ]
+    },
+    {
+      "channelId": "small_gas_fields",
+      "phase": "2030-2040",
+      "kind": "step",
+      "slot": 1,
+      "titleHe": "פיתוח טכנולוגיות הפקה מתקדמות",
+      "detailHe": "השקעה במחקר ופיתוח של טכנולוגיות להפקה משדות קטנים ועמוקים.",
+      "challengesHe": "מחסור בידע טכנולוגי מקומי ותלות בחברות בינלאומיות.",
+      "titleEn": null,
+      "detailEn": null,
+      "challengesEn": null,
+      "cellRefs": [
+        "R52",
+        "R53",
+        "R54"
+      ]
+    },
+    {
+      "channelId": "small_gas_fields",
+      "phase": "2030-2040",
+      "kind": "step",
+      "slot": 2,
+      "titleHe": "בניית תשתיות משותפות לשדות שוליים",
+      "detailHe": "הקמת צינורות ופלטפורמות משותפות שמשרתות מספר שדות קטנים.",
+      "challengesHe": "מורכבות תכנון וביצוע בין חברות שונות ורגולציה איטית.",
+      "titleEn": null,
+      "detailEn": null,
+      "challengesEn": null,
+      "cellRefs": [
+        "R55",
+        "R56",
+        "R57"
+      ]
+    },
+    {
+      "channelId": "return_to_coal",
+      "phase": "2030-2040",
+      "kind": "step",
+      "slot": 1,
+      "titleHe": "החלטה מדינית והסרת חסמים רגולטוריים",
+      "detailHe": "קבלת החלטת ממשלה רשמית לביטול איסור הפחם ותיקון חוק אוויר נקי.",
+      "challengesHe": "התנגדות חזקה של ארגוני סביבה, בג\"ץ ודעת קהל עלולה לעכב אישורים.",
+      "titleEn": null,
+      "detailEn": null,
+      "challengesEn": null,
+      "cellRefs": [
+        "S52",
+        "S53",
+        "S54"
+      ]
+    },
+    {
+      "channelId": "return_to_coal",
+      "phase": "2030-2040",
+      "kind": "step",
+      "slot": 2,
+      "titleHe": "שדרוג מערכות סינון והפחתת זיהום",
+      "detailHe": "התקנת מערכות סינון מתקדמות ומעבר לפחם נקי יותר בתחנות הקיימות.",
+      "challengesHe": "עלויות גבוהות וטכנולוגיה מורכבת שדורשת מומחיות בינלאומית.",
+      "titleEn": null,
+      "detailEn": null,
+      "challengesEn": null,
+      "cellRefs": [
+        "S55",
+        "S56",
+        "S57"
+      ]
+    },
+    {
+      "channelId": "renewables_storage",
+      "phase": "2040-2050",
+      "kind": "step",
+      "slot": 1,
+      "titleHe": "מערכות סולאריות צפות בים",
+      "detailHe": "הכשרת שטחים ורשת בים התיכון לחיבור שדות סולאריים צפים גדולים בים.",
+      "challengesHe": "הטכנולוגיה עדין אינה בשלה, יהיה צורך בתשתיות הולכה מורכבות, נדרשת בחינת עומק של ההשפעות האקולוגיות.",
+      "titleEn": null,
+      "detailEn": null,
+      "challengesEn": null,
+      "cellRefs": [
+        "E61",
+        "E62",
+        "E63"
+      ]
+    },
+    {
+      "channelId": "renewables_storage",
+      "phase": "2040-2050",
+      "kind": "step",
+      "slot": 2,
+      "titleHe": "אגירה עונתית",
+      "detailHe": "צבירת עודפי יצור בקיץ והמרתם לחשמל בחורף, בין היתר על ידי אגירה שאובה והפקת מימן מקומי.",
+      "challengesHe": "אובדן אנרגיה כפול בתהליך ההמרה הלוך ושוב (Round Trip Efficiency).",
+      "titleEn": null,
+      "detailEn": null,
+      "challengesEn": null,
+      "cellRefs": [
+        "E64",
+        "E65",
+        "E66"
+      ]
+    },
+    {
+      "channelId": "regional_interconnection",
+      "phase": "2040-2050",
+      "kind": "step",
+      "slot": 1,
+      "titleHe": "הכפלת ה-GSI ל-2000MW",
+      "detailHe": "הרחבת קיבולת ה-Great Sea Interconnector כדי לאפשר ייצוא מאסיבי של עודפי שמש לאירופה בצהריים.",
+      "challengesHe": "חוסר היתכנות כלכלית אם אירופה מגיעה לרוויה מאנרגיה מתחדשת משלה.",
+      "titleEn": null,
+      "detailEn": null,
+      "challengesEn": null,
+      "cellRefs": [
+        "F61",
+        "F62",
+        "F63"
+      ]
+    },
+    {
+      "channelId": "regional_interconnection",
+      "phase": "2040-2050",
+      "kind": "step",
+      "slot": 2,
+      "titleHe": "ישראל כ-Hub אזורי",
+      "detailHe": "חתימת הסכמי תלות הדדית, כאשר ישראל מתפקדת כצומת אסטרטגי המחבר את המפרץ, מצרים, ואירופה.",
+      "challengesHe": "אבטחת סייבר אזרחית ברמות הגבוהות ביותר למניעת קריסת דומינו אזורית.",
+      "titleEn": null,
+      "detailEn": null,
+      "challengesEn": null,
+      "cellRefs": [
+        "F64",
+        "F65",
+        "F66"
+      ]
+    },
+    {
+      "channelId": "lng_import",
+      "phase": "2040-2050",
+      "kind": "step",
+      "slot": 1,
+      "titleHe": "התאמת תשתיות ה-LNG לייבוא מימן או אמוניה ",
+      "detailHe": "שדרוג טכנולוגי של מסופי הקליטה והצנרת כך שיוכלו לטפל במימן נוזלי או באמוניה ירוקה, כחלק מיעדי אפס פליטות של המשק. ",
+      "challengesHe": "פערים טכנולוגיים בייצור המוני של מימן נוזלי וצורך בהחלפת רכיבי מתכת רגישים לשבריריות מימן.",
+      "titleEn": null,
+      "detailEn": null,
+      "challengesEn": null,
+      "cellRefs": [
+        "G61",
+        "G62",
+        "G63"
+      ]
+    },
+    {
+      "channelId": "lng_import",
+      "phase": "2040-2050",
+      "kind": "step",
+      "slot": 2,
+      "titleHe": "תחילת ייבוא גז טבעי מונזל",
+      "detailHe": "סיום הקמת המסופים ותחילת ייבוא LNG והזרמתו לרשת ההולכה.",
+      "challengesHe": "חריגה בזמנים ובעלויות. מחירי ה-LNG.",
+      "titleEn": null,
+      "detailEn": null,
+      "challengesEn": null,
+      "cellRefs": [
+        "G64",
+        "G65",
+        "G66"
+      ]
+    },
+    {
+      "channelId": "gas_ccs",
+      "phase": "2040-2050",
+      "kind": "step",
+      "slot": 1,
+      "titleHe": "פיתוח שימוש (Utilization) בפחמן",
+      "detailHe": "פיתוח טכנולוגיות לשימוש בפחמן מפד\"ח כמקור לתעשייה הכימית או כמינרל וחלופה לאגרגטים",
+      "challengesHe": "קיימים מחקרים בעולם ובישראל אך עדין אינם כלכליים.",
+      "titleEn": null,
+      "detailEn": null,
+      "challengesEn": null,
+      "cellRefs": [
+        "H61",
+        "H62",
+        "H63"
+      ]
+    },
+    {
+      "channelId": "gas_ccs",
+      "phase": "2040-2050",
+      "kind": "step",
+      "slot": 2,
+      "titleHe": "לכידת פחמן מהאויר (DAC)",
+      "detailHe": "הפעלת טכנולוגיות לכידת פחמן ישירות מהאוויר לפיצוי על פליטות \"קשות להפחתה\".",
+      "challengesHe": "צריכת אנרגיה גבוהה של התהליך, כיום אינו כלכלי.",
+      "titleEn": null,
+      "detailEn": null,
+      "challengesEn": null,
+      "cellRefs": [
+        "H64",
+        "H65",
+        "H66"
+      ]
+    },
+    {
+      "channelId": "pipeline_gas_import",
+      "phase": "2040-2050",
+      "kind": "step",
+      "slot": 1,
+      "titleHe": "גיוון מקורות יבוא גלובליים",
+      "detailHe": "בניית שותפויות עם ספקים חדשים באפריקה, מזרח אסיה וצפון אמריקה.",
+      "challengesHe": "מתחים גיאופוליטיים עלולים לשבש שרשראות אספקה יציבות.",
+      "titleEn": null,
+      "detailEn": null,
+      "challengesEn": null,
+      "cellRefs": [
+        "I61",
+        "I62",
+        "I63"
+      ]
+    },
+    {
+      "channelId": "pipeline_gas_import",
+      "phase": "2040-2050",
+      "kind": "step",
+      "slot": 2,
+      "titleHe": "שדרוג רשת להיערכות מעבר אנרגטי",
+      "detailHe": "התאמת רשת החלוקה והתחנות לקליטת כמויות יבוא גדולות לצד מתחדשות.",
+      "challengesHe": "עלויות גבוהות ועמידות טכנולוגית של תשתיות ישנות מול דרישות גמישות",
+      "titleEn": null,
+      "detailEn": null,
+      "challengesEn": null,
+      "cellRefs": [
+        "I64",
+        "I65",
+        "I66"
+      ]
+    },
+    {
+      "channelId": "gas_generation_expansion",
+      "phase": "2040-2050",
+      "kind": "step",
+      "slot": 1,
+      "titleHe": "הקמה וחידוש תחנות כוח בגז טבעי",
+      "detailHe": null,
+      "challengesHe": null,
+      "titleEn": null,
+      "detailEn": null,
+      "challengesEn": null,
+      "cellRefs": [
+        "J61",
+        "J62",
+        "J63"
+      ]
+    },
+    {
+      "channelId": "geothermal",
+      "phase": "2040-2050",
+      "kind": "step",
+      "slot": 1,
+      "titleHe": "פריסה לאורך השבר",
+      "detailHe": "הקמת רשת של עשרות מתקנים גיאותרמיים לכל אורך השבר הסורי-אפריקאי (מהגולן עד אילת).",
+      "challengesHe": "פגיעה בנוף הפתוח באזורי תיירות מרכזיים.",
+      "titleEn": null,
+      "detailEn": null,
+      "challengesEn": null,
+      "cellRefs": [
+        "M61",
+        "M62",
+        "M63"
+      ]
+    },
+    {
+      "channelId": "geothermal",
+      "phase": "2040-2050",
+      "kind": "step",
+      "slot": 2,
+      "titleHe": "Baseload גיאותרמי מבוסס",
+      "detailHe": "גיאותרמיה הופכת לנדבך שלישי (יחד עם גרעין ורוח) לייצוב הרשת בחורפים מעוטי שמש.",
+      "challengesHe": "ירידת יעילות (התקררות הדרגתית של סלעי המקור) לאורך עשרות שנים.",
+      "titleEn": null,
+      "detailEn": null,
+      "challengesEn": null,
+      "cellRefs": [
+        "M64",
+        "M65",
+        "M66"
+      ]
+    },
+    {
+      "channelId": "nuclear_smr",
+      "phase": "2040-2050",
+      "kind": "step",
+      "slot": 1,
+      "titleHe": "הפעלה מסחרית של 1200MW",
+      "detailHe": "רשת של כ-4 כורי SMR פועלת ברציפות (24/7) ומספקת את \"עוגן\" המערכת (Baseload) במקום הגז הטבעי.",
+      "challengesHe": "אבטחת מתקנים רגישים תחת איום רקטי מתמיד.",
+      "titleEn": null,
+      "detailEn": null,
+      "challengesEn": null,
+      "cellRefs": [
+        "N61",
+        "N62",
+        "N63"
+      ]
+    },
+    {
+      "channelId": "nuclear_smr",
+      "phase": "2040-2050",
+      "kind": "step",
+      "slot": 2,
+      "titleHe": "פתרונות מחזור והטמנה",
+      "detailHe": "החזרת הדלק המשומש לספק בארה\"ב או קביעת אתר גיאולוגי בטוח בנגב לקבורת הפסולת לאורך זמן.",
+      "challengesHe": "התנגדות פוליטית פנימית וסביבתית עצומה למתקני פסולת.",
+      "titleEn": null,
+      "detailEn": null,
+      "challengesEn": null,
+      "cellRefs": [
+        "N64",
+        "N65",
+        "N66"
+      ]
+    },
+    {
+      "channelId": "nuclear_fusion",
+      "phase": "2040-2050",
+      "kind": "step",
+      "slot": 1,
+      "titleHe": "כורי היתוך לחוות שרתים",
+      "detailHe": "שילוב כורים קומפקטיים (כמו הפיתוח של nT-Tao) המספקים 10-20MW ישירות למרכזי AI אסטרטגיים.",
+      "challengesHe": "רגולציה עירונית על מיקום מתקני פלזמה קרוב לריכוזי אוכלוסייה.",
+      "titleEn": null,
+      "detailEn": null,
+      "challengesEn": null,
+      "cellRefs": [
+        "O61",
+        "O62",
+        "O63"
+      ]
+    },
+    {
+      "channelId": "nuclear_fusion",
+      "phase": "2040-2050",
+      "kind": "step",
+      "slot": 2,
+      "titleHe": "חיבור היתוך לרשת הארצית",
+      "detailHe": "החלפת ה-SMR ותחנות הגז בתחנות היתוך גדולות המספקות אנרגיה זולה, בטוחה ואינסופית נטולת פליטות.",
+      "challengesHe": "בשלות טכנולוגית עולמית עשויה להתעכב ולגלוש אחרי 2050.",
+      "titleEn": null,
+      "detailEn": null,
+      "challengesEn": null,
+      "cellRefs": [
+        "O64",
+        "O65",
+        "O66"
+      ]
+    },
+    {
+      "channelId": "hydrogen_import",
+      "phase": "2040-2050",
+      "kind": "step",
+      "slot": 1,
+      "titleHe": "הסבת רשת נתג\"ז למימן",
+      "detailHe": "שדרוג הצנרת הלאומית ושינוי הרכבי מתכות כך שיוכלו להזרים תערובות גבוהות ועד 100% מימן.",
+      "challengesHe": "דליפות טכניות בצנרת ישנה עקב נטיית המימן לפעפע מתכות מיושנות.",
+      "titleEn": null,
+      "detailEn": null,
+      "challengesEn": null,
+      "cellRefs": [
+        "P61",
+        "P62",
+        "P63"
+      ]
+    },
+    {
+      "channelId": "hydrogen_import",
+      "phase": "2040-2050",
+      "kind": "step",
+      "slot": 2,
+      "titleHe": "100% תעשייה במימן",
+      "detailHe": "החלת איסור חוקי מוחלט על שריפת גז טבעי בתעשייה, מעבר סופי לאמוניה ומימן, כולל בתחבורה ימית.",
+      "challengesHe": "עלות מוצרים מקומיים מזנקת, מצריך מיגון מכסים פחמניים נגד יבוא מסחרי.",
+      "titleEn": null,
+      "detailEn": null,
+      "challengesEn": null,
+      "cellRefs": [
+        "P64",
+        "P65",
+        "P66"
+      ]
+    },
+    {
+      "channelId": "small_gas_fields",
+      "phase": "2040-2050",
+      "kind": "step",
+      "slot": 1,
+      "titleHe": "מתן תמריצים כלכליים לפיתוח שדות קטנים",
+      "detailHe": "הקלות מס, מענקים והפחתת תמלוגים לשדות גז שוליים ובלתי כלכליים.",
+      "challengesHe": "התנגדות האוצר והצורך באישורי כנסת עלולים לעכב את החקיקה.",
+      "titleEn": null,
+      "detailEn": null,
+      "challengesEn": null,
+      "cellRefs": [
+        "R61",
+        "R62",
+        "R63"
+      ]
+    },
+    {
+      "channelId": "small_gas_fields",
+      "phase": "2040-2050",
+      "kind": "step",
+      "slot": 2,
+      "titleHe": "מעבר להפקה באמצעות טכנולוגיות חדשניות",
+      "detailHe": "יישום טכנולוגיות CCUS, AI והפקה משופרת בשדות לא כלכליים.",
+      "challengesHe": "עלויות טכנולוגיה גבוהות מאוד וסיכונים סביבתיים משמעותיים.",
+      "titleEn": null,
+      "detailEn": null,
+      "challengesEn": null,
+      "cellRefs": [
+        "R64",
+        "R65",
+        "R66"
+      ]
+    },
+    {
+      "channelId": "return_to_coal",
+      "phase": "2040-2050",
+      "kind": "step",
+      "slot": 1,
+      "titleHe": "בניית תחנות פחם חדשות",
+      "detailHe": "הקמת תחנות פחם מודרניות עם טכנולוגיית Ultra-Supercritical להגברת יעילות.",
+      "challengesHe": "התנגדויות סביבתיות ואזוריות קשות לצד מחסור בשטחים מתאימים.",
+      "titleEn": null,
+      "detailEn": null,
+      "challengesEn": null,
+      "cellRefs": [
+        "S61",
+        "S62",
+        "S63"
+      ]
+    },
+    {
+      "channelId": "return_to_coal",
+      "phase": "2040-2050",
+      "kind": "step",
+      "slot": 2,
+      "titleHe": "שילוב פחם כגיבוי אנרגטי ארוך טווח",
+      "detailHe": "הפיכת הפחם למקור גיבוי יציב לצד מתחדשות וגז טבעי.",
+      "challengesHe": "לחץ בינלאומי, הסכמי אקלים וקשיי מימון בנקים ירוקים.",
+      "titleEn": null,
+      "detailEn": null,
+      "challengesEn": null,
+      "cellRefs": [
+        "S64",
+        "S65",
+        "S66"
+      ]
+    }
+  ],
+  "callouts": [
+    {
+      "calloutId": "callout-1",
+      "channelId": "regional_interconnection",
+      "phase": "2025-2030",
+      "anchorCell": "F49",
+      "textHe": "קצב התקנת מתחדשות אינו מספק, לא התגלו מאגרי גז טבעי.",
+      "textEn": null
+    },
+    {
+      "calloutId": "callout-2",
+      "channelId": "lng_import",
+      "phase": "2030-2040",
+      "anchorCell": "G53",
+      "textHe": "השימוש בגז טבעי נמשך, יהיה צורך בתפיסת פחמן.",
+      "textEn": null
+    },
+    {
+      "calloutId": "callout-3",
+      "channelId": "deepwater_gas_exploration",
+      "phase": "2025-2030",
+      "anchorCell": "Q49",
+      "textHe": "השימוש בגז טבעי נמשך, יש צורך בעתודות נוספות.",
+      "textEn": null
+    },
+    {
+      "calloutId": "callout-5",
+      "channelId": "small_gas_fields",
+      "phase": "2025-2030",
+      "anchorCell": "R49",
+      "textHe": "חשש כי הערוצים האחרים לא יביאו לביטחון אספקה.",
+      "textEn": null
+    },
+    {
+      "calloutId": "callout-6",
+      "channelId": "gas_generation_expansion",
+      "phase": "2030-2040",
+      "anchorCell": "J53",
+      "textHe": "השימוש בגז טבעי נמשך.",
+      "textEn": null
+    }
+  ],
+  "ramp": [
+    {
+      "year": 2025,
+      "value": 0.1
+    },
+    {
+      "year": 2030,
+      "value": 0.30000000000000004
+    },
+    {
+      "year": 2040,
+      "value": 0.65
+    },
+    {
+      "year": 2050,
+      "value": 1
+    }
+  ],
+  "axisGroups": [
+    {
+      "axisGroupId": "efficiency",
+      "nameHe": "התייעלות",
+      "nameEn": "Efficiency",
+      "startColumn": "C",
+      "endColumn": "D",
+      "headerFill": "#7030A0",
+      "nameFill": "#DEBDFF"
+    },
+    {
+      "axisGroupId": "renewables",
+      "nameHe": "מתחדשות",
+      "nameEn": "Renewables",
+      "startColumn": "E",
+      "endColumn": "E",
+      "headerFill": "#FFC000",
+      "nameFill": "#FFE699"
+    },
+    {
+      "axisGroupId": "electricity_import",
+      "nameHe": "ייבוא חשמל",
+      "nameEn": "Electricity import",
+      "startColumn": "F",
+      "endColumn": "F",
+      "headerFill": "#70AD47",
+      "nameFill": "#C5E0B4"
+    },
+    {
+      "axisGroupId": "natural_gas",
+      "nameHe": "גז טבעי",
+      "nameEn": "Natural gas",
+      "startColumn": "G",
+      "endColumn": "J",
+      "headerFill": "#5B9BD5",
+      "nameFill": "#BDD7EE"
+    },
+    {
+      "axisGroupId": "fuels",
+      "nameHe": "הדלקים",
+      "nameEn": "Fuels",
+      "startColumn": "K",
+      "endColumn": "K",
+      "headerFill": "#7030A0",
+      "nameFill": "#DEBDFF"
+    },
+    {
+      "axisGroupId": "grid",
+      "nameHe": "הרשת",
+      "nameEn": "Grid",
+      "startColumn": "L",
+      "endColumn": "L",
+      "headerFill": "#70AD47",
+      "nameFill": "#C5E0B4"
+    },
+    {
+      "axisGroupId": "future_tech",
+      "nameHe": "טכנולוגיות עתיד",
+      "nameEn": "Future technologies",
+      "startColumn": "M",
+      "endColumn": "O",
+      "headerFill": "#ED7D31",
+      "nameFill": "#F8CBAD"
+    },
+    {
+      "axisGroupId": "hydrogen",
+      "nameHe": "מימן",
+      "nameEn": "Hydrogen",
+      "startColumn": "P",
+      "endColumn": "P",
+      "headerFill": "#4472C4",
+      "nameFill": "#B4C7E7"
+    },
+    {
+      "axisGroupId": "domestic_gas",
+      "nameHe": "גז טבעי",
+      "nameEn": "Natural gas (domestic)",
+      "startColumn": "Q",
+      "endColumn": "R",
+      "headerFill": "#5B9BD5",
+      "nameFill": "#BDD7EE"
+    },
+    {
+      "axisGroupId": "coal",
+      "nameHe": "חזרה לפחם",
+      "nameEn": "Return to coal",
+      "startColumn": "S",
+      "endColumn": "S",
+      "headerFill": "#A6A6A6",
+      "nameFill": "#7F7F7F"
+    }
+  ],
+  "rowLabels": [
+    {
+      "row": 1,
+      "key": "axis",
+      "labelHe": "ציר",
+      "labelEn": "Axis",
+      "visible": true,
+      "heightPt": 16.5
+    },
+    {
+      "row": 2,
+      "key": "channel",
+      "labelHe": "תחום",
+      "labelEn": "Channel",
+      "visible": true,
+      "heightPt": 54.75
+    },
+    {
+      "row": 3,
+      "key": "potential",
+      "labelHe": "פוטנציאל",
+      "labelEn": "Potential",
+      "visible": true,
+      "heightPt": 16.5
+    },
+    {
+      "row": 4,
+      "key": "security.import_dependency",
+      "labelHe": "תלות ביבוא",
+      "labelEn": "Import dependency",
+      "visible": false,
+      "heightPt": 15
+    },
+    {
+      "row": 5,
+      "key": "security.diversity",
+      "labelHe": "גיוון",
+      "labelEn": "Diversity",
+      "visible": false,
+      "heightPt": 15
+    },
+    {
+      "row": 6,
+      "key": "security.storage_capability",
+      "labelHe": "יכולת אגירה",
+      "labelEn": "Storage capability",
+      "visible": false,
+      "heightPt": 15
+    },
+    {
+      "row": 7,
+      "key": "security.grid_reliability",
+      "labelHe": "אמינות רשת",
+      "labelEn": "Grid reliability",
+      "visible": false,
+      "heightPt": 15
+    },
+    {
+      "row": 8,
+      "key": "security.redundancy",
+      "labelHe": "יתירות",
+      "labelEn": "Redundancy",
+      "visible": false,
+      "heightPt": 15
+    },
+    {
+      "row": 9,
+      "key": "security",
+      "labelHe": "ביטחון",
+      "labelEn": "Security",
+      "visible": true,
+      "heightPt": 15.75
+    },
+    {
+      "row": 10,
+      "key": "generation.2025",
+      "labelHe": "2025",
+      "labelEn": "2025",
+      "visible": false,
+      "heightPt": 15
+    },
+    {
+      "row": 11,
+      "key": "generation.2030",
+      "labelHe": "2030",
+      "labelEn": "2030",
+      "visible": false,
+      "heightPt": 15
+    },
+    {
+      "row": 12,
+      "key": "generation.2040",
+      "labelHe": "2040",
+      "labelEn": "2040",
+      "visible": false,
+      "heightPt": 15
+    },
+    {
+      "row": 13,
+      "key": "generation.2050",
+      "labelHe": "2050",
+      "labelEn": "2050",
+      "visible": false,
+      "heightPt": 15
+    },
+    {
+      "row": 14,
+      "key": "sparkline.security",
+      "labelHe": null,
+      "labelEn": "Generation trajectory",
+      "visible": true,
+      "heightPt": 37.5
+    },
+    {
+      "row": 15,
+      "key": "environment.co2_intensity",
+      "labelHe": "עצימות פד\"ח",
+      "labelEn": "CO2 intensity",
+      "visible": false,
+      "heightPt": 15
+    },
+    {
+      "row": 16,
+      "key": "environment.renewable_share",
+      "labelHe": "% מתחדשות",
+      "labelEn": "Renewable share",
+      "visible": false,
+      "heightPt": 15
+    },
+    {
+      "row": 17,
+      "key": "environment.efficiency",
+      "labelHe": "יעילות",
+      "labelEn": "Efficiency",
+      "visible": false,
+      "heightPt": 15
+    },
+    {
+      "row": 18,
+      "key": "environment.air_quality",
+      "labelHe": "איכות אויר",
+      "labelEn": "Air quality",
+      "visible": false,
+      "heightPt": 15
+    },
+    {
+      "row": 19,
+      "key": "environment.methane_emissions",
+      "labelHe": "פליטות מתאן",
+      "labelEn": "Methane emissions",
+      "visible": false,
+      "heightPt": 15
+    },
+    {
+      "row": 20,
+      "key": "environment",
+      "labelHe": "סביבה",
+      "labelEn": "Environment",
+      "visible": true,
+      "heightPt": 15.75
+    },
+    {
+      "row": 21,
+      "key": "emissions.2025",
+      "labelHe": "2025",
+      "labelEn": "2025",
+      "visible": false,
+      "heightPt": 15
+    },
+    {
+      "row": 22,
+      "key": "emissions.2030",
+      "labelHe": "2030",
+      "labelEn": "2030",
+      "visible": false,
+      "heightPt": 15
+    },
+    {
+      "row": 23,
+      "key": "emissions.2040",
+      "labelHe": "2040",
+      "labelEn": "2040",
+      "visible": false,
+      "heightPt": 15
+    },
+    {
+      "row": 24,
+      "key": "emissions.2050",
+      "labelHe": "2050",
+      "labelEn": "2050",
+      "visible": false,
+      "heightPt": 15
+    },
+    {
+      "row": 25,
+      "key": "sparkline.environment",
+      "labelHe": null,
+      "labelEn": "Emissions trajectory",
+      "visible": true,
+      "heightPt": 37.5
+    },
+    {
+      "row": 26,
+      "key": "equity.access_to_electricity",
+      "labelHe": "גישה לחשמל",
+      "labelEn": "Access to electricity",
+      "visible": false,
+      "heightPt": 15
+    },
+    {
+      "row": 27,
+      "key": "equity.clean_cooking",
+      "labelHe": "בישול נקי",
+      "labelEn": "Clean cooking",
+      "visible": false,
+      "heightPt": 15
+    },
+    {
+      "row": 28,
+      "key": "equity.electricity_price",
+      "labelHe": "מחיר חשמל",
+      "labelEn": "Electricity price",
+      "visible": false,
+      "heightPt": 15
+    },
+    {
+      "row": 29,
+      "key": "equity.fuel_price",
+      "labelHe": "מחיר דלקים",
+      "labelEn": "Fuel price",
+      "visible": false,
+      "heightPt": 15
+    },
+    {
+      "row": 30,
+      "key": "equity.industrial_price",
+      "labelHe": "מחיר לתעשיה",
+      "labelEn": "Industrial price",
+      "visible": false,
+      "heightPt": 15
+    },
+    {
+      "row": 31,
+      "key": "equity",
+      "labelHe": "שוויון",
+      "labelEn": "Equity",
+      "visible": true,
+      "heightPt": 15.75
+    },
+    {
+      "row": 32,
+      "key": "price_impact.2025",
+      "labelHe": "2025",
+      "labelEn": "2025",
+      "visible": false,
+      "heightPt": 15
+    },
+    {
+      "row": 33,
+      "key": "price_impact.2030",
+      "labelHe": "2030",
+      "labelEn": "2030",
+      "visible": false,
+      "heightPt": 15
+    },
+    {
+      "row": 34,
+      "key": "price_impact.2040",
+      "labelHe": "2040",
+      "labelEn": "2040",
+      "visible": false,
+      "heightPt": 15
+    },
+    {
+      "row": 35,
+      "key": "price_impact.2050",
+      "labelHe": "2050",
+      "labelEn": "2050",
+      "visible": false,
+      "heightPt": 15
+    },
+    {
+      "row": 36,
+      "key": "sparkline.equity",
+      "labelHe": null,
+      "labelEn": "Price-impact trajectory",
+      "visible": true,
+      "heightPt": 37.5
+    },
+    {
+      "row": 37,
+      "key": "trilemma",
+      "labelHe": "טרילמה",
+      "labelEn": "Trilemma",
+      "visible": false,
+      "heightPt": 15
+    },
+    {
+      "row": 38,
+      "key": "likelihood",
+      "labelHe": "סבירות",
+      "labelEn": "Likelihood",
+      "visible": true,
+      "heightPt": 16.5
+    },
+    {
+      "row": 39,
+      "key": "barriers",
+      "labelHe": "חסמים",
+      "labelEn": "Barriers",
+      "visible": true,
+      "heightPt": 32.25
+    }
+  ],
+  "colorScaleRules": [
+    {
+      "ruleId": "security",
+      "dimension": "security",
+      "ranges": [
+        "C4:S8",
+        "C9",
+        "E9:S9"
+      ],
+      "low": "#F8696B",
+      "mid": "#FFEB84",
+      "high": "#63BE7B",
+      "midPercentile": 50
+    },
+    {
+      "ruleId": "environment",
+      "dimension": "environment",
+      "ranges": [
+        "C15:C20",
+        "E15:S20"
+      ],
+      "low": "#F8696B",
+      "mid": "#FFEB84",
+      "high": "#63BE7B",
+      "midPercentile": 50
+    },
+    {
+      "ruleId": "equity",
+      "dimension": "equity",
+      "ranges": [
+        "C26:C31",
+        "E26:S31"
+      ],
+      "low": "#F8696B",
+      "mid": "#FFEB84",
+      "high": "#63BE7B",
+      "midPercentile": 50
+    },
+    {
+      "ruleId": "security_d",
+      "dimension": "security",
+      "ranges": [
+        "D9"
+      ],
+      "low": "#F8696B",
+      "mid": "#FFEB84",
+      "high": "#63BE7B",
+      "midPercentile": 50
+    },
+    {
+      "ruleId": "environment_d",
+      "dimension": "environment",
+      "ranges": [
+        "D15:D20"
+      ],
+      "low": "#F8696B",
+      "mid": "#FFEB84",
+      "high": "#63BE7B",
+      "midPercentile": 50
+    },
+    {
+      "ruleId": "equity_d",
+      "dimension": "equity",
+      "ranges": [
+        "D26:D31"
+      ],
+      "low": "#F8696B",
+      "mid": "#FFEB84",
+      "high": "#63BE7B",
+      "midPercentile": 50
+    }
+  ],
+  "sparklineSpecs": [
+    {
+      "dimension": "security",
+      "metric": "generation",
+      "axisMin": 0,
+      "axisMax": 90,
+      "fill": "#5B9BD5"
+    },
+    {
+      "dimension": "environment",
+      "metric": "emissions",
+      "axisMin": -6,
+      "axisMax": 30,
+      "fill": "#70AD47"
+    },
+    {
+      "dimension": "equity",
+      "metric": "price_impact",
+      "axisMin": -5,
+      "axisMax": 5,
+      "fill": "#ED7D31"
+    }
+  ],
+  "phaseBands": [
+    {
+      "phase": "2025-2030",
+      "startRow": 40,
+      "endRow": 51,
+      "labelFill": "#BDD7EE",
+      "bodyFill": "#DEEBF7",
+      "subGroups": [
+        {
+          "key": "targets",
+          "labelHe": "יעדים",
+          "labelEn": "Targets",
+          "startRow": 40,
+          "endRow": 42
+        },
+        {
+          "key": "steps",
+          "labelHe": "צעדים",
+          "labelEn": "Steps",
+          "startRow": 43,
+          "endRow": 48
+        },
+        {
+          "key": "impact",
+          "labelHe": "אימפקט",
+          "labelEn": "Impact",
+          "startRow": 49,
+          "endRow": 51
+        }
+      ]
+    },
+    {
+      "phase": "2030-2040",
+      "startRow": 52,
+      "endRow": 60,
+      "labelFill": "#F8CBAD",
+      "bodyFill": "#FBE5D6",
+      "subGroups": []
+    },
+    {
+      "phase": "2040-2050",
+      "startRow": 61,
+      "endRow": 66,
+      "labelFill": "#C5E0B4",
+      "bodyFill": "#E2F0D9",
+      "subGroups": []
+    }
+  ]
+}

@@ -39,3 +39,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# ingested database — rebuilt from the committed db/snapshot.json (see db/README.md)
+/db/reference.sqlite
+/db/reference.sqlite-*

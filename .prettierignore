@@ -2,6 +2,8 @@ node_modules
 .next
 db/reference.sqlite
 db/snapshot.json
+db/ingest-report.md
+drizzle/meta
 public
 .vscode
 
