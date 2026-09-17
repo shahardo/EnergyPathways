@@ -13,14 +13,17 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "e2e": "playwright test",
-    "ingest": "tsx scripts/ingest-workbook.ts"
+    "ingest": "tsx scripts/ingest-workbook.ts",
+    "parity:generate": "tsx scripts/generate-parity-fixtures.ts"
   },
   "dependencies": {
     "better-sqlite3": "^11.8.1",
     "clsx": "^2.1.1",
     "drizzle-orm": "^0.45.2",
+    "fast-xml-parser": "^5.11.1",
     "i18next": "^24.2.1",
     "i18next-resources-to-backend": "^1.2.1",
+    "jszip": "^3.10.2",
     "lucide-react": "^0.469.0",
     "next": "15.5.25",
     "react": "19.2.8",

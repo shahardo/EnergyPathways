@@ -49,7 +49,7 @@ describe("channelSchema", () => {
       nameHe: "הפחתת ביקושים",
       nameEn: "Demand reduction",
       potentialMw: null,
-      potentialRaw: "-",
+      potentialRaw: null,
       energyRole: "demand_reduction_unconfirmed",
       cf: null,
       ciGPerKwh: -400,

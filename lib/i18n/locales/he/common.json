@@ -4,7 +4,5 @@
   "nav.workbook": "לוח המסלולים",
   "nav.languageSwitcher.label": "שפה",
   "nav.languageSwitcher.he": "עברית",
-  "nav.languageSwitcher.en": "English",
-  "home.comingSoon.title": "לוח המסלולים בבנייה",
-  "home.comingSoon.body": "תצוגת הלוח האינטראקטיבית (F-101) נמצאת בפיתוח. ראו docs/DEV-PLAN.md למעקב אחר ההתקדמות."
+  "nav.languageSwitcher.en": "English"
 }

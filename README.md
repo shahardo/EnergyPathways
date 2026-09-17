@@ -19,18 +19,36 @@ it.
 
 ## Status
 
-**Phase 1 in progress.** Scaffold, i18n/RTL foundation and the core Zod
-schemas are done (DEV-PLAN T1–T3). Ingestion, the workbook model and the
-matrix UI (T5–T13) are not yet built — see the checklist below.
+**Phase 1 in progress.** Scaffold, i18n/RTL foundation, the core Zod
+schemas, the data layer, full workbook ingestion, the workbook model and
+the matrix skeleton are done (DEV-PLAN T1–T7). Score rows, sparklines,
+roadmap, callouts, the detail drawer and column filtering (T8–T13) are not
+yet built — see the checklist below.
 
 - [x] T1 — Project scaffold
 - [x] T2 — i18n and RTL foundation
 - [x] T3 — Types and schemas (`lib/schemas/workbook.ts`)
-- [ ] T4 — Data layer (Drizzle + SQLite)
-- [ ] T5 — Workbook ingestion (`scripts/ingest-workbook.ts`)
-- [ ] T6 — Workbook model (`lib/engine/workbook/`)
-- [ ] T7–T13 — Matrix UI (grid, score rows, sparklines, roadmap, callouts, detail drawer, filtering)
+- [x] T4 — Data layer (`lib/db/` — Drizzle + SQLite, migrations in `drizzle/`)
+- [x] T5 — Workbook ingestion (`scripts/ingest-workbook.ts` + `scripts/ingest/`); run with `npm run ingest`
+- [x] T6 — Workbook model (`lib/engine/workbook/`: `dimensionAverage`, `colorScale`, `sparklinePath`, `recovery`) + T6b parity harness (`npm run parity:generate`, `tests/unit/engine/parity.test.ts`)
+- [x] T7 — Matrix grid skeleton (`components/workbook/WorkbookMatrix.tsx`): label pane + 17 channel columns, rows 1–3, RTL/LTR mirror, keyboard grid navigation
+- [ ] T8–T13 — Score rows, sparklines, roadmap, callouts, detail drawer, column filtering
 - [ ] T14 — Fidelity and quality gates
+
+Ingestion has run against the real workbook: `db/snapshot.json` and
+`db/ingest-report.md` are committed and current. All 17 columns' CF/CI/ramp
+match SPEC §3.4 with zero trajectory-verification issues; the report lists
+every anomaly SPEC §6.3 calls for (D copying C, K/L as enablers, the blank
+row 37 Trilemma rule, the Q49 duplicate callout, the chart49–51/column-D
+mismatch, blank equity for F/M) plus one SPEC didn't anticipate: row 31's
+equity average is a literal cached value in the current file, not a live
+formula like rows 9 and 20.
+
+The matrix (`/he`, `/en`) renders rows 1–3 from real ingested data: label
+column pinned to the inline-start edge (a fixed pane, not `position:
+sticky` — see `WorkbookMatrix.tsx`'s doc comment for why), 17 channels in
+workbook order, axis headers merged and coloured per SPEC §5.3, an exact
+RTL↔LTR mirror, and full keyboard grid navigation (arrow keys, Home/End).
 
 ## Tech stack
 
@@ -48,16 +66,17 @@ npm run dev       # http://localhost:3000 — redirects to /he
 
 ## Scripts
 
-| Command                                   | Purpose                                                                      |
-| :---------------------------------------- | :--------------------------------------------------------------------------- |
-| `npm run dev`                             | Dev server                                                                   |
-| `npm run build` / `npm run start`         | Production build / serve                                                     |
-| `npm run typecheck`                       | `tsc --noEmit`                                                               |
-| `npm run lint`                            | ESLint, including the two repo-specific rules below                          |
-| `npm run test` / `npm run test:watch`     | Vitest unit tests (`tests/unit/`)                                            |
-| `npm run e2e`                             | Playwright (`tests/e2e/`) — visual regression baselines land with T14        |
-| `npm run format` / `npm run format:check` | Prettier                                                                     |
-| `npm run ingest`                          | Workbook ingestion (`scripts/ingest-workbook.ts`) — not yet implemented (T5) |
+| Command                                   | Purpose                                                                                                                        |
+| :---------------------------------------- | :----------------------------------------------------------------------------------------------------------------------------- |
+| `npm run dev`                             | Dev server                                                                                                                     |
+| `npm run build` / `npm run start`         | Production build / serve                                                                                                       |
+| `npm run typecheck`                       | `tsc --noEmit`                                                                                                                 |
+| `npm run lint`                            | ESLint, including the two repo-specific rules below                                                                            |
+| `npm run test` / `npm run test:watch`     | Vitest unit tests (`tests/unit/`)                                                                                              |
+| `npm run e2e`                             | Playwright (`tests/e2e/`) — visual regression baselines land with T14                                                          |
+| `npm run format` / `npm run format:check` | Prettier                                                                                                                       |
+| `npm run ingest`                          | Re-run workbook ingestion against `docs/*.xlsx`, rewriting `db/snapshot.json`, `db/ingest-report.md` and `db/reference.sqlite` |
+| `npm run parity:generate`                 | Regenerate `db/parity-fixtures.json` (T6b golden fixtures) from `db/snapshot.json` — run explicitly, never in CI               |
 
 CI (`.github/workflows/ci.yml`) runs typecheck, lint, unit tests, format
 check and build on every push.
@@ -66,13 +85,22 @@ check and build on every push.
 
 ```
 app/[locale]/       routes — /he (default) and /en, locale set at the root layout only
-components/         React components; components/workbook/ is the matrix view (not yet built)
+app/api/            /api/workbook, /api/channels/[id] (SPEC §7) — thin wrappers over lib/db/queries
+components/workbook/  WorkbookMatrix.tsx (F-101 skeleton, T7) + gridLayout.ts (pure layout helpers)
 lib/engine/         the one calculation engine — pure TypeScript, no I/O, no Date, no React
-lib/db/             Drizzle schema + queries over SQLite (not yet built)
+                     workbook/{recovery,dimensionAverage,colorScale,sparklinePath}.ts (SPEC §3, §5.4, §5.5)
+lib/db/             Drizzle schema (schema.ts), migrations runner + snapshot-hydration (client.ts),
+                     getWorkbookPayload()/getChannel() (queries.ts)
 lib/i18n/           i18next config, he/en catalogues, useFormat()
-lib/schemas/         Zod schemas — the single source of truth for domain types
-scripts/            ingest-workbook.ts — OOXML ingestion pipeline (not yet built)
-db/                 snapshot.json + ingest-report.md (committed), reference.sqlite (gitignored)
+lib/schemas/        Zod schemas — the single source of truth for domain types
+lib/color.ts         WCAG contrast-based header text colour (SPEC §5.10 deviation)
+scripts/ingest-workbook.ts   orchestrates the pipeline below; run via `npm run ingest`
+scripts/ingest/     OOXML parsing (zip/xml/theme/styles/sheet/charts/drawings), value + roadmap
+                     extraction, structural assertions, the column/row maps, report rendering
+scripts/generate-parity-fixtures.ts   T6b golden-fixture generator; run via `npm run parity:generate`
+drizzle/            committed SQL migrations for lib/db/schema.ts (generated by `drizzle-kit generate`)
+db/                 snapshot.json + ingest-report.md + parity-fixtures.json (all committed),
+                     reference.sqlite (gitignored — rebuilt from snapshot.json on first read)
 docs/               PRD, SPEC, DEV-PLAN, the source workbook, the reference screenshot
 ```
 

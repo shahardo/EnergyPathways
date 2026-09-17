@@ -119,10 +119,15 @@ export const channelSchema = z.object({
   axisGroupId: axisGroupIdSchema,
   nameHe: z.string(),
   nameEn: z.string(),
-  /** Deployment potential, MW. `null` for D, K, L, which the workbook shows as `-`. */
+  /** Deployment potential, MW. `null` for D, K, L — none of which carry a potential. */
   potentialMw: z.number().nonnegative().nullable(),
-  /** Verbatim workbook cell text, e.g. `"3,000 MW"` or `"-"` (SPEC §2.2, §5.10 rule 3). */
-  potentialRaw: z.string(),
+  /**
+   * Verbatim workbook cell text, e.g. `"3,000 MW"`. `null` when the cell is
+   * truly blank (D, L) — distinct from K, whose cell literally contains the
+   * text `"-"`, which is preserved as `"-"`, not collapsed to `null`
+   * (SPEC §2.2, §5.10 rules 2–3).
+   */
+  potentialRaw: z.string().nullable(),
   energyRole: energyRoleSchema,
   /** Recovered capacity factor (SPEC §3.5). `null` when unrecoverable (column D has no potential). */
   cf: z.number().min(0).max(1).nullable(),
@@ -255,7 +260,8 @@ export type AxisGroup = z.infer<typeof axisGroupSchema>;
 export const rowLabelSchema = z.object({
   row: z.number().int().positive(),
   key: z.string(),
-  labelHe: z.string(),
+  /** `null` for the three unlabeled sparkline rows (14, 25, 36) — the workbook's column A is blank there. */
+  labelHe: z.string().nullable(),
   labelEn: z.string(),
   visible: z.boolean(),
   heightPt: z.number().positive(),
