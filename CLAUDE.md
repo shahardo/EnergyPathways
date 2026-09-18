@@ -94,7 +94,7 @@ as a follow-up — a stale map is worse than no map.
 npm run format:check && npm run build`. All five are required in CI
   (`.github/workflows/ci.yml`); don't push something that fails one.
 - Follow DEV-PLAN's dependency order (T1 → T2/T3 → T4 → T5 → T6 → T7 → T8–T13
-  in parallel → T14 continuously). T1–T10 are done: real workbook data is
+  in parallel → T14 continuously). T1–T11 are done: real workbook data is
   available end-to-end through `getWorkbookPayload()`/`getChannel()`
   (`lib/db/queries.ts`), the pure colour-scale/sparkline-path/average
   functions exist in `lib/engine/workbook/`, the matrix skeleton
@@ -118,9 +118,15 @@ npm run format:check && npm run build`. All five are required in CI
   scroll container synced by hand). Untranslated free text (barriers,
   roadmap steps — OQ-11) falls back to Hebrew with an "HE" marker in
   English mode via `lib/i18n/freeText.ts`'s `resolveFreeText()` +
-  `components/workbook/HebrewSourceMark.tsx`. T11–T13 (callouts, drawer,
-  filtering) build on top of it — extend `WorkbookMatrix.tsx`'s cell-list
-  pattern rather than hand-mocking data.
+  `components/workbook/HebrewSourceMark.tsx`. The five trigger callouts
+  (F49, G53, J53, Q49, R49) render too (`components/workbook/Callout.tsx`):
+  each one's `anchorCell` resolves to a roadmap slot via
+  `roadmapRows.ts`'s `parseCellRef()` + the layout's row→slot map — never
+  a second hard-coded row-number table — and renders as an absolutely-
+  positioned overlay on that slot's cell, overflowing toward the next
+  phase's boundary rather than floating free of the grid (SPEC §5.8).
+  T12–T13 (drawer, filtering) build on top of it — extend
+  `WorkbookMatrix.tsx`'s cell-list pattern rather than hand-mocking data.
 - **`position: sticky` did not work for the label column inside the wide
   CSS Grid** (tested in both RTL and LTR — the column scrolled away with
   the rest of the content instead of pinning). `WorkbookMatrix.tsx` uses a

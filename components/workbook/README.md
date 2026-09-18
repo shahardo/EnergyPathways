@@ -26,9 +26,17 @@ for the presentation format each component must reproduce.
   label pane / scrolling data pane as the matrix above it (see
   `WorkbookMatrix.tsx`'s roadmap section), so the phase/sub-group columns
   stay pinned at the inline-start edge and the step-card grid shares the
-  matrix's horizontal scroll position for free.
+  matrix's horizontal scroll position for free. Also exports
+  `rowNumberToSlot` and `parseCellRef()`, which T11's callouts use to
+  resolve an `anchorCell` (e.g. `G53`) to the roadmap slot it attaches to.
 - `HebrewSourceMark.tsx` — the "HE" marker for free text shown in Hebrew
   while viewing in English (no approved translation yet, OQ-11); paired
   with `lib/i18n/freeText.ts`'s `resolveFreeText()`.
-- Trigger callouts, the detail drawer and column filtering (T11–T13) are
-  not yet implemented.
+- `Callout.tsx` (T11) — the F-104 trigger callout: a `role="note"` box
+  rendered as an absolutely-positioned overlay on its anchor cell's
+  roadmap grid cell (`WorkbookMatrix.tsx` looks the anchor up via
+  `roadmapRows.ts`'s row→slot map, not a second hard-coded lookup),
+  overflowing toward the next phase's boundary rather than floating free
+  of the grid; the anchor cell's `aria-describedby` references it.
+- The detail drawer and column filtering (T12–T13) are not yet
+  implemented.

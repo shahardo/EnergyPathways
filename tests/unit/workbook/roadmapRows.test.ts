@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   buildRoadmapLayout,
   indexRoadmapItems,
+  parseCellRef,
   roadmapItemKey,
 } from "@/components/workbook/roadmapRows";
 import { PHASE_BANDS } from "../../../scripts/ingest/phaseBands";
@@ -63,6 +64,47 @@ describe("buildRoadmapLayout", () => {
     const totalSubGrouped = layout.subGroupSpans.reduce((sum, s) => sum + s.rowCount, 0);
     const rows2530 = layout.rows.filter((r) => r.phase === "2025-2030");
     expect(totalSubGrouped).toBe(rows2530.length);
+  });
+
+  it("maps every workbook row 40-66 to a slot (T11 callout anchors)", () => {
+    for (let row = 40; row <= 66; row++) {
+      expect(layout.rowNumberToSlot.has(row)).toBe(true);
+    }
+  });
+
+  it("maps a step slot's whole title/detail/challenges triplet to the same slot", () => {
+    // 2030-2040's first step slot is rows 52-54 (SPEC §2.3).
+    const row52 = layout.rowNumberToSlot.get(52);
+    const row53 = layout.rowNumberToSlot.get(53);
+    const row54 = layout.rowNumberToSlot.get(54);
+    expect(row52).toEqual({
+      phase: "2030-2040",
+      kind: "step",
+      slot: 1,
+      subGroupKey: null,
+    });
+    expect(row53).toEqual(row52);
+    expect(row54).toEqual(row52);
+  });
+
+  it("maps the real callout anchor rows to the right slots (SPEC §5.8)", () => {
+    // F49/Q49/R49 -- first impact row of 2025-2030.
+    expect(layout.rowNumberToSlot.get(49)).toMatchObject({
+      phase: "2025-2030",
+      kind: "impact",
+      slot: 1,
+    });
+  });
+});
+
+describe("parseCellRef", () => {
+  it("splits an A1-style reference into column and row", () => {
+    expect(parseCellRef("G53")).toEqual({ column: "G", row: 53 });
+    expect(parseCellRef("AA1")).toEqual({ column: "AA", row: 1 });
+  });
+
+  it("throws on a malformed reference", () => {
+    expect(() => parseCellRef("53G")).toThrow();
   });
 });
 

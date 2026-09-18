@@ -28,9 +28,11 @@ import { HebrewSourceMark } from "./HebrewSourceMark";
 import {
   buildRoadmapLayout,
   indexRoadmapItems,
+  parseCellRef,
   roadmapItemKey,
   type RoadmapSubGroupSpan,
 } from "./roadmapRows";
+import { Callout } from "./Callout";
 
 const LABEL_FILL = "#A6A6A6"; // SPEC §5.3: label column (rows 1-3) and the whole potential row; also the neutral fill for a blank score/sub-score cell (SPEC §5.4)
 const SPARKLINE_CELL_FILL = "#D9D9D9"; // SPEC §5.5: sparkline cell background, white plot frame inside
@@ -220,6 +222,23 @@ export function WorkbookMatrix({ payload, locale }: WorkbookMatrixProps) {
     () => indexRoadmapItems(payload.roadmapItems),
     [payload.roadmapItems],
   );
+  // T11: each callout's anchor cell (e.g. "G53", SPEC §5.8) resolves to the
+  // roadmap slot that owns that workbook row, via the same layout the
+  // step/target/impact cells above already use -- never a second,
+  // hard-coded row-number lookup.
+  const calloutsByCellKey = useMemo(() => {
+    const map = new Map<string, WorkbookPayload["callouts"][number][]>();
+    for (const callout of payload.callouts) {
+      const { row } = parseCellRef(callout.anchorCell);
+      const slot = roadmapLayout.rowNumberToSlot.get(row);
+      if (!slot) continue;
+      const key = roadmapItemKey(slot.phase, slot.kind, slot.slot, callout.channelId);
+      const list = map.get(key) ?? [];
+      list.push(callout);
+      map.set(key, list);
+    }
+    return map;
+  }, [payload.callouts, roadmapLayout]);
   const roadmapRowHeights = useMemo(
     () =>
       roadmapLayout.rows.map((r) =>
@@ -765,14 +784,22 @@ export function WorkbookMatrix({ payload, locale }: WorkbookMatrixProps) {
                 }
               }
 
+              // T11: trigger callouts (SPEC §5.8) attach to their anchor
+              // cell's grid area and overflow toward the next phase
+              // boundary -- never float free of the grid.
+              const callouts = calloutsByCellKey.get(
+                roadmapItemKey(row.phase, row.kind, row.slot, channel.channelId),
+              );
+
               return (
                 <div
                   key={`roadmap-${row.phase}-${row.kind}-${row.slot}-${channel.channelId}`}
                   role="gridcell"
                   aria-rowindex={rowIndex + 1}
                   aria-colindex={colIndex + 1}
+                  aria-describedby={callouts?.map((c) => c.calloutId).join(" ")}
                   tabIndex={0}
-                  className="border-border flex items-stretch border-e border-b last:border-e-0"
+                  className="border-border relative flex items-stretch border-e border-b last:border-e-0"
                   style={{
                     gridColumnStart: colIndex + 1,
                     gridColumnEnd: colIndex + 2,
@@ -783,6 +810,28 @@ export function WorkbookMatrix({ payload, locale }: WorkbookMatrixProps) {
                   }}
                 >
                   {content}
+                  {callouts?.map((callout) => {
+                    const resolved = resolveFreeText(
+                      locale,
+                      callout.textHe,
+                      callout.textEn,
+                    );
+                    return (
+                      <Callout
+                        key={callout.calloutId}
+                        id={callout.calloutId}
+                        text={
+                          resolved?.isHebrewSource ? (
+                            <HebrewSourceMark locale={locale}>
+                              {resolved.text}
+                            </HebrewSourceMark>
+                          ) : (
+                            (resolved?.text ?? callout.textHe)
+                          )
+                        }
+                      />
+                    );
+                  })}
                 </div>
               );
             }),

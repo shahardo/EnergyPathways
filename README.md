@@ -22,8 +22,8 @@ it.
 **Phase 1 in progress.** Scaffold, i18n/RTL foundation, the core Zod
 schemas, the data layer, full workbook ingestion, the workbook model, the
 matrix skeleton, the score rows, the sparkline rows, and likelihood/barriers/
-roadmap are done (DEV-PLAN T1–T10). Callouts, the detail drawer and column
-filtering (T11–T13) are not yet built — see the checklist below.
+roadmap, and trigger callouts are done (DEV-PLAN T1–T11). The detail drawer
+and column filtering (T12–T13) are not yet built — see the checklist below.
 
 - [x] T1 — Project scaffold
 - [x] T2 — i18n and RTL foundation
@@ -35,7 +35,8 @@ filtering (T11–T13) are not yet built — see the checklist below.
 - [x] T8 — Score rows, colour scale, sub-score disclosure (`components/workbook/scoreRows.ts` + `WorkbookMatrix.tsx`): security/environment/equity averages coloured per SPEC §5.4's range-relative scale, each expandable in place (aria-expanded) to its five sub-score rows, collapsed by default
 - [x] T9 — Sparkline rows (`components/workbook/Sparkline.tsx` + `sparklineRows.ts` + `WorkbookMatrix.tsx`): one inline-SVG area chart per channel under each score row, on the shared fixed axis and four-point category axis from `sparkline_specs`, negative fill below the zero baseline, empty white frame for columns with no data (K, L; F/M equity), hover/focus tooltip and accessible name per SPEC §5.5
 - [x] T10 — Likelihood, barriers, roadmap (`WorkbookMatrix.tsx` + `roadmapRows.ts`): likelihood (words, not colour-coded) and barriers rows; the three phase bands with rotated phase/sub-group labels sticky at the inline-start edge, step cards (bold title, detail, bold-prefixed challenges) in fixed slots so every channel's cards align, empty slots preserved; free text (barriers, roadmap) shown in Hebrew with a marker in English mode (`lib/i18n/freeText.ts`, SPEC §5.10 rule 5)
-- [ ] T11–T13 — Trigger callouts, detail drawer, column filtering
+- [x] T11 — Trigger callouts (`Callout.tsx` + `WorkbookMatrix.tsx`): the 5 callouts (F49, G53, J53, Q49, R49) attach to their anchor cell's roadmap slot — resolved from `anchorCell` via `roadmapRows.ts`'s `parseCellRef()` + the layout's row→slot map, not a second hard-coded lookup — and overflow toward the next phase boundary; `role="note"`, the anchor cell's `aria-describedby` refs it, ⚠ icon + free-text Hebrew-source fallback like the rest of the roadmap
+- [ ] T12–T13 — Detail drawer, column filtering
 - [ ] T14 — Fidelity and quality gates
 
 Ingestion has run against the real workbook: `db/snapshot.json` and
@@ -89,6 +90,14 @@ approved English translation yet (targets, steps, challenges, barriers —
 OQ-11) renders in Hebrew with a small "HE" marker in English mode
 (`lib/i18n/freeText.ts`), never machine-translated.
 
+The five trigger callouts (F49, G53, J53, Q49, R49) attach to their anchor
+cell's roadmap slot — resolved from the cell reference via the same
+phase/sub-group layout the step cards use, so a callout's row never needs
+a second hard-coded lookup — and overflow toward the next phase's
+boundary, exactly as in the workbook, rather than floating free of the
+grid. Each is a `role="note"` referenced by its anchor cell's
+`aria-describedby`.
+
 ## Tech stack
 
 Next.js 16 (App Router, TypeScript strict) · Tailwind CSS 4 · shadcn/ui ·
@@ -139,10 +148,12 @@ check and build on every push.
 ```
 app/[locale]/       routes — /he (default) and /en, locale set at the root layout only
 app/api/            /api/workbook, /api/channels/[id] (SPEC §7) — thin wrappers over lib/db/queries
-components/workbook/  WorkbookMatrix.tsx (F-101/F-102, T7-T10) + gridLayout.ts (pure grid-layout helpers)
+components/workbook/  WorkbookMatrix.tsx (F-101/F-102, T7-T11) + gridLayout.ts (pure grid-layout helpers)
                      + scoreRows.ts (pure: score/sub-score row disclosure order, per-column colour lookup)
                      + sparklineRows.ts (pure: sparkline row lookup, per-channel trajectory values) + Sparkline.tsx (inline SVG cell)
-                     + roadmapRows.ts (pure: phase/sub-group/slot layout derived from phaseBands + roadmapItems)
+                     + roadmapRows.ts (pure: phase/sub-group/slot layout derived from phaseBands + roadmapItems,
+                       plus the workbook-row -> slot map callouts resolve their anchor against)
+                     + Callout.tsx (F-104 trigger callout, positioned on its anchor cell's roadmap slot)
                      + HebrewSourceMark.tsx (the "HE" marker for untranslated free text)
 lib/engine/         the one calculation engine — pure TypeScript, no I/O, no Date, no React
                      workbook/{recovery,dimensionAverage,colorScale,sparklinePath}.ts (SPEC §3, §5.4, §5.5)

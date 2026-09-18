@@ -39,6 +39,14 @@ export interface RoadmapLayout {
   rows: RoadmapSlotRow[];
   phaseSpans: RoadmapPhaseSpan[];
   subGroupSpans: RoadmapSubGroupSpan[];
+  /**
+   * Every workbook row 40-66 mapped back to the UI slot it belongs to — a
+   * step slot's three rows (title/detail/challenges) all map to the same
+   * slot. Lets a callout's `anchorCell` row (e.g. `G53`) resolve to the
+   * step card it should attach to (T11), without re-deriving the
+   * triplet/single-row split a second time.
+   */
+  rowNumberToSlot: ReadonlyMap<number, RoadmapSlotRow>;
 }
 
 function kindForSubGroupKey(key: string): RoadmapKind {
@@ -59,6 +67,7 @@ export function buildRoadmapLayout(phaseBands: readonly PhaseBand[]): RoadmapLay
   const rows: RoadmapSlotRow[] = [];
   const phaseSpans: RoadmapPhaseSpan[] = [];
   const subGroupSpans: RoadmapSubGroupSpan[] = [];
+  const rowNumberToSlot = new Map<number, RoadmapSlotRow>();
 
   for (const band of [...phaseBands].sort((a, b) => a.startRow - b.startRow)) {
     const phaseStartIndex = rows.length;
@@ -78,15 +87,21 @@ export function buildRoadmapLayout(phaseBands: readonly PhaseBand[]): RoadmapLay
     for (const group of groups) {
       const kind = kindForSubGroupKey(group.key);
       const rowSpan = group.endRow - group.startRow + 1;
-      const slotCount = kind === "step" ? rowSpan / STEP_ROW_TRIPLET : rowSpan;
+      const rowsPerSlot = kind === "step" ? STEP_ROW_TRIPLET : 1;
+      const slotCount = rowSpan / rowsPerSlot;
       const subGroupStartIndex = rows.length;
       for (let slot = 1; slot <= slotCount; slot++) {
-        rows.push({
+        const slotRow: RoadmapSlotRow = {
           phase: band.phase,
           kind,
           slot,
           subGroupKey: hasSubGroups ? group.key : null,
-        });
+        };
+        rows.push(slotRow);
+        const firstWorkbookRow = group.startRow + (slot - 1) * rowsPerSlot;
+        for (let r = firstWorkbookRow; r < firstWorkbookRow + rowsPerSlot; r++) {
+          rowNumberToSlot.set(r, slotRow);
+        }
       }
       if (hasSubGroups) {
         subGroupSpans.push({
@@ -109,7 +124,16 @@ export function buildRoadmapLayout(phaseBands: readonly PhaseBand[]): RoadmapLay
     });
   }
 
-  return { rows, phaseSpans, subGroupSpans };
+  return { rows, phaseSpans, subGroupSpans, rowNumberToSlot };
+}
+
+/** Splits an A1-style cell reference (e.g. `G53`) into its column letters and row number. */
+export function parseCellRef(cellRef: string): { column: string; row: number } {
+  const match = /^([A-Z]+)([0-9]+)$/.exec(cellRef);
+  if (!match || !match[1] || !match[2]) {
+    throw new Error(`parseCellRef: malformed cell reference "${cellRef}"`);
+  }
+  return { column: match[1], row: Number(match[2]) };
 }
 
 export function roadmapItemKey(
