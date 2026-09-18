@@ -86,14 +86,17 @@ as a follow-up — a stale map is worse than no map.
 npm run format:check && npm run build`. All five are required in CI
   (`.github/workflows/ci.yml`); don't push something that fails one.
 - Follow DEV-PLAN's dependency order (T1 → T2/T3 → T4 → T5 → T6 → T7 → T8–T13
-  in parallel → T14 continuously). T1–T7 are done: real workbook data is
+  in parallel → T14 continuously). T1–T8 are done: real workbook data is
   available end-to-end through `getWorkbookPayload()`/`getChannel()`
   (`lib/db/queries.ts`), the pure colour-scale/sparkline-path/average
-  functions exist in `lib/engine/workbook/`, and the matrix skeleton
-  (`WorkbookMatrix.tsx`) renders rows 1–3 from that real data. T8–T13
-  (score rows, sparklines, roadmap, callouts, drawer, filtering) build on
-  top of it — extend `WorkbookMatrix.tsx`'s cell-list pattern rather than
-  hand-mocking data.
+  functions exist in `lib/engine/workbook/`, the matrix skeleton
+  (`WorkbookMatrix.tsx`) renders rows 1–3 from that real data, and the
+  three score rows render coloured and expand in place to their sub-score
+  rows (`components/workbook/scoreRows.ts` — row disclosure order and the
+  per-column colour-scale lookup, both pure and unit-tested independently
+  of the component, same pattern as `gridLayout.ts`). T9–T13 (sparklines,
+  roadmap, callouts, drawer, filtering) build on top of it — extend
+  `WorkbookMatrix.tsx`'s cell-list pattern rather than hand-mocking data.
 - **`position: sticky` did not work for the label column inside the wide
   CSS Grid** (tested in both RTL and LTR — the column scrolled away with
   the rest of the content instead of pinning). `WorkbookMatrix.tsx` uses a
