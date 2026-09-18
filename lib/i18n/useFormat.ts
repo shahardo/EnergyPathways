@@ -26,6 +26,9 @@ export function useFormat(locale: Locale) {
     return {
       score: (value: number | null): string | null =>
         value === null ? null : scoreFormatter.format(value),
+      /** Same one-decimal, Western-numeral precision as `score`, for trajectory values (SPEC §5.5). */
+      trajectoryValue: (value: number | null): string | null =>
+        value === null ? null : scoreFormatter.format(value),
       megawatts: (value: number | null): string | null =>
         value === null ? null : `${megawattFormatter.format(value)} MW`,
     };
