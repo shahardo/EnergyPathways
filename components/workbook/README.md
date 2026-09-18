@@ -38,5 +38,17 @@ for the presentation format each component must reproduce.
   `roadmapRows.ts`'s row→slot map, not a second hard-coded lookup),
   overflowing toward the next phase's boundary rather than floating free
   of the grid; the anchor cell's `aria-describedby` references it.
-- The detail drawer and column filtering (T12–T13) are not yet
-  implemented.
+- `ChannelDrawer.tsx` (T12, F-105) — opens from the channel-name cell
+  (`WorkbookMatrix.tsx` wires the click/Enter handler and an
+  `onActivate`-carrying `DataCell` variant to trigger it). Radar +
+  trajectory charts are Recharts; the panel itself is `components/ui/sheet.tsx`
+  (Radix `Dialog`). Read its top doc comment before changing how it's
+  mounted: `<Sheet>`/`<SheetContent>` must stay rendered continuously with
+  `open` toggling visibility, not be conditionally omitted from the tree
+  when no channel is selected -- doing that breaks Radix's close-animation
+  and focus-restore timing (confirmed with a Playwright check of
+  `document.activeElement`). Because the trigger is a plain grid cell, not
+  a `<Dialog.Trigger>`, focus restoration on close is wired by hand via
+  `SheetContent`'s `onCloseAutoFocus` and a ref the matrix passes down,
+  rather than relying on Radix's default trigger-tracking.
+- Column filtering (T13) is not yet implemented.

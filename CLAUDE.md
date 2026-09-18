@@ -94,7 +94,7 @@ as a follow-up — a stale map is worse than no map.
 npm run format:check && npm run build`. All five are required in CI
   (`.github/workflows/ci.yml`); don't push something that fails one.
 - Follow DEV-PLAN's dependency order (T1 → T2/T3 → T4 → T5 → T6 → T7 → T8–T13
-  in parallel → T14 continuously). T1–T11 are done: real workbook data is
+  in parallel → T14 continuously). T1–T12 are done: real workbook data is
   available end-to-end through `getWorkbookPayload()`/`getChannel()`
   (`lib/db/queries.ts`), the pure colour-scale/sparkline-path/average
   functions exist in `lib/engine/workbook/`, the matrix skeleton
@@ -125,8 +125,26 @@ npm run format:check && npm run build`. All five are required in CI
   a second hard-coded row-number table — and renders as an absolutely-
   positioned overlay on that slot's cell, overflowing toward the next
   phase's boundary rather than floating free of the grid (SPEC §5.8).
-  T12–T13 (drawer, filtering) build on top of it — extend
-  `WorkbookMatrix.tsx`'s cell-list pattern rather than hand-mocking data.
+  Clicking (or Enter/Space on) a channel's name cell opens
+  `components/workbook/ChannelDrawer.tsx` (F-105): a shadcn `Sheet` (Radix
+  `Dialog`) with a Recharts radar of the three dimension averages, all 15
+  coloured sub-scores, three trajectory charts on a true time axis, the
+  channel's roadmap and callouts, and CF/CI marked as recovered. **Keep
+  `<Sheet>`/`<SheetContent>` mounted continuously, `open` toggling
+  visibility** — conditionally omitting `SheetContent` from the tree when
+  no channel is selected breaks Radix's close-animation and focus-restore
+  timing (a real bug caught here via a Playwright check of
+  `document.activeElement`, not by inspection). Because the trigger is a
+  plain grid cell, not a `<Dialog.Trigger>`, focus restoration on close is
+  wired by hand: `WorkbookMatrix.tsx` captures the clicked/activated
+  cell's DOM node in a ref, passed to `ChannelDrawer` and applied via
+  `SheetContent`'s `onCloseAutoFocus`. `components/ui/sheet.tsx` and
+  `table.tsx` are hand-authored (the shadcn CLI's registry fetch isn't
+  reachable through this environment's egress proxy — `npx shadcn add`
+  failed with a cancelled request to ui.shadcn.com) rather than generated,
+  matching `components.json`'s existing "new-york" style. T13 (column
+  filtering) builds on top of it — extend `WorkbookMatrix.tsx`'s cell-list
+  pattern rather than hand-mocking data.
 - **`position: sticky` did not work for the label column inside the wide
   CSS Grid** (tested in both RTL and LTR — the column scrolled away with
   the rest of the content instead of pinning). `WorkbookMatrix.tsx` uses a

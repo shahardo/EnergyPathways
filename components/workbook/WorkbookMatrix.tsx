@@ -3,6 +3,7 @@
 import { useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 import {
   MILESTONE_YEARS,
+  type ChannelId,
   type Dimension,
   type RowLabel,
   type TrajectoryMetric,
@@ -33,6 +34,7 @@ import {
   type RoadmapSubGroupSpan,
 } from "./roadmapRows";
 import { Callout } from "./Callout";
+import { ChannelDrawer } from "./ChannelDrawer";
 
 const LABEL_FILL = "#A6A6A6"; // SPEC §5.3: label column (rows 1-3) and the whole potential row; also the neutral fill for a blank score/sub-score cell (SPEC §5.4)
 const SPARKLINE_CELL_FILL = "#D9D9D9"; // SPEC §5.5: sparkline cell background, white plot frame inside
@@ -94,6 +96,8 @@ interface DataCell {
   background: string;
   content: ReactNode;
   className: string;
+  /** F-105: the channel-name cell activates the detail drawer (click or Enter/Space). */
+  onActivate?: () => void;
 }
 
 /**
@@ -291,6 +295,14 @@ export function WorkbookMatrix({ payload, locale }: WorkbookMatrixProps) {
   const colCount = channels.length; // channel columns only; the label pane is separate
   const cellRefs = useRef(new Map<string, HTMLDivElement>());
   const [focus, setFocus] = useState({ row: 0, col: 0 });
+  // F-105: the channel detail drawer (T12) opens from the channel-name cell.
+  // drawerTriggerRef tracks which cell to restore focus to on close --
+  // Radix's own focus-restore is keyed to its <Dialog.Trigger>, which we
+  // don't use (the trigger is a generic grid cell, not a dedicated
+  // trigger element), so we capture and restore it ourselves via
+  // SheetContent's onCloseAutoFocus (see ChannelDrawer.tsx).
+  const [selectedChannelId, setSelectedChannelId] = useState<ChannelId | null>(null);
+  const drawerTriggerRef = useRef<HTMLDivElement | null>(null);
 
   function registerCell(row: number, col: number, el: HTMLDivElement | null) {
     const key = `${row}-${col}`;
@@ -373,7 +385,8 @@ export function WorkbookMatrix({ payload, locale }: WorkbookMatrixProps) {
         background: axisGroup?.nameFill ?? "#FFFFFF",
         content: locale === "he" ? channel.nameHe : channel.nameEn,
         className:
-          "flex items-center justify-center p-2 text-center text-sm font-semibold",
+          "flex items-center justify-center p-2 text-center text-sm font-semibold cursor-pointer underline-offset-2 hover:underline",
+        onActivate: () => setSelectedChannelId(channel.channelId),
       };
     });
 
@@ -687,7 +700,27 @@ export function WorkbookMatrix({ payload, locale }: WorkbookMatrixProps) {
                 aria-colindex={cell.colIndexes[0]! + 1}
                 aria-colspan={cell.ariaColspan}
                 tabIndex={isFocusable ? 0 : -1}
+                aria-haspopup={cell.onActivate ? "dialog" : undefined}
                 onFocus={() => setFocus({ row: cell.rowIndex, col: cell.colIndexes[0]! })}
+                onClick={
+                  cell.onActivate
+                    ? (event) => {
+                        drawerTriggerRef.current = event.currentTarget;
+                        cell.onActivate!();
+                      }
+                    : undefined
+                }
+                onKeyDown={
+                  cell.onActivate
+                    ? (event) => {
+                        if (event.key === "Enter" || event.key === " ") {
+                          event.preventDefault();
+                          drawerTriggerRef.current = event.currentTarget;
+                          cell.onActivate!();
+                        }
+                      }
+                    : undefined
+                }
                 className={`${cell.className} border-border border-e border-b last:border-e-0 ${cell.rowIndex === allRows.length - 1 ? "border-b-0" : ""}`}
                 style={{
                   gridColumnStart: cell.gridColumnStart,
@@ -838,6 +871,16 @@ export function WorkbookMatrix({ payload, locale }: WorkbookMatrixProps) {
           )}
         </div>
       </div>
+      <ChannelDrawer
+        payload={payload}
+        channel={channels.find((c) => c.channelId === selectedChannelId) ?? null}
+        locale={locale}
+        colorScales={colorScales}
+        triggerRef={drawerTriggerRef}
+        onOpenChange={(open) => {
+          if (!open) setSelectedChannelId(null);
+        }}
+      />
     </div>
   );
 }
