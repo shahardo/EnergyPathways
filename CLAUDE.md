@@ -78,6 +78,14 @@ as a follow-up — a stale map is worse than no map.
 - Every workbook-derived figure carries a `cell_ref` and the
   `dataset_version` (NFR-6, NFR-5). If you add a new derived field, don't
   drop this.
+- **Native deps need their install scripts.** `better-sqlite3` (the addon
+  itself), `esbuild` (vitest/tsx) and `unrs-resolver` (the ESLint import
+  resolver) are allowlisted in the `allowScripts` field of `package.json`,
+  because npm 12 blocks install scripts by default. Keep that field
+  committed; a blocked `better-sqlite3` install surfaces far from its cause,
+  as a "Could not locate the bindings file" 500 from `getDb()`. After
+  changing the allowlist, `npm rebuild <pkg>` — `npm install` says "up to
+  date" and skips the script.
 - Prettier formats everything except `docs/PRD.md`, `docs/SPEC.md` and
   `docs/DEV-PLAN.md` (see `.prettierignore`) — those are normative reference
   documents; don't reflow their formatting even incidentally via a broad

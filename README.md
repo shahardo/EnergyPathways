@@ -64,6 +64,20 @@ npm install
 npm run dev       # http://localhost:3000 — redirects to /he
 ```
 
+`better-sqlite3` is a native addon, and `esbuild`/`unrs-resolver` fetch
+platform binaries — all three need their install scripts to run. npm 12
+blocks install scripts by default, so the allowlist lives in the
+`allowScripts` field of `package.json`; it is committed, and `npm install`
+honours it with no extra step. If you ever see
+
+```
+Error: Could not locate the bindings file … better_sqlite3.node
+```
+
+the script was skipped (an older allowlist, or `--ignore-scripts`). Fix it
+with `npm rebuild better-sqlite3 esbuild unrs-resolver` — `npm install`
+alone reports "up to date" and will not re-run it.
+
 ## Scripts
 
 | Command                                   | Purpose                                                                                                                        |

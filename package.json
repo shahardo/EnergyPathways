@@ -17,7 +17,7 @@
     "parity:generate": "tsx scripts/generate-parity-fixtures.ts"
   },
   "dependencies": {
-    "better-sqlite3": "^11.8.1",
+    "better-sqlite3": "^12.11.1",
     "clsx": "^2.1.1",
     "drizzle-orm": "^0.45.2",
     "fast-xml-parser": "^5.11.1",
@@ -25,7 +25,7 @@
     "i18next-resources-to-backend": "^1.2.1",
     "jszip": "^3.10.2",
     "lucide-react": "^0.469.0",
-    "next": "15.5.25",
+    "next": "^16.3.5",
     "react": "19.2.8",
     "react-dom": "19.2.8",
     "react-i18next": "^15.4.0",
@@ -53,5 +53,12 @@
     "tsx": "^4.19.2",
     "typescript": "^5",
     "vitest": "^5.0.1"
+  },
+  "allowScripts": {
+    "better-sqlite3@12.11.1": true,
+    "esbuild@0.18.20": true,
+    "esbuild@0.25.12": true,
+    "esbuild@0.28.2": true,
+    "unrs-resolver@1.12.2": true
   }
 }
