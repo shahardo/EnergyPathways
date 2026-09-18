@@ -21,9 +21,9 @@ it.
 
 **Phase 1 in progress.** Scaffold, i18n/RTL foundation, the core Zod
 schemas, the data layer, full workbook ingestion, the workbook model, the
-matrix skeleton and the score rows are done (DEV-PLAN T1–T8). Sparklines,
-roadmap, callouts, the detail drawer and column filtering (T9–T13) are not
-yet built — see the checklist below.
+matrix skeleton, the score rows and the sparkline rows are done (DEV-PLAN
+T1–T9). Roadmap, callouts, the detail drawer and column filtering (T10–T13)
+are not yet built — see the checklist below.
 
 - [x] T1 — Project scaffold
 - [x] T2 — i18n and RTL foundation
@@ -33,7 +33,8 @@ yet built — see the checklist below.
 - [x] T6 — Workbook model (`lib/engine/workbook/`: `dimensionAverage`, `colorScale`, `sparklinePath`, `recovery`) + T6b parity harness (`npm run parity:generate`, `tests/unit/engine/parity.test.ts`)
 - [x] T7 — Matrix grid skeleton (`components/workbook/WorkbookMatrix.tsx`): label pane + 17 channel columns, rows 1–3, RTL/LTR mirror, keyboard grid navigation
 - [x] T8 — Score rows, colour scale, sub-score disclosure (`components/workbook/scoreRows.ts` + `WorkbookMatrix.tsx`): security/environment/equity averages coloured per SPEC §5.4's range-relative scale, each expandable in place (aria-expanded) to its five sub-score rows, collapsed by default
-- [ ] T9–T13 — Sparklines, roadmap, callouts, detail drawer, column filtering
+- [x] T9 — Sparkline rows (`components/workbook/Sparkline.tsx` + `sparklineRows.ts` + `WorkbookMatrix.tsx`): one inline-SVG area chart per channel under each score row, on the shared fixed axis and four-point category axis from `sparkline_specs`, negative fill below the zero baseline, empty white frame for columns with no data (K, L; F/M equity), hover/focus tooltip and accessible name per SPEC §5.5
+- [ ] T10–T13 — Likelihood/barriers/roadmap, callouts, detail drawer, column filtering
 - [ ] T14 — Fidelity and quality gates
 
 Ingestion has run against the real workbook: `db/snapshot.json` and
@@ -59,6 +60,16 @@ toggles `aria-expanded` and reveals its five sub-score rows in place,
 directly above the average, exactly as the workbook orders them; a blank
 average or sub-score (e.g. equity for columns F/M) renders as an empty
 cell in the row's neutral `#A6A6A6` fill.
+
+Directly below each score row, one always-visible sparkline row (rows
+14/25/36) plots that channel's four-milestone-year trajectory — generation
+(security), emissions (environment), price impact (equity) — as an inline
+SVG filled area on the row's shared fixed axis, never per-chart auto-scaled,
+which is what makes renewables' generation sparkline visibly dwarf
+efficiency's. Negative values fill below the zero baseline; a column with
+no trajectory data renders the empty white plot frame. Hover or focus shows
+a four-line tooltip and an accessible name reading all four values with
+their unit and years.
 
 ## Tech stack
 
@@ -110,8 +121,9 @@ check and build on every push.
 ```
 app/[locale]/       routes — /he (default) and /en, locale set at the root layout only
 app/api/            /api/workbook, /api/channels/[id] (SPEC §7) — thin wrappers over lib/db/queries
-components/workbook/  WorkbookMatrix.tsx (F-101/F-102, T7-T8) + gridLayout.ts (pure grid-layout helpers)
+components/workbook/  WorkbookMatrix.tsx (F-101/F-102, T7-T9) + gridLayout.ts (pure grid-layout helpers)
                      + scoreRows.ts (pure: score/sub-score row disclosure order, per-column colour lookup)
+                     + sparklineRows.ts (pure: sparkline row lookup, per-channel trajectory values) + Sparkline.tsx (inline SVG cell)
 lib/engine/         the one calculation engine — pure TypeScript, no I/O, no Date, no React
                      workbook/{recovery,dimensionAverage,colorScale,sparklinePath}.ts (SPEC §3, §5.4, §5.5)
 lib/db/             Drizzle schema (schema.ts), migrations runner + snapshot-hydration (client.ts),

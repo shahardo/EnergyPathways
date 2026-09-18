@@ -1,18 +1,49 @@
 "use client";
 
 import { useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
-import type { Dimension, WorkbookPayload } from "@/lib/schemas/workbook";
+import {
+  MILESTONE_YEARS,
+  type Dimension,
+  type RowLabel,
+  type TrajectoryMetric,
+  type WorkbookPayload,
+} from "@/lib/schemas/workbook";
 import type { Locale } from "@/lib/i18n/locales";
 import { contrastTextColor } from "@/lib/color";
 import { useFormat } from "@/lib/i18n/useFormat";
+import { sparklinePath } from "@/lib/engine/workbook/sparklinePath";
 import { computeAxisGroupSpans, computeRowMetrics } from "./gridLayout";
 import {
   buildDimensionColorScales,
   buildScoreBlockRows,
   type ScoreBlockRow,
 } from "./scoreRows";
+import {
+  buildSparklineRowByDimension,
+  trajectoryValuesForChannel,
+} from "./sparklineRows";
+import { Sparkline } from "./Sparkline";
 
 const LABEL_FILL = "#A6A6A6"; // SPEC §5.3: label column (rows 1-3) and the whole potential row; also the neutral fill for a blank score/sub-score cell (SPEC §5.4)
+const SPARKLINE_CELL_FILL = "#D9D9D9"; // SPEC §5.5: sparkline cell background, white plot frame inside
+const SPARKLINE_WIDTH = 100;
+const SPARKLINE_HEIGHT = 32; // SVG viewBox units; the element itself stretches to fill the cell (preserveAspectRatio="none")
+
+// UI chrome, not workbook text (SPEC §5.5 gives only an example accessible name) --
+// same inline-ternary pattern as the rest of this component's labels.
+const METRIC_LABEL: Record<TrajectoryMetric, Record<Locale, string>> = {
+  generation: { he: "ייצור", en: "generation" },
+  emissions: { he: "פליטות", en: "emissions" },
+  price_impact: { he: "השפעת מחיר", en: "price impact" },
+};
+const METRIC_UNIT: Record<TrajectoryMetric, string> = {
+  generation: "TWh",
+  emissions: "MtCO₂e",
+  price_impact: "", // unitless index (SPEC §1.1, OQ-12)
+};
+
+type ContentRow =
+  ScoreBlockRow | { kind: "sparkline"; dimension: Dimension; rowLabel: RowLabel };
 
 interface WorkbookMatrixProps {
   payload: WorkbookPayload;
@@ -79,6 +110,34 @@ export function WorkbookMatrix({ payload, locale }: WorkbookMatrixProps) {
     () => buildScoreBlockRows(payload.rowLabels, expandedDimensions),
     [payload.rowLabels, expandedDimensions],
   );
+  // T9: one always-visible sparkline row directly below each score row
+  // (SPEC §2.2 rows 14/25/36) -- never collapsed, so it isn't part of
+  // buildScoreBlockRows' disclosure toggle.
+  const sparklineRowByDimension = useMemo(
+    () => buildSparklineRowByDimension(payload.rowLabels),
+    [payload.rowLabels],
+  );
+  const sparklineSpecByDimension = useMemo(
+    () => new Map(payload.sparklineSpecs.map((s) => [s.dimension, s])),
+    [payload.sparklineSpecs],
+  );
+  const contentRows = useMemo<ContentRow[]>(() => {
+    const rows: ContentRow[] = [];
+    for (const row of scoreBlockRows) {
+      rows.push(row);
+      if (row.kind === "score") {
+        const sparkRowLabel = sparklineRowByDimension.get(row.dimension);
+        if (sparkRowLabel) {
+          rows.push({
+            kind: "sparkline",
+            dimension: row.dimension,
+            rowLabel: sparkRowLabel,
+          });
+        }
+      }
+    }
+    return rows;
+  }, [scoreBlockRows, sparklineRowByDimension]);
   const colorScales = useMemo(
     () =>
       buildDimensionColorScales(
@@ -103,8 +162,8 @@ export function WorkbookMatrix({ payload, locale }: WorkbookMatrixProps) {
   const format = useFormat(locale);
 
   const allRows = useMemo(
-    () => [...headerRows, ...scoreBlockRows.map((r) => r.rowLabel)],
-    [headerRows, scoreBlockRows],
+    () => [...headerRows, ...contentRows.map((r) => r.rowLabel)],
+    [headerRows, contentRows],
   );
   const rowMetrics = useMemo(() => computeRowMetrics(allRows), [allRows]);
 
@@ -213,8 +272,69 @@ export function WorkbookMatrix({ payload, locale }: WorkbookMatrixProps) {
       className: "flex items-center justify-center p-2 text-sm",
     }));
 
-    const scoreBlockCells: DataCell[] = scoreBlockRows.flatMap((row, blockIndex) =>
-      channels.map((channel, index) => {
+    const contentCells: DataCell[] = contentRows.flatMap((row, blockIndex) => {
+      if (row.kind === "sparkline") {
+        const spec = sparklineSpecByDimension.get(row.dimension);
+        if (!spec) {
+          throw new Error(
+            `WorkbookMatrix: missing sparkline spec for dimension "${row.dimension}"`,
+          );
+        }
+        const metricLabel = METRIC_LABEL[spec.metric][locale];
+        const unit = METRIC_UNIT[spec.metric];
+        return channels.map((channel, index) => {
+          const values = trajectoryValuesForChannel(
+            payload.trajectories,
+            channel.channelId,
+            spec.metric,
+          );
+          const geometry = sparklinePath(
+            values,
+            { axisMin: spec.axisMin, axisMax: spec.axisMax },
+            SPARKLINE_WIDTH,
+            SPARKLINE_HEIGHT,
+          );
+          const channelName = locale === "he" ? channel.nameHe : channel.nameEn;
+          const formattedValues = values.map((v) => format.trajectoryValue(v));
+          const hasData = formattedValues.some((v) => v !== null);
+          const unitSuffix = unit ? ` ${unit}` : "";
+          const accessibleName = hasData
+            ? locale === "he"
+              ? `${channelName}, ${metricLabel}: ${formattedValues.join(", ")}${unitSuffix} עבור ${MILESTONE_YEARS.join(", ")}`
+              : `${channelName}, ${metricLabel}: ${formattedValues.join(", ")}${unitSuffix} for ${MILESTONE_YEARS.join(", ")}`
+            : locale === "he"
+              ? `${channelName}, ${metricLabel}: אין נתונים`
+              : `${channelName}, ${metricLabel}: no data`;
+          const tooltipLines = hasData
+            ? MILESTONE_YEARS.map(
+                (year, i) => `${year}: ${formattedValues[i]}${unitSuffix}`,
+              )
+            : [];
+          return {
+            key: `sparkline-${row.dimension}-${channel.channelId}`,
+            rowIndex: 3 + blockIndex,
+            colIndexes: [index + 1],
+            gridColumnStart: index + 1,
+            gridColumnEnd: index + 2,
+            role: "gridcell",
+            background: SPARKLINE_CELL_FILL,
+            content: (
+              <Sparkline
+                areaPath={geometry.areaPath}
+                zeroY={geometry.zeroY}
+                width={SPARKLINE_WIDTH}
+                height={SPARKLINE_HEIGHT}
+                fill={spec.fill}
+                accessibleName={accessibleName}
+                tooltipLines={tooltipLines}
+              />
+            ),
+            className: "p-1",
+          };
+        });
+      }
+
+      return channels.map((channel, index) => {
         const record: { value: number | null; cellRef: string } | undefined =
           row.kind === "score"
             ? averageByChannelDim.get(`${channel.channelId}|${row.dimension}`)
@@ -242,16 +362,18 @@ export function WorkbookMatrix({ payload, locale }: WorkbookMatrixProps) {
           ),
           className: "flex items-center justify-center p-2 text-sm",
         };
-      }),
-    );
+      });
+    });
 
-    return [...axisHeaderCells, ...nameCells, ...potentialCells, ...scoreBlockCells];
+    return [...axisHeaderCells, ...nameCells, ...potentialCells, ...contentCells];
   }, [
     axisSpans,
     channels,
     payload.axisGroups,
+    payload.trajectories,
     locale,
-    scoreBlockRows,
+    contentRows,
+    sparklineSpecByDimension,
     averageByChannelDim,
     subScoreByChannelDimKey,
     colorScales,
@@ -275,8 +397,8 @@ export function WorkbookMatrix({ payload, locale }: WorkbookMatrixProps) {
           const metrics = rowMetrics[rowIndex];
           const text = locale === "he" ? (row.labelHe ?? "") : row.labelEn;
           const isFocusable = focus.row === rowIndex && focus.col === 0;
-          const blockRow: ScoreBlockRow | undefined =
-            rowIndex >= 3 ? scoreBlockRows[rowIndex - 3] : undefined;
+          const blockRow: ContentRow | undefined =
+            rowIndex >= 3 ? contentRows[rowIndex - 3] : undefined;
 
           const commonClassName =
             "border-border flex items-center justify-center gap-1 border-e border-b p-2 text-xs font-bold last:border-b-0";
