@@ -62,7 +62,7 @@ cell in the row's neutral `#A6A6A6` fill.
 
 ## Tech stack
 
-Next.js 15 (App Router, TypeScript strict) · Tailwind CSS 4 · shadcn/ui ·
+Next.js 16 (App Router, TypeScript strict) · Tailwind CSS 4 · shadcn/ui ·
 Zod · i18next (Hebrew RTL default, English LTR) · Zustand · Drizzle ORM over
 `better-sqlite3` · Vitest · Playwright. Rationale for each choice is in
 [PRD §5](docs/PRD.md#5-technical-architecture).
