@@ -17,28 +17,33 @@ export interface AxisGroupSpan {
  * columns. Channels are assumed already sorted by `columnOrder` (workbook
  * order) — grid column 1 is the label column, so channel index `i`
  * (0-based) sits at line `i + 2`.
+ *
+ * Matches by each channel's own `axisGroupId`, not the axis group's
+ * `startColumn`/`endColumn` letters, so a group whose columns are only
+ * partly present in `channels` still spans exactly its remaining columns
+ * (SPEC §5.9's column filtering: "a header whose columns are partly
+ * hidden shrinks its span"), and a group with none present is simply
+ * omitted ("fully hidden, it disappears") rather than throwing.
  */
 export function computeAxisGroupSpans(
   channels: readonly Channel[],
   axisGroups: readonly AxisGroup[],
 ): AxisGroupSpan[] {
-  const indexByLetter = new Map(channels.map((c, index) => [c.columnLetter, index]));
-
-  return axisGroups.map((axisGroup) => {
-    const startIndex = indexByLetter.get(axisGroup.startColumn);
-    const endIndex = indexByLetter.get(axisGroup.endColumn);
-    if (startIndex === undefined || endIndex === undefined) {
-      throw new Error(
-        `computeAxisGroupSpans: axis group "${axisGroup.axisGroupId}" references a column outside the channel list`,
-      );
-    }
-    return {
+  const spans: AxisGroupSpan[] = [];
+  for (const axisGroup of axisGroups) {
+    const indexes = channels.flatMap((c, index) =>
+      c.axisGroupId === axisGroup.axisGroupId ? [index] : [],
+    );
+    if (indexes.length === 0) continue;
+    const startIndex = Math.min(...indexes);
+    spans.push({
       axisGroup,
       gridColumnStart: startIndex + 2,
-      gridColumnEnd: endIndex + 3,
-      columnCount: endIndex - startIndex + 1,
-    };
-  });
+      gridColumnEnd: startIndex + 2 + indexes.length,
+      columnCount: indexes.length,
+    });
+  }
+  return spans;
 }
 
 export interface MatrixRowMetrics {

@@ -51,4 +51,16 @@ for the presentation format each component must reproduce.
   a `<Dialog.Trigger>`, focus restoration on close is wired by hand via
   `SheetContent`'s `onCloseAutoFocus` and a ref the matrix passes down,
   rather than relying on Radix's default trigger-tracking.
-- Column filtering (T13) is not yet implemented.
+- `WorkbookExplorer.tsx` (T13, F-106) — the client-side owner of the URL-
+  synced filter state (`?axis=...&likelihood=...`; a reload restores it
+  exactly, since the URL is the only state, not a mirrored `useState`).
+  Renders `FilterToolbar.tsx` + `WorkbookMatrix.tsx`, passing the matrix a
+  `visibleChannelIds` set derived from `columnFilters.ts`'s pure
+  `isChannelVisible()`. `WorkbookMatrix.tsx` itself never recomputes
+  colour scales from the filtered subset -- they're built once from the
+  full payload, same as always (SPEC §5.9) -- it only filters which
+  channels it renders. `gridLayout.ts`'s `computeAxisGroupSpans` was
+  changed to match each axis group by which channels carry its
+  `axisGroupId`, not by looking up its literal `startColumn`/`endColumn`
+  letters, so a partly- or fully-filtered group shrinks or disappears
+  instead of throwing.

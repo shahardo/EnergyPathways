@@ -94,7 +94,8 @@ as a follow-up — a stale map is worse than no map.
 npm run format:check && npm run build`. All five are required in CI
   (`.github/workflows/ci.yml`); don't push something that fails one.
 - Follow DEV-PLAN's dependency order (T1 → T2/T3 → T4 → T5 → T6 → T7 → T8–T13
-  in parallel → T14 continuously). T1–T12 are done: real workbook data is
+  in parallel → T14 continuously). T1–T13 are done — all of Phase 1 except
+  T14's fidelity/quality gates. Real workbook data is
   available end-to-end through `getWorkbookPayload()`/`getChannel()`
   (`lib/db/queries.ts`), the pure colour-scale/sparkline-path/average
   functions exist in `lib/engine/workbook/`, the matrix skeleton
@@ -142,9 +143,19 @@ npm run format:check && npm run build`. All five are required in CI
   `table.tsx` are hand-authored (the shadcn CLI's registry fetch isn't
   reachable through this environment's egress proxy — `npx shadcn add`
   failed with a cancelled request to ui.shadcn.com) rather than generated,
-  matching `components.json`'s existing "new-york" style. T13 (column
-  filtering) builds on top of it — extend `WorkbookMatrix.tsx`'s cell-list
-  pattern rather than hand-mocking data.
+  matching `components.json`'s existing "new-york" style. Column filtering
+  (T13, F-106) sits above the matrix as `components/workbook/
+WorkbookExplorer.tsx`, which owns the filter state — read from and
+  written to the URL (`?axis=...&likelihood=...`) via `columnFilters.ts`,
+  never a separate `useState` mirror, so a reload restores it exactly —
+  and passes `WorkbookMatrix` a `visibleChannelIds` set to render.
+  **Filtering only ever changes which channels render, never their
+  colour**: colour scales still come from the full, unfiltered payload
+  (SPEC §5.9), and `gridLayout.ts`'s `computeAxisGroupSpans` was changed
+  to match each axis group by which channels carry its `axisGroupId`
+  rather than by looking up its `startColumn`/`endColumn` letters
+  directly, so a group with some (or all) of its columns filtered out
+  shrinks its header span (or is omitted) instead of throwing.
 - **`position: sticky` did not work for the label column inside the wide
   CSS Grid** (tested in both RTL and LTR — the column scrolled away with
   the rest of the content instead of pinning). `WorkbookMatrix.tsx` uses a

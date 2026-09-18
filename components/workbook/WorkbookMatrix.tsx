@@ -83,6 +83,8 @@ type ContentRow =
 interface WorkbookMatrixProps {
   payload: WorkbookPayload;
   locale: Locale;
+  /** F-106 column filtering (T13): `undefined` shows every channel. Colours are always computed over the unfiltered payload (SPEC §5.9), never recomputed from this subset. */
+  visibleChannelIds?: ReadonlySet<ChannelId>;
 }
 
 interface DataCell {
@@ -116,10 +118,17 @@ interface DataCell {
  * mirroring since the panes are laid out with `flex-row` (first DOM child
  * = inline-start in both directions).
  */
-export function WorkbookMatrix({ payload, locale }: WorkbookMatrixProps) {
+export function WorkbookMatrix({
+  payload,
+  locale,
+  visibleChannelIds,
+}: WorkbookMatrixProps) {
   const channels = useMemo(
-    () => [...payload.channels].sort((a, b) => a.columnOrder - b.columnOrder),
-    [payload.channels],
+    () =>
+      [...payload.channels]
+        .filter((c) => !visibleChannelIds || visibleChannelIds.has(c.channelId))
+        .sort((a, b) => a.columnOrder - b.columnOrder),
+    [payload.channels, visibleChannelIds],
   );
   const axisSpans = useMemo(
     () => computeAxisGroupSpans(channels, payload.axisGroups),

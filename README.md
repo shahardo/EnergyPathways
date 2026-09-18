@@ -19,11 +19,11 @@ it.
 
 ## Status
 
-**Phase 1 in progress.** Scaffold, i18n/RTL foundation, the core Zod
-schemas, the data layer, full workbook ingestion, the workbook model, the
-matrix skeleton, the score rows, the sparkline rows, and likelihood/barriers/
-roadmap, trigger callouts, and the channel detail drawer are done (DEV-PLAN
-T1–T12). Column filtering (T13) is not yet built — see the checklist below.
+**Phase 1 nearly complete.** Every feature task (T1–T13 — scaffold, i18n/RTL,
+schemas, the data layer, workbook ingestion, the workbook model, the matrix,
+score rows, sparklines, likelihood/barriers/roadmap, trigger callouts, the
+channel detail drawer, and column filtering) is done. Only T14 (fidelity and
+quality gates) remains — see the checklist below.
 
 - [x] T1 — Project scaffold
 - [x] T2 — i18n and RTL foundation
@@ -37,7 +37,7 @@ T1–T12). Column filtering (T13) is not yet built — see the checklist below.
 - [x] T10 — Likelihood, barriers, roadmap (`WorkbookMatrix.tsx` + `roadmapRows.ts`): likelihood (words, not colour-coded) and barriers rows; the three phase bands with rotated phase/sub-group labels sticky at the inline-start edge, step cards (bold title, detail, bold-prefixed challenges) in fixed slots so every channel's cards align, empty slots preserved; free text (barriers, roadmap) shown in Hebrew with a marker in English mode (`lib/i18n/freeText.ts`, SPEC §5.10 rule 5)
 - [x] T11 — Trigger callouts (`Callout.tsx` + `WorkbookMatrix.tsx`): the 5 callouts (F49, G53, J53, Q49, R49) attach to their anchor cell's roadmap slot — resolved from `anchorCell` via `roadmapRows.ts`'s `parseCellRef()` + the layout's row→slot map, not a second hard-coded lookup — and overflow toward the next phase boundary; `role="note"`, the anchor cell's `aria-describedby` refs it, ⚠ icon + free-text Hebrew-source fallback like the rest of the roadmap
 - [x] T12 — Channel detail drawer (`ChannelDrawer.tsx`): opens from the channel-name cell (shadcn `Sheet`/Radix `Dialog`, focus trapped and restored to the trigger cell on close — see the component doc comment for why that needs an explicit `onCloseAutoFocus` rather than Radix's default); a Recharts radar of the three dimension averages plus an accessible table, all 15 sub-scores with the same colour-scale fills as the matrix, three full-size trajectory charts on a true (proportional) time axis with a numeric table each, the channel's complete roadmap and callouts, CF/CI marked as recovered/derived, and a cell-ref + dataset-version provenance badge on every figure
-- [ ] T13 — Column filtering
+- [x] T13 — Column filtering (`WorkbookExplorer.tsx` + `FilterToolbar.tsx` + `columnFilters.ts`): an additive toolbar filters by axis group and/or likelihood, state synced to the URL (`?axis=...&likelihood=...`) so a reload restores it exactly; `computeAxisGroupSpans` now matches by each channel's own `axisGroupId` rather than a group's literal start/end column letters, so a header shrinks to its remaining visible columns and disappears when none remain, without throwing; colour scales are always computed from the full unfiltered payload, so a cell's colour never changes with filtering (verified in the browser: the same `rgb()` background before and after filtering)
 - [ ] T14 — Fidelity and quality gates
 
 Ingestion has run against the real workbook: `db/snapshot.json` and
@@ -116,6 +116,19 @@ relying on Radix's default (see `ChannelDrawer.tsx`'s doc comment — this
 was caught by a Playwright check of `document.activeElement` after
 closing, not by inspection).
 
+A toolbar above the matrix (`FilterToolbar.tsx`, driven by
+`WorkbookExplorer.tsx`) filters columns by axis group and/or likelihood;
+the filter state lives in the URL (`?axis=renewables&likelihood=high`,
+etc.) rather than component state, so a page reload restores it exactly.
+Filtering never recomputes colour: every colour scale is built from the
+full 17-channel payload regardless of which columns are currently
+visible (SPEC §5.9), and `gridLayout.ts`'s `computeAxisGroupSpans` now
+matches each axis group by which channels actually carry its
+`axisGroupId` rather than by its literal start/end column letters, so a
+partly-filtered group's header shrinks to its remaining columns and a
+fully-filtered one simply disappears, with nothing to throw on a column
+gap.
+
 ## Tech stack
 
 Next.js 16 (App Router, TypeScript strict) · Tailwind CSS 4 · shadcn/ui
@@ -167,7 +180,7 @@ check and build on every push.
 ```
 app/[locale]/       routes — /he (default) and /en, locale set at the root layout only
 app/api/            /api/workbook, /api/channels/[id] (SPEC §7) — thin wrappers over lib/db/queries
-components/workbook/  WorkbookMatrix.tsx (F-101/F-102, T7-T12) + gridLayout.ts (pure grid-layout helpers)
+components/workbook/  WorkbookMatrix.tsx (F-101/F-102, T7-T13) + gridLayout.ts (pure grid-layout helpers)
                      + scoreRows.ts (pure: score/sub-score row disclosure order, per-column colour lookup)
                      + sparklineRows.ts (pure: sparkline row lookup, per-channel trajectory values) + Sparkline.tsx (inline SVG cell)
                      + roadmapRows.ts (pure: phase/sub-group/slot layout derived from phaseBands + roadmapItems,
@@ -175,6 +188,8 @@ components/workbook/  WorkbookMatrix.tsx (F-101/F-102, T7-T12) + gridLayout.ts (
                      + Callout.tsx (F-104 trigger callout, positioned on its anchor cell's roadmap slot)
                      + HebrewSourceMark.tsx (the "HE" marker for untranslated free text)
                      + ChannelDrawer.tsx (F-105, T12: radar + trajectory charts, sub-scores, roadmap, provenance)
+                     + WorkbookExplorer.tsx (F-106, T13: owns URL-synced filter state, renders FilterToolbar + WorkbookMatrix)
+                     + FilterToolbar.tsx + columnFilters.ts (pure: URL <-> filter state, channel-visibility predicate)
 components/ui/      hand-authored shadcn/ui primitives (Sheet on @radix-ui/react-dialog, Table) — the shadcn
                      CLI's registry fetch isn't reachable through this environment's egress proxy, so these
                      are written by hand in the same "new-york" style components.json already configures
