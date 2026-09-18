@@ -21,9 +21,9 @@ it.
 
 **Phase 1 in progress.** Scaffold, i18n/RTL foundation, the core Zod
 schemas, the data layer, full workbook ingestion, the workbook model, the
-matrix skeleton, the score rows and the sparkline rows are done (DEV-PLAN
-T1–T9). Roadmap, callouts, the detail drawer and column filtering (T10–T13)
-are not yet built — see the checklist below.
+matrix skeleton, the score rows, the sparkline rows, and likelihood/barriers/
+roadmap are done (DEV-PLAN T1–T10). Callouts, the detail drawer and column
+filtering (T11–T13) are not yet built — see the checklist below.
 
 - [x] T1 — Project scaffold
 - [x] T2 — i18n and RTL foundation
@@ -34,7 +34,8 @@ are not yet built — see the checklist below.
 - [x] T7 — Matrix grid skeleton (`components/workbook/WorkbookMatrix.tsx`): label pane + 17 channel columns, rows 1–3, RTL/LTR mirror, keyboard grid navigation
 - [x] T8 — Score rows, colour scale, sub-score disclosure (`components/workbook/scoreRows.ts` + `WorkbookMatrix.tsx`): security/environment/equity averages coloured per SPEC §5.4's range-relative scale, each expandable in place (aria-expanded) to its five sub-score rows, collapsed by default
 - [x] T9 — Sparkline rows (`components/workbook/Sparkline.tsx` + `sparklineRows.ts` + `WorkbookMatrix.tsx`): one inline-SVG area chart per channel under each score row, on the shared fixed axis and four-point category axis from `sparkline_specs`, negative fill below the zero baseline, empty white frame for columns with no data (K, L; F/M equity), hover/focus tooltip and accessible name per SPEC §5.5
-- [ ] T10–T13 — Likelihood/barriers/roadmap, callouts, detail drawer, column filtering
+- [x] T10 — Likelihood, barriers, roadmap (`WorkbookMatrix.tsx` + `roadmapRows.ts`): likelihood (words, not colour-coded) and barriers rows; the three phase bands with rotated phase/sub-group labels sticky at the inline-start edge, step cards (bold title, detail, bold-prefixed challenges) in fixed slots so every channel's cards align, empty slots preserved; free text (barriers, roadmap) shown in Hebrew with a marker in English mode (`lib/i18n/freeText.ts`, SPEC §5.10 rule 5)
+- [ ] T11–T13 — Trigger callouts, detail drawer, column filtering
 - [ ] T14 — Fidelity and quality gates
 
 Ingestion has run against the real workbook: `db/snapshot.json` and
@@ -70,6 +71,23 @@ efficiency's. Negative values fill below the zero baseline; a column with
 no trajectory data renders the empty white plot frame. Hover or focus shows
 a four-line tooltip and an accessible name reading all four values with
 their unit and years.
+
+Below the matrix, the likelihood row shows the workbook's words (High /
+Medium / Low) uncoloured — inventing a red/amber/green scale would add a
+judgement the workbook doesn't make — and the barriers row shows each
+channel's free text. The roadmap section follows: three phase bands
+(2025–2030, 2030–2040, 2040–2050), each with a rotated phase label and,
+for 2025–2030, rotated sub-group labels (Targets / Steps / Impact) — both
+sticky at the inline-start edge in the same fixed pane as the row labels,
+so they never scroll away horizontally, and sharing the data pane's own
+scroll position with the matrix above. Each channel's step gets a card —
+bold title, small detail, small challenges text with a bold `אתגרים:`
+prefix (kept in Hebrew regardless of locale, matching the workbook) — in a
+fixed slot per phase/sub-group, so a step in the same slot aligns across
+all 17 columns whether or not that channel filled it. Free text without an
+approved English translation yet (targets, steps, challenges, barriers —
+OQ-11) renders in Hebrew with a small "HE" marker in English mode
+(`lib/i18n/freeText.ts`), never machine-translated.
 
 ## Tech stack
 
@@ -121,14 +139,16 @@ check and build on every push.
 ```
 app/[locale]/       routes — /he (default) and /en, locale set at the root layout only
 app/api/            /api/workbook, /api/channels/[id] (SPEC §7) — thin wrappers over lib/db/queries
-components/workbook/  WorkbookMatrix.tsx (F-101/F-102, T7-T9) + gridLayout.ts (pure grid-layout helpers)
+components/workbook/  WorkbookMatrix.tsx (F-101/F-102, T7-T10) + gridLayout.ts (pure grid-layout helpers)
                      + scoreRows.ts (pure: score/sub-score row disclosure order, per-column colour lookup)
                      + sparklineRows.ts (pure: sparkline row lookup, per-channel trajectory values) + Sparkline.tsx (inline SVG cell)
+                     + roadmapRows.ts (pure: phase/sub-group/slot layout derived from phaseBands + roadmapItems)
+                     + HebrewSourceMark.tsx (the "HE" marker for untranslated free text)
 lib/engine/         the one calculation engine — pure TypeScript, no I/O, no Date, no React
                      workbook/{recovery,dimensionAverage,colorScale,sparklinePath}.ts (SPEC §3, §5.4, §5.5)
 lib/db/             Drizzle schema (schema.ts), migrations runner + snapshot-hydration (client.ts),
                      getWorkbookPayload()/getChannel() (queries.ts)
-lib/i18n/           i18next config, he/en catalogues, useFormat()
+lib/i18n/           i18next config, he/en catalogues, useFormat(), freeText.ts (SPEC §5.10 rule 5's Hebrew-source fallback)
 lib/schemas/        Zod schemas — the single source of truth for domain types
 lib/color.ts         WCAG contrast-based header text colour (SPEC §5.10 deviation)
 scripts/ingest-workbook.ts   orchestrates the pipeline below; run via `npm run ingest`

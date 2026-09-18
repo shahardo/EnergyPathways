@@ -11,6 +11,7 @@ import {
 import type { Locale } from "@/lib/i18n/locales";
 import { contrastTextColor } from "@/lib/color";
 import { useFormat } from "@/lib/i18n/useFormat";
+import { resolveFreeText } from "@/lib/i18n/freeText";
 import { sparklinePath } from "@/lib/engine/workbook/sparklinePath";
 import { computeAxisGroupSpans, computeRowMetrics } from "./gridLayout";
 import {
@@ -23,11 +24,38 @@ import {
   trajectoryValuesForChannel,
 } from "./sparklineRows";
 import { Sparkline } from "./Sparkline";
+import { HebrewSourceMark } from "./HebrewSourceMark";
+import {
+  buildRoadmapLayout,
+  indexRoadmapItems,
+  roadmapItemKey,
+  type RoadmapSubGroupSpan,
+} from "./roadmapRows";
 
 const LABEL_FILL = "#A6A6A6"; // SPEC §5.3: label column (rows 1-3) and the whole potential row; also the neutral fill for a blank score/sub-score cell (SPEC §5.4)
 const SPARKLINE_CELL_FILL = "#D9D9D9"; // SPEC §5.5: sparkline cell background, white plot frame inside
+const BARRIER_FILL = "#BFBFBF"; // SPEC §5.6: likelihood and barriers rows
 const SPARKLINE_WIDTH = 100;
 const SPARKLINE_HEIGHT = 32; // SVG viewBox units; the element itself stretches to fill the cell (preserveAspectRatio="none")
+const LABEL_PANE_WIDTH = "8rem"; // shared by the matrix's single label column and the roadmap's phase+sub-group pair
+// Roadmap step rows have no ingested per-row height (SPEC §5.7 gives the
+// workbook's own range, 36-60pt, but that's real-workbook content-driven
+// height that isn't captured by ingestion for rows 40-66 — see
+// scripts/ingest/rowMap.ts's comment that this range is handled
+// separately). Fixed UI pixel heights, generous enough for a title +
+// detail + challenges card, stand in until that's ingested.
+const ROADMAP_TARGET_ROW_HEIGHT = 32;
+const ROADMAP_STEP_ROW_HEIGHT = 128;
+
+// Row 38 (סבירות): גבוהה/בינונית/נמוכה, not colour-coded (SPEC §5.6). A blank
+// cell in this row is always the workbook's literal "-" (the schema collapses
+// it into `null` — see `likelihoodSchema`), so `null` renders as "-" too
+// (SPEC §5.10 rule 2), never an empty cell.
+const LIKELIHOOD_LABEL: Record<"high" | "medium" | "low", Record<Locale, string>> = {
+  high: { he: "גבוהה", en: "High" },
+  medium: { he: "בינונית", en: "Medium" },
+  low: { he: "נמוכה", en: "Low" },
+};
 
 // UI chrome, not workbook text (SPEC §5.5 gives only an example accessible name) --
 // same inline-ternary pattern as the rest of this component's labels.
@@ -43,7 +71,10 @@ const METRIC_UNIT: Record<TrajectoryMetric, string> = {
 };
 
 type ContentRow =
-  ScoreBlockRow | { kind: "sparkline"; dimension: Dimension; rowLabel: RowLabel };
+  | ScoreBlockRow
+  | { kind: "sparkline"; dimension: Dimension; rowLabel: RowLabel }
+  | { kind: "likelihood"; rowLabel: RowLabel }
+  | { kind: "barriers"; rowLabel: RowLabel };
 
 interface WorkbookMatrixProps {
   payload: WorkbookPayload;
@@ -121,6 +152,16 @@ export function WorkbookMatrix({ payload, locale }: WorkbookMatrixProps) {
     () => new Map(payload.sparklineSpecs.map((s) => [s.dimension, s])),
     [payload.sparklineSpecs],
   );
+  // T10: likelihood (row 38) and barriers (row 39) follow the equity block —
+  // row 37 (trilemma) is hidden in the source workbook and never rendered.
+  const likelihoodRowLabel = useMemo(
+    () => payload.rowLabels.find((r) => r.key === "likelihood"),
+    [payload.rowLabels],
+  );
+  const barriersRowLabel = useMemo(
+    () => payload.rowLabels.find((r) => r.key === "barriers"),
+    [payload.rowLabels],
+  );
   const contentRows = useMemo<ContentRow[]>(() => {
     const rows: ContentRow[] = [];
     for (const row of scoreBlockRows) {
@@ -136,8 +177,15 @@ export function WorkbookMatrix({ payload, locale }: WorkbookMatrixProps) {
         }
       }
     }
+    if (likelihoodRowLabel)
+      rows.push({ kind: "likelihood", rowLabel: likelihoodRowLabel });
+    if (barriersRowLabel) rows.push({ kind: "barriers", rowLabel: barriersRowLabel });
     return rows;
-  }, [scoreBlockRows, sparklineRowByDimension]);
+  }, [scoreBlockRows, sparklineRowByDimension, likelihoodRowLabel, barriersRowLabel]);
+  const channelTextByChannelId = useMemo(
+    () => new Map(payload.channelText.map((t) => [t.channelId, t])),
+    [payload.channelText],
+  );
   const colorScales = useMemo(
     () =>
       buildDimensionColorScales(
@@ -160,6 +208,60 @@ export function WorkbookMatrix({ payload, locale }: WorkbookMatrixProps) {
     return map;
   }, [payload.dimensionAverages]);
   const format = useFormat(locale);
+
+  // T10: roadmap section (SPEC §5.7) — derived from ingested phase bands and
+  // roadmap items, not from the row-label mechanism above (rows 40-66 are
+  // outside rowLabels; see scripts/ingest/rowMap.ts).
+  const roadmapLayout = useMemo(
+    () => buildRoadmapLayout(payload.phaseBands),
+    [payload.phaseBands],
+  );
+  const roadmapItemsByKey = useMemo(
+    () => indexRoadmapItems(payload.roadmapItems),
+    [payload.roadmapItems],
+  );
+  const roadmapRowHeights = useMemo(
+    () =>
+      roadmapLayout.rows.map((r) =>
+        r.kind === "step" ? ROADMAP_STEP_ROW_HEIGHT : ROADMAP_TARGET_ROW_HEIGHT,
+      ),
+    [roadmapLayout],
+  );
+  function sumRoadmapHeights(startIndex: number, count: number): number {
+    let sum = 0;
+    for (let i = startIndex; i < startIndex + count; i++)
+      sum += roadmapRowHeights[i] ?? 0;
+    return sum;
+  }
+  const bodyFillByPhase = useMemo(
+    () => new Map(roadmapLayout.phaseSpans.map((s) => [s.phase, s.bodyFill])),
+    [roadmapLayout],
+  );
+  // A sub-group column block per phase, always -- a phase with no
+  // sub-groups (2030-2040, 2040-2050) still needs one full-height blank
+  // block so the column's total height matches the phase column's.
+  const subGroupColumnBlocks = useMemo<RoadmapSubGroupSpan[]>(() => {
+    const byPhase = new Map<string, RoadmapSubGroupSpan[]>();
+    for (const s of roadmapLayout.subGroupSpans) {
+      const list = byPhase.get(s.phase) ?? [];
+      list.push(s);
+      byPhase.set(s.phase, list);
+    }
+    return roadmapLayout.phaseSpans.flatMap((phaseSpan) => {
+      const subs = byPhase.get(phaseSpan.phase);
+      if (subs && subs.length > 0) return subs;
+      return [
+        {
+          phase: phaseSpan.phase,
+          key: `${phaseSpan.phase}-blank`,
+          labelHe: "",
+          labelEn: "",
+          startIndex: phaseSpan.startIndex,
+          rowCount: phaseSpan.rowCount,
+        },
+      ];
+    });
+  }, [roadmapLayout]);
 
   const allRows = useMemo(
     () => [...headerRows, ...contentRows.map((r) => r.rowLabel)],
@@ -272,98 +374,145 @@ export function WorkbookMatrix({ payload, locale }: WorkbookMatrixProps) {
       className: "flex items-center justify-center p-2 text-sm",
     }));
 
-    const contentCells: DataCell[] = contentRows.flatMap((row, blockIndex) => {
-      if (row.kind === "sparkline") {
-        const spec = sparklineSpecByDimension.get(row.dimension);
-        if (!spec) {
-          throw new Error(
-            `WorkbookMatrix: missing sparkline spec for dimension "${row.dimension}"`,
-          );
+    const contentCells: DataCell[] = contentRows.flatMap(
+      (row, blockIndex): DataCell[] => {
+        if (row.kind === "sparkline") {
+          const spec = sparklineSpecByDimension.get(row.dimension);
+          if (!spec) {
+            throw new Error(
+              `WorkbookMatrix: missing sparkline spec for dimension "${row.dimension}"`,
+            );
+          }
+          const metricLabel = METRIC_LABEL[spec.metric][locale];
+          const unit = METRIC_UNIT[spec.metric];
+          return channels.map((channel, index) => {
+            const values = trajectoryValuesForChannel(
+              payload.trajectories,
+              channel.channelId,
+              spec.metric,
+            );
+            const geometry = sparklinePath(
+              values,
+              { axisMin: spec.axisMin, axisMax: spec.axisMax },
+              SPARKLINE_WIDTH,
+              SPARKLINE_HEIGHT,
+            );
+            const channelName = locale === "he" ? channel.nameHe : channel.nameEn;
+            const formattedValues = values.map((v) => format.trajectoryValue(v));
+            const hasData = formattedValues.some((v) => v !== null);
+            const unitSuffix = unit ? ` ${unit}` : "";
+            const accessibleName = hasData
+              ? locale === "he"
+                ? `${channelName}, ${metricLabel}: ${formattedValues.join(", ")}${unitSuffix} עבור ${MILESTONE_YEARS.join(", ")}`
+                : `${channelName}, ${metricLabel}: ${formattedValues.join(", ")}${unitSuffix} for ${MILESTONE_YEARS.join(", ")}`
+              : locale === "he"
+                ? `${channelName}, ${metricLabel}: אין נתונים`
+                : `${channelName}, ${metricLabel}: no data`;
+            const tooltipLines = hasData
+              ? MILESTONE_YEARS.map(
+                  (year, i) => `${year}: ${formattedValues[i]}${unitSuffix}`,
+                )
+              : [];
+            return {
+              key: `sparkline-${row.dimension}-${channel.channelId}`,
+              rowIndex: 3 + blockIndex,
+              colIndexes: [index + 1],
+              gridColumnStart: index + 1,
+              gridColumnEnd: index + 2,
+              role: "gridcell",
+              background: SPARKLINE_CELL_FILL,
+              content: (
+                <Sparkline
+                  areaPath={geometry.areaPath}
+                  zeroY={geometry.zeroY}
+                  width={SPARKLINE_WIDTH}
+                  height={SPARKLINE_HEIGHT}
+                  fill={spec.fill}
+                  accessibleName={accessibleName}
+                  tooltipLines={tooltipLines}
+                />
+              ),
+              className: "p-1",
+            };
+          });
         }
-        const metricLabel = METRIC_LABEL[spec.metric][locale];
-        const unit = METRIC_UNIT[spec.metric];
+
+        if (row.kind === "likelihood") {
+          return channels.map((channel, index) => {
+            const value =
+              channelTextByChannelId.get(channel.channelId)?.likelihood ?? null;
+            const label = value === null ? "-" : LIKELIHOOD_LABEL[value][locale];
+            return {
+              key: `likelihood-${channel.channelId}`,
+              rowIndex: 3 + blockIndex,
+              colIndexes: [index + 1],
+              gridColumnStart: index + 1,
+              gridColumnEnd: index + 2,
+              role: "gridcell",
+              background: BARRIER_FILL,
+              content: label,
+              className: "flex items-center justify-center p-2 text-sm",
+            };
+          });
+        }
+
+        if (row.kind === "barriers") {
+          return channels.map((channel, index) => {
+            const text = channelTextByChannelId.get(channel.channelId);
+            const resolved = text
+              ? resolveFreeText(locale, text.barriersHe, text.barriersEn)
+              : null;
+            return {
+              key: `barriers-${channel.channelId}`,
+              rowIndex: 3 + blockIndex,
+              colIndexes: [index + 1],
+              gridColumnStart: index + 1,
+              gridColumnEnd: index + 2,
+              role: "gridcell",
+              background: BARRIER_FILL,
+              content: resolved ? (
+                resolved.isHebrewSource ? (
+                  <HebrewSourceMark locale={locale}>{resolved.text}</HebrewSourceMark>
+                ) : (
+                  resolved.text
+                )
+              ) : null,
+              className: "flex items-center justify-center p-2 text-center text-xs",
+            };
+          });
+        }
+
         return channels.map((channel, index) => {
-          const values = trajectoryValuesForChannel(
-            payload.trajectories,
-            channel.channelId,
-            spec.metric,
-          );
-          const geometry = sparklinePath(
-            values,
-            { axisMin: spec.axisMin, axisMax: spec.axisMax },
-            SPARKLINE_WIDTH,
-            SPARKLINE_HEIGHT,
-          );
-          const channelName = locale === "he" ? channel.nameHe : channel.nameEn;
-          const formattedValues = values.map((v) => format.trajectoryValue(v));
-          const hasData = formattedValues.some((v) => v !== null);
-          const unitSuffix = unit ? ` ${unit}` : "";
-          const accessibleName = hasData
-            ? locale === "he"
-              ? `${channelName}, ${metricLabel}: ${formattedValues.join(", ")}${unitSuffix} עבור ${MILESTONE_YEARS.join(", ")}`
-              : `${channelName}, ${metricLabel}: ${formattedValues.join(", ")}${unitSuffix} for ${MILESTONE_YEARS.join(", ")}`
-            : locale === "he"
-              ? `${channelName}, ${metricLabel}: אין נתונים`
-              : `${channelName}, ${metricLabel}: no data`;
-          const tooltipLines = hasData
-            ? MILESTONE_YEARS.map(
-                (year, i) => `${year}: ${formattedValues[i]}${unitSuffix}`,
-              )
-            : [];
+          const record: { value: number | null; cellRef: string } | undefined =
+            row.kind === "score"
+              ? averageByChannelDim.get(`${channel.channelId}|${row.dimension}`)
+              : subScoreByChannelDimKey.get(
+                  `${channel.channelId}|${row.dimension}|${row.subScoreKey}`,
+                );
+          const background =
+            record && record.value !== null
+              ? (colorScales.colorForCell(
+                  row.dimension,
+                  channel.columnLetter,
+                  record.cellRef,
+                ) ?? LABEL_FILL)
+              : LABEL_FILL;
           return {
-            key: `sparkline-${row.dimension}-${channel.channelId}`,
+            key: `${row.kind}-${row.dimension}-${row.kind === "subscore" ? row.subScoreKey : "avg"}-${channel.channelId}`,
             rowIndex: 3 + blockIndex,
             colIndexes: [index + 1],
             gridColumnStart: index + 1,
             gridColumnEnd: index + 2,
             role: "gridcell",
-            background: SPARKLINE_CELL_FILL,
-            content: (
-              <Sparkline
-                areaPath={geometry.areaPath}
-                zeroY={geometry.zeroY}
-                width={SPARKLINE_WIDTH}
-                height={SPARKLINE_HEIGHT}
-                fill={spec.fill}
-                accessibleName={accessibleName}
-                tooltipLines={tooltipLines}
-              />
+            background,
+            content: record?.value != null && (
+              <span dir="ltr">{format.score(record.value)}</span>
             ),
-            className: "p-1",
+            className: "flex items-center justify-center p-2 text-sm",
           };
         });
-      }
-
-      return channels.map((channel, index) => {
-        const record: { value: number | null; cellRef: string } | undefined =
-          row.kind === "score"
-            ? averageByChannelDim.get(`${channel.channelId}|${row.dimension}`)
-            : subScoreByChannelDimKey.get(
-                `${channel.channelId}|${row.dimension}|${row.subScoreKey}`,
-              );
-        const background =
-          record && record.value !== null
-            ? (colorScales.colorForCell(
-                row.dimension,
-                channel.columnLetter,
-                record.cellRef,
-              ) ?? LABEL_FILL)
-            : LABEL_FILL;
-        return {
-          key: `${row.kind}-${row.dimension}-${row.kind === "subscore" ? row.subScoreKey : "avg"}-${channel.channelId}`,
-          rowIndex: 3 + blockIndex,
-          colIndexes: [index + 1],
-          gridColumnStart: index + 1,
-          gridColumnEnd: index + 2,
-          role: "gridcell",
-          background,
-          content: record?.value != null && (
-            <span dir="ltr">{format.score(record.value)}</span>
-          ),
-          className: "flex items-center justify-center p-2 text-sm",
-        };
-      });
-    });
+      },
+    );
 
     return [...axisHeaderCells, ...nameCells, ...potentialCells, ...contentCells];
   }, [
@@ -378,6 +527,7 @@ export function WorkbookMatrix({ payload, locale }: WorkbookMatrixProps) {
     subScoreByChannelDimKey,
     colorScales,
     format,
+    channelTextByChannelId,
   ]);
 
   const gridTemplateColumns = `repeat(${colCount}, minmax(9.5rem, 1fr))`;
@@ -392,7 +542,7 @@ export function WorkbookMatrix({ payload, locale }: WorkbookMatrixProps) {
       className="border-border flex max-w-full items-start rounded-md border"
     >
       {/* Label pane — fixed, never scrolls horizontally */}
-      <div className="shrink-0" style={{ width: "8rem" }}>
+      <div className="shrink-0" style={{ width: LABEL_PANE_WIDTH }}>
         {allRows.map((row, rowIndex) => {
           const metrics = rowMetrics[rowIndex];
           const text = locale === "he" ? (row.labelHe ?? "") : row.labelEn;
@@ -453,6 +603,51 @@ export function WorkbookMatrix({ payload, locale }: WorkbookMatrixProps) {
             </div>
           );
         })}
+
+        {/* Roadmap phase + sub-group columns (SPEC §5.7, §5.1's "sticky at
+            inline-start"): two narrow flex-columns of variable-height
+            blocks, in the same fixed pane as the row labels above, so they
+            never scroll horizontally either. Rotated with `writing-mode`
+            so the same markup reads correctly in both locales -- it
+            doesn't depend on page `dir`. */}
+        <div className="border-border flex border-b">
+          <div className="flex shrink-0 flex-col" style={{ width: "4rem" }}>
+            {roadmapLayout.phaseSpans.map((span) => (
+              <div
+                key={span.phase}
+                className="border-border flex items-center justify-center border-e border-b p-1 text-[0.7rem] font-bold last:border-b-0"
+                style={{
+                  minBlockSize: sumRoadmapHeights(span.startIndex, span.rowCount),
+                  background: span.labelFill,
+                  color: contrastTextColor(span.labelFill),
+                }}
+              >
+                <span dir="ltr" style={{ writingMode: "vertical-rl" }}>
+                  {span.phase.replace("-", "–")}
+                </span>
+              </div>
+            ))}
+          </div>
+          <div className="flex shrink-0 flex-col" style={{ width: "4rem" }}>
+            {subGroupColumnBlocks.map((span) => (
+              <div
+                key={`${span.phase}-${span.key}`}
+                className="border-border flex items-center justify-center border-b p-1 text-[0.7rem] font-bold last:border-b-0"
+                style={{
+                  minBlockSize: sumRoadmapHeights(span.startIndex, span.rowCount),
+                  background: bodyFillByPhase.get(span.phase) ?? "#FFFFFF",
+                  color: contrastTextColor(bodyFillByPhase.get(span.phase) ?? "#FFFFFF"),
+                }}
+              >
+                {span.labelHe && (
+                  <span style={{ writingMode: "vertical-rl" }}>
+                    {locale === "he" ? span.labelHe : span.labelEn}
+                  </span>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
 
       {/* Data pane — the 17 channel columns, scrolls horizontally on its own */}
@@ -488,6 +683,110 @@ export function WorkbookMatrix({ payload, locale }: WorkbookMatrixProps) {
               </div>
             );
           })}
+        </div>
+
+        {/* Roadmap step cards (SPEC §5.7): same 17-column grid, same
+            scrolling data pane, so it shares horizontal scroll position
+            with the matrix above automatically. */}
+        <div
+          role="grid"
+          aria-label={locale === "he" ? "מפת דרכים" : "Roadmap"}
+          aria-rowcount={roadmapLayout.rows.length}
+          aria-colcount={colCount}
+          style={{ display: "grid", gridTemplateColumns }}
+        >
+          {roadmapLayout.rows.flatMap((row, rowIndex) =>
+            channels.map((channel, colIndex) => {
+              const item = roadmapItemsByKey.get(
+                roadmapItemKey(row.phase, row.kind, row.slot, channel.channelId),
+              );
+              const background = bodyFillByPhase.get(row.phase) ?? "#FFFFFF";
+              const heightPx = roadmapRowHeights[rowIndex];
+
+              let content: ReactNode = null;
+              if (item) {
+                if (row.kind === "step") {
+                  const title = resolveFreeText(locale, item.titleHe, item.titleEn);
+                  const detail = resolveFreeText(locale, item.detailHe, item.detailEn);
+                  const challenges = resolveFreeText(
+                    locale,
+                    item.challengesHe,
+                    item.challengesEn,
+                  );
+                  content = (
+                    <div className="flex h-full w-full flex-col gap-0.5 overflow-hidden p-1">
+                      {title && (
+                        <div className="text-center text-[0.7rem] font-bold">
+                          {title.isHebrewSource ? (
+                            <HebrewSourceMark locale={locale}>
+                              {title.text}
+                            </HebrewSourceMark>
+                          ) : (
+                            title.text
+                          )}
+                        </div>
+                      )}
+                      {detail && (
+                        <div className="text-[0.65rem]">
+                          {detail.isHebrewSource ? (
+                            <HebrewSourceMark locale={locale}>
+                              {detail.text}
+                            </HebrewSourceMark>
+                          ) : (
+                            detail.text
+                          )}
+                        </div>
+                      )}
+                      {challenges && (
+                        <div className="text-[0.65rem]">
+                          <strong>אתגרים:</strong>{" "}
+                          {challenges.isHebrewSource ? (
+                            <HebrewSourceMark locale={locale}>
+                              {challenges.text}
+                            </HebrewSourceMark>
+                          ) : (
+                            challenges.text
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  );
+                } else {
+                  const title = resolveFreeText(locale, item.titleHe, item.titleEn);
+                  content = title && (
+                    <div className="p-1 text-center text-[0.7rem]">
+                      {title.isHebrewSource ? (
+                        <HebrewSourceMark locale={locale}>{title.text}</HebrewSourceMark>
+                      ) : (
+                        title.text
+                      )}
+                    </div>
+                  );
+                }
+              }
+
+              return (
+                <div
+                  key={`roadmap-${row.phase}-${row.kind}-${row.slot}-${channel.channelId}`}
+                  role="gridcell"
+                  aria-rowindex={rowIndex + 1}
+                  aria-colindex={colIndex + 1}
+                  tabIndex={0}
+                  className="border-border flex items-stretch border-e border-b last:border-e-0"
+                  style={{
+                    gridColumnStart: colIndex + 1,
+                    gridColumnEnd: colIndex + 2,
+                    gridRow: rowIndex + 1,
+                    minBlockSize: heightPx,
+                    background,
+                    color: contrastTextColor(background),
+                  }}
+                >
+                  {content}
+                </div>
+              );
+            }),
+          )}
         </div>
       </div>
     </div>

@@ -14,6 +14,21 @@ for the presentation format each component must reproduce.
 - `gridLayout.ts` — pure layout helpers (axis-group grid-column spans, row
   height/offset metrics from `heightPt`), unit-tested in
   `tests/unit/workbook/gridLayout.test.ts`.
-- Score rows, sub-score disclosure, sparklines, likelihood/barriers,
-  roadmap, callouts, the detail drawer and column filtering (T8–T13) are
+- `scoreRows.ts` (T8) — score/sub-score row disclosure order and per-column
+  colour-scale lookup, pure and unit-tested.
+- `sparklineRows.ts` (T9) + `Sparkline.tsx` — always-visible per-channel
+  trajectory row below each score row, geometry from `lib/engine/workbook`'s
+  `sparklinePath`.
+- `roadmapRows.ts` (T10) — derives the roadmap's flat row list plus phase
+  and sub-group row-spans from ingested `phaseBands`, so `WorkbookMatrix.tsx`
+  doesn't hard-code workbook row numbers a second time; unit-tested in
+  `tests/unit/workbook/roadmapRows.test.ts`. Rendered in the same fixed
+  label pane / scrolling data pane as the matrix above it (see
+  `WorkbookMatrix.tsx`'s roadmap section), so the phase/sub-group columns
+  stay pinned at the inline-start edge and the step-card grid shares the
+  matrix's horizontal scroll position for free.
+- `HebrewSourceMark.tsx` — the "HE" marker for free text shown in Hebrew
+  while viewing in English (no approved translation yet, OQ-11); paired
+  with `lib/i18n/freeText.ts`'s `resolveFreeText()`.
+- Trigger callouts, the detail drawer and column filtering (T11–T13) are
   not yet implemented.
