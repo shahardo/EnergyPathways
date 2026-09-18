@@ -1,12 +1,18 @@
 "use client";
 
 import { useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
-import type { WorkbookPayload } from "@/lib/schemas/workbook";
+import type { Dimension, WorkbookPayload } from "@/lib/schemas/workbook";
 import type { Locale } from "@/lib/i18n/locales";
 import { contrastTextColor } from "@/lib/color";
+import { useFormat } from "@/lib/i18n/useFormat";
 import { computeAxisGroupSpans, computeRowMetrics } from "./gridLayout";
+import {
+  buildDimensionColorScales,
+  buildScoreBlockRows,
+  type ScoreBlockRow,
+} from "./scoreRows";
 
-const LABEL_FILL = "#A6A6A6"; // SPEC §5.3: label column (rows 1-3) and the whole potential row
+const LABEL_FILL = "#A6A6A6"; // SPEC §5.3: label column (rows 1-3) and the whole potential row; also the neutral fill for a blank score/sub-score cell (SPEC §5.4)
 
 interface WorkbookMatrixProps {
   payload: WorkbookPayload;
@@ -55,7 +61,52 @@ export function WorkbookMatrix({ payload, locale }: WorkbookMatrixProps) {
     () => payload.rowLabels.filter((r) => r.row === 1 || r.row === 2 || r.row === 3),
     [payload.rowLabels],
   );
-  const rowMetrics = useMemo(() => computeRowMetrics(headerRows), [headerRows]);
+
+  // F-102: sub-score rows are collapsed by default; each dimension expands
+  // independently, in place, above its score row (SPEC §2.2 row order).
+  const [expandedDimensions, setExpandedDimensions] = useState<ReadonlySet<Dimension>>(
+    () => new Set(),
+  );
+  function toggleDimension(dimension: Dimension) {
+    setExpandedDimensions((prev) => {
+      const next = new Set(prev);
+      if (next.has(dimension)) next.delete(dimension);
+      else next.add(dimension);
+      return next;
+    });
+  }
+  const scoreBlockRows = useMemo(
+    () => buildScoreBlockRows(payload.rowLabels, expandedDimensions),
+    [payload.rowLabels, expandedDimensions],
+  );
+  const colorScales = useMemo(
+    () =>
+      buildDimensionColorScales(
+        payload.colorScaleRules,
+        payload.subScores,
+        payload.dimensionAverages,
+      ),
+    [payload.colorScaleRules, payload.subScores, payload.dimensionAverages],
+  );
+  const subScoreByChannelDimKey = useMemo(() => {
+    const map = new Map<string, WorkbookPayload["subScores"][number]>();
+    for (const s of payload.subScores)
+      map.set(`${s.channelId}|${s.dimension}|${s.key}`, s);
+    return map;
+  }, [payload.subScores]);
+  const averageByChannelDim = useMemo(() => {
+    const map = new Map<string, WorkbookPayload["dimensionAverages"][number]>();
+    for (const d of payload.dimensionAverages)
+      map.set(`${d.channelId}|${d.dimension}`, d);
+    return map;
+  }, [payload.dimensionAverages]);
+  const format = useFormat(locale);
+
+  const allRows = useMemo(
+    () => [...headerRows, ...scoreBlockRows.map((r) => r.rowLabel)],
+    [headerRows, scoreBlockRows],
+  );
+  const rowMetrics = useMemo(() => computeRowMetrics(allRows), [allRows]);
 
   const colCount = channels.length; // channel columns only; the label pane is separate
   const cellRefs = useRef(new Map<string, HTMLDivElement>());
@@ -162,8 +213,50 @@ export function WorkbookMatrix({ payload, locale }: WorkbookMatrixProps) {
       className: "flex items-center justify-center p-2 text-sm",
     }));
 
-    return [...axisHeaderCells, ...nameCells, ...potentialCells];
-  }, [axisSpans, channels, payload.axisGroups, locale]);
+    const scoreBlockCells: DataCell[] = scoreBlockRows.flatMap((row, blockIndex) =>
+      channels.map((channel, index) => {
+        const record: { value: number | null; cellRef: string } | undefined =
+          row.kind === "score"
+            ? averageByChannelDim.get(`${channel.channelId}|${row.dimension}`)
+            : subScoreByChannelDimKey.get(
+                `${channel.channelId}|${row.dimension}|${row.subScoreKey}`,
+              );
+        const background =
+          record && record.value !== null
+            ? (colorScales.colorForCell(
+                row.dimension,
+                channel.columnLetter,
+                record.cellRef,
+              ) ?? LABEL_FILL)
+            : LABEL_FILL;
+        return {
+          key: `${row.kind}-${row.dimension}-${row.kind === "subscore" ? row.subScoreKey : "avg"}-${channel.channelId}`,
+          rowIndex: 3 + blockIndex,
+          colIndexes: [index + 1],
+          gridColumnStart: index + 1,
+          gridColumnEnd: index + 2,
+          role: "gridcell",
+          background,
+          content: record?.value != null && (
+            <span dir="ltr">{format.score(record.value)}</span>
+          ),
+          className: "flex items-center justify-center p-2 text-sm",
+        };
+      }),
+    );
+
+    return [...axisHeaderCells, ...nameCells, ...potentialCells, ...scoreBlockCells];
+  }, [
+    axisSpans,
+    channels,
+    payload.axisGroups,
+    locale,
+    scoreBlockRows,
+    averageByChannelDim,
+    subScoreByChannelDimKey,
+    colorScales,
+    format,
+  ]);
 
   const gridTemplateColumns = `repeat(${colCount}, minmax(9.5rem, 1fr))`;
 
@@ -178,11 +271,50 @@ export function WorkbookMatrix({ payload, locale }: WorkbookMatrixProps) {
     >
       {/* Label pane — fixed, never scrolls horizontally */}
       <div className="shrink-0" style={{ width: "8rem" }}>
-        {[0, 1, 2].map((rowIndex) => {
+        {allRows.map((row, rowIndex) => {
           const metrics = rowMetrics[rowIndex];
-          const row = headerRows[rowIndex];
-          const text = locale === "he" ? (row?.labelHe ?? "") : (row?.labelEn ?? "");
+          const text = locale === "he" ? (row.labelHe ?? "") : row.labelEn;
           const isFocusable = focus.row === rowIndex && focus.col === 0;
+          const blockRow: ScoreBlockRow | undefined =
+            rowIndex >= 3 ? scoreBlockRows[rowIndex - 3] : undefined;
+
+          const commonClassName =
+            "border-border flex items-center justify-center gap-1 border-e border-b p-2 text-xs font-bold last:border-b-0";
+          const commonStyle = {
+            minBlockSize: metrics?.heightPx,
+            background: LABEL_FILL,
+            color: contrastTextColor(LABEL_FILL),
+          };
+
+          if (blockRow?.kind === "score") {
+            const dimension = blockRow.dimension;
+            const isExpanded = expandedDimensions.has(dimension);
+            return (
+              <div
+                key={rowIndex}
+                ref={(el) => registerCell(rowIndex, 0, el)}
+                role="rowheader"
+                aria-rowindex={rowIndex + 1}
+                aria-colindex={1}
+                aria-expanded={isExpanded}
+                tabIndex={isFocusable ? 0 : -1}
+                onFocus={() => setFocus({ row: rowIndex, col: 0 })}
+                onClick={() => toggleDimension(dimension)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    toggleDimension(dimension);
+                  }
+                }}
+                className={`${commonClassName} cursor-pointer`}
+                style={commonStyle}
+              >
+                <span aria-hidden="true">{isExpanded ? "−" : "+"}</span>
+                {text}
+              </div>
+            );
+          }
+
           return (
             <div
               key={rowIndex}
@@ -192,12 +324,8 @@ export function WorkbookMatrix({ payload, locale }: WorkbookMatrixProps) {
               aria-colindex={1}
               tabIndex={isFocusable ? 0 : -1}
               onFocus={() => setFocus({ row: rowIndex, col: 0 })}
-              className="border-border flex items-center justify-center border-e border-b p-2 text-xs font-bold last:border-b-0"
-              style={{
-                minBlockSize: metrics?.heightPx,
-                background: LABEL_FILL,
-                color: contrastTextColor(LABEL_FILL),
-              }}
+              className={commonClassName}
+              style={commonStyle}
             >
               {text}
             </div>
@@ -224,7 +352,7 @@ export function WorkbookMatrix({ payload, locale }: WorkbookMatrixProps) {
                 aria-colspan={cell.ariaColspan}
                 tabIndex={isFocusable ? 0 : -1}
                 onFocus={() => setFocus({ row: cell.rowIndex, col: cell.colIndexes[0]! })}
-                className={`${cell.className} border-border border-e border-b last:border-e-0 ${cell.rowIndex === 2 ? "border-b-0" : ""}`}
+                className={`${cell.className} border-border border-e border-b last:border-e-0 ${cell.rowIndex === allRows.length - 1 ? "border-b-0" : ""}`}
                 style={{
                   gridColumnStart: cell.gridColumnStart,
                   gridColumnEnd: cell.gridColumnEnd,
