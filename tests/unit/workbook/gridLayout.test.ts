@@ -5,12 +5,16 @@ import {
 } from "@/components/workbook/gridLayout";
 import type { AxisGroup, Channel, RowLabel } from "@/lib/schemas/workbook";
 
-function channel(columnLetter: string, columnOrder: number): Channel {
+function channel(
+  columnLetter: string,
+  columnOrder: number,
+  axisGroupId: string,
+): Channel {
   return {
     channelId: `ch_${columnLetter}` as Channel["channelId"],
     columnLetter,
     columnOrder,
-    axisGroupId: "efficiency",
+    axisGroupId: axisGroupId as Channel["axisGroupId"],
     nameHe: columnLetter,
     nameEn: columnLetter,
     potentialMw: null,
@@ -23,9 +27,12 @@ function channel(columnLetter: string, columnOrder: number): Channel {
 }
 
 describe("computeAxisGroupSpans", () => {
-  const channels = ["C", "D", "E", "F"].map((letter, index) =>
-    channel(letter, index + 1),
-  );
+  const channels = [
+    channel("C", 1, "efficiency"),
+    channel("D", 2, "efficiency"),
+    channel("E", 3, "renewables"),
+    channel("F", 4, "electricity_import"),
+  ];
 
   it("places a single-column axis group on one grid line", () => {
     const axisGroups: AxisGroup[] = [
@@ -65,19 +72,37 @@ describe("computeAxisGroupSpans", () => {
     expect(span?.columnCount).toBe(2);
   });
 
-  it("throws if an axis group references a column outside the channel list", () => {
+  it("omits a group with no matching channels, rather than throwing (SPEC §5.9: fully hidden disappears)", () => {
     const axisGroups: AxisGroup[] = [
       {
         axisGroupId: "coal",
         nameHe: "x",
         nameEn: "x",
-        startColumn: "Z",
-        endColumn: "Z",
+        startColumn: "S",
+        endColumn: "S",
         headerFill: "#000000",
         nameFill: "#000000",
       },
     ];
-    expect(() => computeAxisGroupSpans(channels, axisGroups)).toThrow();
+    expect(computeAxisGroupSpans(channels, axisGroups)).toEqual([]);
+  });
+
+  it("shrinks a partly-filtered group to just its remaining columns (SPEC §5.9)", () => {
+    const axisGroups: AxisGroup[] = [
+      {
+        axisGroupId: "efficiency",
+        nameHe: "x",
+        nameEn: "x",
+        startColumn: "C",
+        endColumn: "D",
+        headerFill: "#000000",
+        nameFill: "#000000",
+      },
+    ];
+    // Simulate D filtered out: only C remains.
+    const filtered = channels.filter((c) => c.columnLetter !== "D");
+    const [span] = computeAxisGroupSpans(filtered, axisGroups);
+    expect(span?.columnCount).toBe(1);
   });
 });
 

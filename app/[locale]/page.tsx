@@ -2,7 +2,7 @@ import { Suspense } from "react";
 import { DEFAULT_LOCALE, isLocale, type Locale } from "@/lib/i18n/locales";
 import { getServerTranslation } from "@/lib/i18n/server";
 import { LanguageSwitcher } from "@/components/language-switcher";
-import { WorkbookMatrix } from "@/components/workbook/WorkbookMatrix";
+import { WorkbookExplorer } from "@/components/workbook/WorkbookExplorer";
 import { getWorkbookPayload } from "@/lib/db/queries";
 
 export default async function HomePage({
@@ -26,7 +26,9 @@ export default async function HomePage({
           <LanguageSwitcher locale={locale} />
         </Suspense>
       </div>
-      <WorkbookMatrix payload={payload} locale={locale} />
+      <Suspense fallback={null}>
+        <WorkbookExplorer payload={payload} locale={locale} />
+      </Suspense>
     </main>
   );
 }
