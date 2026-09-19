@@ -1,6 +1,13 @@
 "use client";
 
-import { useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
+import {
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  type KeyboardEvent,
+  type ReactNode,
+} from "react";
 import {
   MILESTONE_YEARS,
   type ChannelId,
@@ -46,8 +53,17 @@ const LABEL_PANE_WIDTH = "8rem"; // shared by the matrix's single label column a
 // workbook's own range, 36-60pt, but that's real-workbook content-driven
 // height that isn't captured by ingestion for rows 40-66 — see
 // scripts/ingest/rowMap.ts's comment that this range is handled
-// separately). Fixed UI pixel heights, generous enough for a title +
-// detail + challenges card, stand in until that's ingested.
+// separately). These are only the INITIAL-PAINT fallback, before the
+// `data-roadmap-row` measurement effect below runs: real free text varies
+// far more than any fixed constant can predict (a one-line target next to
+// a multi-paragraph step card with a bolded "אתגרים:" line), so a fixed
+// value either clips real content (bug, found via a bug report against
+// the live matrix) or under/over-sizes the label pane's blocks, which are
+// a separate DOM tree and can't pick up the data pane's own CSS Grid
+// auto-sizing for free. The data pane cells use these as a `minBlockSize`
+// floor and are otherwise left to size naturally; the effect then measures
+// each row's actual rendered height and feeds it back as the label pane's
+// authoritative `blockSize`.
 const ROADMAP_TARGET_ROW_HEIGHT = 32;
 const ROADMAP_STEP_ROW_HEIGHT = 128;
 
@@ -252,19 +268,68 @@ export function WorkbookMatrix({
     }
     return map;
   }, [payload.callouts, roadmapLayout]);
-  const roadmapRowHeights = useMemo(
+  const nominalRoadmapRowHeights = useMemo(
     () =>
       roadmapLayout.rows.map((r) =>
         r.kind === "step" ? ROADMAP_STEP_ROW_HEIGHT : ROADMAP_TARGET_ROW_HEIGHT,
       ),
     [roadmapLayout],
   );
+  // Real per-row heights, measured from the data pane's own rendered
+  // content (see the layout effect below) once available; the nominal
+  // constants above are only the fallback before that first measurement.
+  const [measuredRoadmapRowHeights, setMeasuredRoadmapRowHeights] = useState<
+    readonly number[] | null
+  >(null);
+  const roadmapRowHeights =
+    measuredRoadmapRowHeights?.length === nominalRoadmapRowHeights.length
+      ? measuredRoadmapRowHeights
+      : nominalRoadmapRowHeights;
   function sumRoadmapHeights(startIndex: number, count: number): number {
     let sum = 0;
     for (let i = startIndex; i < startIndex + count; i++)
       sum += roadmapRowHeights[i] ?? 0;
     return sum;
   }
+  const roadmapDataGridRef = useRef<HTMLDivElement | null>(null);
+  // The label pane's phase/sub-group blocks (rendered in a separate DOM
+  // tree next to this grid, see the fixed/scrolling pane split doc comment
+  // above) can only match this grid's real row heights by measurement —
+  // there's no CSS mechanism that shares one grid's auto-sized row tracks
+  // with another, independently-rendered grid. Each data cell below carries
+  // `data-roadmap-row={rowIndex}`; this takes the tallest rendered cell per
+  // row (they should already match across columns, since they share one
+  // CSS Grid row track, but content, font-loading or a container resize
+  // can change that) and republishes it so the label pane can size to it
+  // exactly.
+  useLayoutEffect(() => {
+    const container = roadmapDataGridRef.current;
+    if (!container) return;
+
+    function measure() {
+      if (!container) return;
+      const heightByRow = new Map<number, number>();
+      for (const el of container.querySelectorAll<HTMLElement>("[data-roadmap-row]")) {
+        const rowIndex = Number(el.dataset.roadmapRow);
+        const height = el.getBoundingClientRect().height;
+        heightByRow.set(rowIndex, Math.max(heightByRow.get(rowIndex) ?? 0, height));
+      }
+      if (heightByRow.size === 0) return;
+      const heights = Array.from({ length: heightByRow.size }, (_, i) =>
+        Math.ceil(heightByRow.get(i) ?? 0),
+      );
+      setMeasuredRoadmapRowHeights((prev) =>
+        prev && prev.length === heights.length && prev.every((h, i) => h === heights[i])
+          ? prev
+          : heights,
+      );
+    }
+
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(container);
+    return () => observer.disconnect();
+  }, [roadmapLayout, channels, locale]);
   const bodyFillByPhase = useMemo(
     () => new Map(roadmapLayout.phaseSpans.map((s) => [s.phase, s.bodyFill])),
     [roadmapLayout],
@@ -752,6 +817,7 @@ export function WorkbookMatrix({
             scrolling data pane, so it shares horizontal scroll position
             with the matrix above automatically. */}
         <div
+          ref={roadmapDataGridRef}
           role="grid"
           aria-label={locale === "he" ? "מפת דרכים" : "Roadmap"}
           aria-rowcount={roadmapLayout.rows.length}
@@ -777,7 +843,7 @@ export function WorkbookMatrix({
                     item.challengesEn,
                   );
                   content = (
-                    <div className="flex h-full w-full flex-col gap-0.5 overflow-hidden p-1">
+                    <div className="flex h-full w-full flex-col gap-0.5 p-1">
                       {title && (
                         <div className="text-center text-[0.7rem] font-bold">
                           {title.isHebrewSource ? (
@@ -817,7 +883,7 @@ export function WorkbookMatrix({
                 } else {
                   const title = resolveFreeText(locale, item.titleHe, item.titleEn);
                   content = title && (
-                    <div className="h-full w-full overflow-hidden p-1 text-center text-[0.7rem]">
+                    <div className="h-full w-full p-1 text-center text-[0.7rem]">
                       {title.isHebrewSource ? (
                         <HebrewSourceMark locale={locale}>{title.text}</HebrewSourceMark>
                       ) : (
@@ -838,6 +904,7 @@ export function WorkbookMatrix({
               return (
                 <div
                   key={`roadmap-${row.phase}-${row.kind}-${row.slot}-${channel.channelId}`}
+                  data-roadmap-row={rowIndex}
                   role="gridcell"
                   aria-rowindex={rowIndex + 1}
                   aria-colindex={colIndex + 1}
@@ -848,17 +915,17 @@ export function WorkbookMatrix({
                     gridColumnStart: colIndex + 1,
                     gridColumnEnd: colIndex + 2,
                     gridRow: rowIndex + 1,
-                    // blockSize (not minBlockSize) + minBlockSize: 0 together
-                    // pin this cell's own box to exactly heightPx, overriding
-                    // grid items' default min-size:auto that would otherwise
-                    // let wrapped text grow the row past heightPx and desync
-                    // it from the label pane's fixed-pane block heights.
-                    // Deliberately no overflow-hidden here: T11's callouts
-                    // are a child of this same cell and need to visually
-                    // overflow past it (SPEC §5.8); overflow is clipped one
-                    // level down instead, on `content` itself.
-                    blockSize: heightPx,
-                    minBlockSize: 0,
+                    // A floor, not a cap (same pattern as the main matrix's
+                    // rows above, `metrics?.heightPx` at `minBlockSize`):
+                    // real content can be taller than the nominal/measured
+                    // value and is left free to grow the row rather than
+                    // being clipped. The measurement effect above reads
+                    // this natural size back via `data-roadmap-row` and
+                    // republishes it to the label pane, so the two
+                    // independently-rendered panes stay pixel-synced without
+                    // ever truncating real text (see this file's earlier bug
+                    // where a fixed blockSize clipped long roadmap entries).
+                    minBlockSize: heightPx,
                     background,
                     color: contrastTextColor(background),
                   }}
