@@ -638,6 +638,60 @@ export function WorkbookMatrix({
 
   const gridTemplateColumns = `repeat(${colCount}, minmax(9.5rem, 1fr))`;
 
+  // Same architectural issue as the roadmap section below, just latent
+  // here until now: the label pane's row-header cells and the data pane's
+  // cells for the SAME row are two independently-rendered trees sized from
+  // the same nominal `rowMetrics[i].heightPx` floor, but the data pane's
+  // cells render at a larger font size (`text-sm`) than the label pane's
+  // (`text-xs`) — a taller natural line-height that has nothing to do with
+  // actual text length, so the data side is consistently a few pixels
+  // taller than the label side on every single row. That's invisible on
+  // any one row but compounds across all of them, and was the real cause
+  // of the roadmap section (appended right after this grid) still drifting
+  // out of alignment with its own label pane even after the roadmap's own
+  // rows were internally fixed to measure correctly. Same fix as the
+  // roadmap: measure the data pane's real per-row heights and feed them to
+  // the label pane, rather than trusting both sides to agree on a nominal
+  // value.
+  const matrixDataGridRef = useRef<HTMLDivElement | null>(null);
+  const [measuredRowHeights, setMeasuredRowHeights] = useState<readonly number[] | null>(
+    null,
+  );
+  useLayoutEffect(() => {
+    const container = matrixDataGridRef.current;
+    if (!container) return;
+
+    function measure() {
+      if (!container) return;
+      const heightByRow = new Map<number, number>();
+      for (const el of container.querySelectorAll<HTMLElement>("[data-matrix-row]")) {
+        const rowIndex = Number(el.dataset.matrixRow);
+        const height = el.getBoundingClientRect().height;
+        heightByRow.set(rowIndex, Math.max(heightByRow.get(rowIndex) ?? 0, height));
+      }
+      if (heightByRow.size === 0) return;
+      const heights = Array.from({ length: heightByRow.size }, (_, i) =>
+        Math.ceil(heightByRow.get(i) ?? 0),
+      );
+      setMeasuredRowHeights((prev) =>
+        prev && prev.length === heights.length && prev.every((h, i) => h === heights[i])
+          ? prev
+          : heights,
+      );
+    }
+
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(container);
+    return () => observer.disconnect();
+  }, [dataCells, rowMetrics, locale]);
+  // Measured (once available) or the nominal heightPt-derived fallback --
+  // same "measured overrides nominal" pattern as the roadmap section.
+  const rowHeights =
+    measuredRowHeights?.length === rowMetrics.length
+      ? measuredRowHeights
+      : rowMetrics.map((m) => m.heightPx);
+
   return (
     <div
       role="grid"
@@ -650,7 +704,6 @@ export function WorkbookMatrix({
       {/* Label pane — fixed, never scrolls horizontally */}
       <div className="shrink-0" style={{ width: LABEL_PANE_WIDTH }}>
         {allRows.map((row, rowIndex) => {
-          const metrics = rowMetrics[rowIndex];
           const text = locale === "he" ? (row.labelHe ?? "") : row.labelEn;
           const isFocusable = focus.row === rowIndex && focus.col === 0;
           const blockRow: ContentRow | undefined =
@@ -659,7 +712,14 @@ export function WorkbookMatrix({
           const commonClassName =
             "border-border flex items-center justify-center gap-1 border-e border-b p-2 text-xs font-bold last:border-b-0";
           const commonStyle = {
-            minBlockSize: metrics?.heightPx,
+            // blockSize (not minBlockSize) + minBlockSize: 0, driven by the
+            // data pane's own measured height: label text never needs more
+            // room than its data-pane counterpart in practice, so this pins
+            // the label row to match exactly rather than letting the two
+            // panes' different font sizes drift apart (see this file's
+            // rowHeights/matrixDataGridRef doc comment above).
+            blockSize: rowHeights[rowIndex],
+            minBlockSize: 0,
             background: LABEL_FILL,
             color: contrastTextColor(LABEL_FILL),
           };
@@ -760,7 +820,7 @@ export function WorkbookMatrix({
 
       {/* Data pane — the 17 channel columns, scrolls horizontally on its own */}
       <div className="min-w-0 flex-1 overflow-x-auto">
-        <div style={{ display: "grid", gridTemplateColumns }}>
+        <div ref={matrixDataGridRef} style={{ display: "grid", gridTemplateColumns }}>
           {dataCells.map((cell) => {
             const metrics = rowMetrics[cell.rowIndex];
             const isFocusable =
@@ -768,6 +828,7 @@ export function WorkbookMatrix({
             return (
               <div
                 key={cell.key}
+                data-matrix-row={cell.rowIndex}
                 ref={(el) => {
                   for (const col of cell.colIndexes) registerCell(cell.rowIndex, col, el);
                 }}

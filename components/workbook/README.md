@@ -10,7 +10,13 @@ for the presentation format each component must reproduce.
   doc comment before touching the label column's positioning — a
   `position: sticky` column inside the CSS Grid didn't stay stuck under
   horizontal scroll in testing (both RTL and LTR); it's a fixed pane next
-  to an independently-scrolling data pane instead.
+  to an independently-scrolling data pane instead. The label pane's every
+  row is pixel-synced to the data pane's real rendered height via
+  `matrixDataGridRef`/`data-matrix-row` measurement, not a shared nominal
+  constant — the two panes render at different font sizes (`text-xs` vs
+  `text-sm`), so a nominal value they'd both agree on doesn't exist; see
+  CLAUDE.md's "pane sync needs real measurement" entry before changing
+  either side's row sizing.
 - `gridLayout.ts` — pure layout helpers (axis-group grid-column spans, row
   height/offset metrics from `heightPt`), unit-tested in
   `tests/unit/workbook/gridLayout.test.ts`.
