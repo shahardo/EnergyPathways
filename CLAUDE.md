@@ -161,6 +161,24 @@ WorkbookExplorer.tsx`, which owns the filter state — read from and
   the rest of the content instead of pinning). `WorkbookMatrix.tsx` uses a
   fixed label pane next to an independently-scrolling data pane instead;
   see its doc comment before reintroducing a sticky-column approach.
+- **Keeping two independently-rendered panes pixel-synced needs
+  `blockSize` + `minBlockSize: 0`, not `minBlockSize` alone.** The
+  roadmap's label-pane blocks (phase/sub-group columns) and its
+  data-pane cells share nominal per-row height constants so their
+  independently-rendered DOM trees line up (same pattern as the
+  fixed/scrolling pane split above). `minBlockSize` alone doesn't pin
+  that: it's a minimum, and CSS grid/flex items have a default automatic
+  minimum size (`min-height: auto`) driven by content's own intrinsic
+  size, so a cell whose text happened to wrap further than usual would
+  silently grow past its nominal height on one side only, desyncing
+  every row after it — a real bug reported against the live matrix and
+  root-caused by a scripted per-row height measurement, not by
+  inspection. Use `blockSize` for the nominal height and explicitly set
+  `minBlockSize: 0` alongside it to cancel that default; if content then
+  needs to be prevented from visibly overflowing, clip it with
+  `overflow-hidden` on the innermost wrapper that should own the clip —
+  never on a cell that has an intentionally-overflowing child, like
+  T11's callouts (SPEC §5.8), or clipping cancels the overflow.
 - **Changed the workbook or `lib/db/schema.ts`?** Re-run `npm run ingest`
   (rewrites `db/snapshot.json`, `db/ingest-report.md`,
   `db/reference.sqlite`) and commit the diff. A schema change also needs

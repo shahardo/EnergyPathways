@@ -656,9 +656,10 @@ export function WorkbookMatrix({
             {roadmapLayout.phaseSpans.map((span) => (
               <div
                 key={span.phase}
-                className="border-border flex items-center justify-center border-e border-b p-1 text-[0.7rem] font-bold last:border-b-0"
+                className="border-border flex items-center justify-center overflow-hidden border-e border-b p-1 text-[0.7rem] font-bold last:border-b-0"
                 style={{
-                  minBlockSize: sumRoadmapHeights(span.startIndex, span.rowCount),
+                  blockSize: sumRoadmapHeights(span.startIndex, span.rowCount),
+                  minBlockSize: 0, // overrides flex/grid items' default min-size:auto, which would otherwise let content grow past blockSize
                   background: span.labelFill,
                   color: contrastTextColor(span.labelFill),
                 }}
@@ -673,9 +674,10 @@ export function WorkbookMatrix({
             {subGroupColumnBlocks.map((span) => (
               <div
                 key={`${span.phase}-${span.key}`}
-                className="border-border flex items-center justify-center border-b p-1 text-[0.7rem] font-bold last:border-b-0"
+                className="border-border flex items-center justify-center overflow-hidden border-b p-1 text-[0.7rem] font-bold last:border-b-0"
                 style={{
-                  minBlockSize: sumRoadmapHeights(span.startIndex, span.rowCount),
+                  blockSize: sumRoadmapHeights(span.startIndex, span.rowCount),
+                  minBlockSize: 0,
                   background: bodyFillByPhase.get(span.phase) ?? "#FFFFFF",
                   color: contrastTextColor(bodyFillByPhase.get(span.phase) ?? "#FFFFFF"),
                 }}
@@ -815,7 +817,7 @@ export function WorkbookMatrix({
                 } else {
                   const title = resolveFreeText(locale, item.titleHe, item.titleEn);
                   content = title && (
-                    <div className="p-1 text-center text-[0.7rem]">
+                    <div className="h-full w-full overflow-hidden p-1 text-center text-[0.7rem]">
                       {title.isHebrewSource ? (
                         <HebrewSourceMark locale={locale}>{title.text}</HebrewSourceMark>
                       ) : (
@@ -846,7 +848,17 @@ export function WorkbookMatrix({
                     gridColumnStart: colIndex + 1,
                     gridColumnEnd: colIndex + 2,
                     gridRow: rowIndex + 1,
-                    minBlockSize: heightPx,
+                    // blockSize (not minBlockSize) + minBlockSize: 0 together
+                    // pin this cell's own box to exactly heightPx, overriding
+                    // grid items' default min-size:auto that would otherwise
+                    // let wrapped text grow the row past heightPx and desync
+                    // it from the label pane's fixed-pane block heights.
+                    // Deliberately no overflow-hidden here: T11's callouts
+                    // are a child of this same cell and need to visually
+                    // overflow past it (SPEC §5.8); overflow is clipped one
+                    // level down instead, on `content` itself.
+                    blockSize: heightPx,
+                    minBlockSize: 0,
                     background,
                     color: contrastTextColor(background),
                   }}
