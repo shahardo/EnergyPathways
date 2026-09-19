@@ -29,6 +29,13 @@ for the presentation format each component must reproduce.
   matrix's horizontal scroll position for free. Also exports
   `rowNumberToSlot` and `parseCellRef()`, which T11's callouts use to
   resolve an `anchorCell` (e.g. `G53`) to the roadmap slot it attaches to.
+  Row heights aren't ingested for this range (SPEC §5.7 gives only the
+  workbook's own 36-60pt range) and free text varies too much for a fixed
+  constant to fit without either clipping or misaligning the label pane —
+  `WorkbookMatrix.tsx` measures each row's real rendered height from the
+  data pane (`data-roadmap-row` + a `ResizeObserver`) and feeds it back to
+  the label pane's blocks; see its doc comment and CLAUDE.md's "pane sync
+  needs real measurement" entry before touching either side's sizing.
 - `HebrewSourceMark.tsx` — the "HE" marker for free text shown in Hebrew
   while viewing in English (no approved translation yet, OQ-11); paired
   with `lib/i18n/freeText.ts`'s `resolveFreeText()`.

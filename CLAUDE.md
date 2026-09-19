@@ -161,24 +161,37 @@ WorkbookExplorer.tsx`, which owns the filter state — read from and
   the rest of the content instead of pinning). `WorkbookMatrix.tsx` uses a
   fixed label pane next to an independently-scrolling data pane instead;
   see its doc comment before reintroducing a sticky-column approach.
-- **Keeping two independently-rendered panes pixel-synced needs
-  `blockSize` + `minBlockSize: 0`, not `minBlockSize` alone.** The
-  roadmap's label-pane blocks (phase/sub-group columns) and its
-  data-pane cells share nominal per-row height constants so their
-  independently-rendered DOM trees line up (same pattern as the
-  fixed/scrolling pane split above). `minBlockSize` alone doesn't pin
-  that: it's a minimum, and CSS grid/flex items have a default automatic
-  minimum size (`min-height: auto`) driven by content's own intrinsic
-  size, so a cell whose text happened to wrap further than usual would
-  silently grow past its nominal height on one side only, desyncing
-  every row after it — a real bug reported against the live matrix and
-  root-caused by a scripted per-row height measurement, not by
-  inspection. Use `blockSize` for the nominal height and explicitly set
-  `minBlockSize: 0` alongside it to cancel that default; if content then
-  needs to be prevented from visibly overflowing, clip it with
-  `overflow-hidden` on the innermost wrapper that should own the clip —
-  never on a cell that has an intentionally-overflowing child, like
-  T11's callouts (SPEC §5.8), or clipping cancels the overflow.
+- **Keeping two independently-rendered panes pixel-synced with variable-length
+  content needs real measurement, not a nominal constant.** The roadmap's
+  label-pane blocks (phase/sub-group columns) and its data-pane cells are two
+  separate DOM/grid trees (same split as the fixed/scrolling pane pattern
+  above), so nothing in CSS lets one side's auto-sized row tracks drive the
+  other's sizing. A first fix pass tried pinning both sides to a shared
+  nominal per-row-kind constant via `blockSize` + `minBlockSize: 0` (the
+  latter needed because grid/flex items default to an automatic minimum size,
+  `min-height: auto`, driven by content's own intrinsic size, which
+  `minBlockSize` alone — a minimum, not a fixed size — doesn't override).
+  That kept the two panes aligned, but real roadmap free text varies far more
+  than any fixed constant can predict (a one-line target next to a
+  multi-paragraph step card with a bolded "אתגרים:" line), so a cell whose
+  content needed more room than the constant was clipped mid-sentence by the
+  `overflow-hidden` the fixed size required — a real regression caught
+  against the live matrix (via a screenshot, then confirmed and root-caused
+  with a scripted per-row height/overlap check, not by inspection). The
+  actual fix: let the data-pane cells size naturally (`minBlockSize` only, no
+  `overflow-hidden`, same pattern the main matrix's rows already use — a
+  floor, not a cap), so within the data pane's own CSS Grid, all columns in a
+  row already auto-align to the tallest cell for free. Each data cell carries
+  `data-roadmap-row={rowIndex}`; a `useLayoutEffect` + `ResizeObserver` on the
+  data pane (see `WorkbookMatrix.tsx`'s `roadmapDataGridRef` effect) measures
+  every row's real rendered height from those cells and republishes it as
+  state, which the label pane's blocks then use as their authoritative
+  `blockSize` + `minBlockSize: 0`. The nominal constants
+  (`ROADMAP_TARGET_ROW_HEIGHT`/`ROADMAP_STEP_ROW_HEIGHT`) still exist, but
+  only as the initial-paint fallback before the first measurement lands, not
+  as the source of truth. `overflow-hidden` still belongs only on a wrapper
+  that should own a clip, never on a cell with an intentionally-overflowing
+  child like T11's callouts (SPEC §5.8).
 - **Changed the workbook or `lib/db/schema.ts`?** Re-run `npm run ingest`
   (rewrites `db/snapshot.json`, `db/ingest-report.md`,
   `db/reference.sqlite`) and commit the diff. A schema change also needs
