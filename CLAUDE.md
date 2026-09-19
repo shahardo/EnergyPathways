@@ -191,7 +191,23 @@ WorkbookExplorer.tsx`, which owns the filter state — read from and
   only as the initial-paint fallback before the first measurement lands, not
   as the source of truth. `overflow-hidden` still belongs only on a wrapper
   that should own a clip, never on a cell with an intentionally-overflowing
-  child like T11's callouts (SPEC §5.8).
+  child like T11's callouts (SPEC §5.8). **The same fix applies to the main
+  matrix's rows (1–39), not just the roadmap** — they had the identical
+  latent bug all along (`minBlockSize` on both panes, sourced from the same
+  nominal `heightPt`-derived value), just invisible until the roadmap
+  section was appended below them: the label pane's row-header cells render
+  at `text-xs` and the data pane's cells at `text-sm`, a taller natural
+  line-height with nothing to do with actual text length, so the data side
+  came out a few pixels taller than the label side on literally every row,
+  compounding down the page into a large drift by the time the roadmap
+  section started. Fixed the same way — `matrixDataGridRef` +
+  `data-matrix-row` + a `useLayoutEffect`/`ResizeObserver` measuring the
+  data pane's real per-row heights, which the label pane's row cells then
+  use for their `blockSize` + `minBlockSize: 0` — rather than trusting two
+  differently-styled independently-rendered panes to agree on a shared
+  nominal number. If a third independently-rendered pane pair shows the
+  same symptom, measure it the same way; don't reach for a nominal constant
+  shared between panes again.
 - **Changed the workbook or `lib/db/schema.ts`?** Re-run `npm run ingest`
   (rewrites `db/snapshot.json`, `db/ingest-report.md`,
   `db/reference.sqlite`) and commit the diff. A schema change also needs
