@@ -160,9 +160,9 @@ async function main() {
   }
 
   const colorScaleExtraction = resolveColorScaleRules(sheet.colorScaleRanges);
-  if (colorScaleExtraction.trilemmaRuleFound) {
+  if (colorScaleExtraction.trilemmaColorScale) {
     anomalies.push(
-      "Row 37 (טרילמה) carries a colour-scale rule but is entirely blank — not displayed in Phase 1 (OQ-16).",
+      "Row 37 (טרילמה) is entirely blank in the source workbook, but carries a colour-scale rule; the UI computes and displays it as the mean of the three dimension averages (OQ-16), using this rule's own colours.",
     );
   }
 
@@ -250,6 +250,7 @@ async function main() {
     axisGroups: AXIS_GROUPS,
     rowLabels,
     colorScaleRules: colorScaleExtraction.rules,
+    trilemmaColorScale: colorScaleExtraction.trilemmaColorScale,
     sparklineSpecs,
     phaseBands: PHASE_BANDS,
   });

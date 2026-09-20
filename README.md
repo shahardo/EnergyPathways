@@ -19,11 +19,14 @@ it.
 
 ## Status
 
-**Phase 1 nearly complete.** Every feature task (T1–T13 — scaffold, i18n/RTL,
-schemas, the data layer, workbook ingestion, the workbook model, the matrix,
-score rows, sparklines, likelihood/barriers/roadmap, trigger callouts, the
-channel detail drawer, and column filtering) is done. Only T14 (fidelity and
-quality gates) remains — see the checklist below.
+**Phase 1 feature-complete, including its automated quality gates.** Every
+task (T1–T14 — scaffold, i18n/RTL, schemas, the data layer, workbook
+ingestion, the workbook model, the matrix, score rows, sparklines,
+likelihood/barriers/roadmap, trigger callouts, the channel detail drawer,
+column filtering, and the fidelity/quality gates) is done. What's left of
+Phase 1's definition of done is manual, not automatable from here: the
+domain lead's side-by-side sign-off against the workbook, and the ≥8-person
+recognition test (AC-6) — see `docs/DEV-PLAN.md`'s Definition of done.
 
 - [x] T1 — Project scaffold
 - [x] T2 — i18n and RTL foundation
@@ -38,16 +41,39 @@ quality gates) remains — see the checklist below.
 - [x] T11 — Trigger callouts (`Callout.tsx` + `WorkbookMatrix.tsx`): the 5 callouts (F49, G53, J53, Q49, R49) attach to their anchor cell's roadmap slot — resolved from `anchorCell` via `roadmapRows.ts`'s `parseCellRef()` + the layout's row→slot map, not a second hard-coded lookup — and overflow toward the next phase boundary; `role="note"`, the anchor cell's `aria-describedby` refs it, ⚠ icon + free-text Hebrew-source fallback like the rest of the roadmap
 - [x] T12 — Channel detail drawer (`ChannelDrawer.tsx`): opens from the channel-name cell (shadcn `Sheet`/Radix `Dialog`, focus trapped and restored to the trigger cell on close — see the component doc comment for why that needs an explicit `onCloseAutoFocus` rather than Radix's default); a Recharts radar of the three dimension averages plus an accessible table, all 15 sub-scores with the same colour-scale fills as the matrix, three full-size trajectory charts on a true (proportional) time axis with a numeric table each, the channel's complete roadmap and callouts, CF/CI marked as recovered/derived, and a cell-ref + dataset-version provenance badge on every figure
 - [x] T13 — Column filtering (`WorkbookExplorer.tsx` + `FilterToolbar.tsx` + `columnFilters.ts`): an additive toolbar filters by axis group and/or likelihood, state synced to the URL (`?axis=...&likelihood=...`) so a reload restores it exactly; `computeAxisGroupSpans` now matches by each channel's own `axisGroupId` rather than a group's literal start/end column letters, so a header shrinks to its remaining visible columns and disappears when none remain, without throwing; colour scales are always computed from the full unfiltered payload, so a cell's colour never changes with filtering (verified in the browser: the same `rgb()` background before and after filtering)
-- [ ] T14 — Fidelity and quality gates
+- [x] T14 — Fidelity and quality gates (`tests/e2e/structural-fidelity.spec.ts`, `tests/e2e/accessibility.spec.ts`, `tests/e2e/visual-regression.spec.ts`, `tests/unit/engine/performance.test.ts`): a Playwright DOM test asserts column order, axis-group spans, fills, the collapsed-by-default/expand-in-place disclosure, blank-not-zero cells, and callout-to-anchor-cell wiring directly against the `/api/workbook` payload (AC-2); an axe scan runs on the initial matrix, an expanded dimension, and the open channel drawer, in both locales (AC-5); committed Playwright screenshots catch visual drift the DOM test can't; a Vitest budget times one full render's worth of colour-scale + sparkline computation as an engine-performance tripwire. Building this gate surfaced and fixed four real accessibility bugs, not just wiring: three WCAG AA colour-contrast failures (the roadmap's "HE" untranslated-text badge against the lightest phase-band fill and against the trigger-callout's blue; the trigger callout's own white-on-blue body text, in both `Callout.tsx` and its duplicate rendering in `ChannelDrawer.tsx`; `lib/color.ts`'s `contrastTextColor` picking a near-black `#1A1A1A` that still fell short of 4.5:1 against a mid-tone axis fill, fixed by using pure black, which is mathematically guaranteed to clear AA against any background paired with white as the alternative) and one structural ARIA defect (the roadmap section's own `role="grid"` was nested inside the matrix's outer `role="grid"` — invalid, since a grid's children must be `row`s, never another `grid`; fixed by folding the roadmap's rows into the outer grid's own row/column numbering instead of giving it a second nested grid role, and by adding the `role="row"` wrapper ARIA's grid pattern requires between `grid` and `rowheader`/`gridcell`/`columnheader`, using `display: contents` in the CSS-Grid-positioned data panes so the wrapper adds no layout of its own).
 
 Ingestion has run against the real workbook: `db/snapshot.json` and
 `db/ingest-report.md` are committed and current. All 17 columns' CF/CI/ramp
 match SPEC §3.4 with zero trajectory-verification issues; the report lists
-every anomaly SPEC §6.3 calls for (D copying C, K/L as enablers, the blank
-row 37 Trilemma rule, the Q49 duplicate callout, the chart49–51/column-D
-mismatch, blank equity for F/M) plus one SPEC didn't anticipate: row 31's
-equity average is a literal cached value in the current file, not a live
-formula like rows 9 and 20.
+every anomaly SPEC §6.3 calls for (D copying C, K/L as enablers, row 37's
+blank Trilemma row carrying a colour-scale rule the UI now uses (below),
+the Q49 duplicate callout, the chart49–51/column-D mismatch, blank equity
+for F/M) plus one SPEC didn't anticipate: row 31's equity average is a
+literal cached value in the current file, not a live formula like rows 9
+and 20.
+
+**Post-T14 addition: Trilemma total row + section visibility selectors.**
+Row 37 (טרילמה) is blank in the source workbook but carries its own
+colour-scale rule (OQ-16); `components/workbook/scoreRows.ts`'s
+`computeTrilemmaScores` now computes it as the mean of each channel's
+three dimension averages (`dimensionAverage`'s exact blank-safe
+semantics, reused rather than a bespoke average) and colours it with that
+captured rule via `buildColorScale`, over real cell references
+(`${columnLetter}37`) the same way every other score row does — never an
+invented scale. Renders as one more row directly after equity, exactly
+where the workbook puts it. Ingestion (`scripts/ingest/colorScaleRules.ts`)
+now captures this rule instead of discarding it; `lib/schemas/workbook.ts`'s
+`trilemmaColorScaleSchema` and a matching `lib/db/schema.ts` table
+(`drizzle/0001_omniscient_cable.sql`) carry it through the payload,
+nullable if a future workbook drops the rule. Alongside it, a "Show:"
+group in `FilterToolbar.tsx` toggles the Trilemma scores, Trilemma charts
+(sparkline rows) and roadmap sections independently —
+`components/workbook/sectionVisibility.ts` is the same additive,
+URL-synced pattern as `columnFilters.ts` (`?hide=scores,roadmap`; nothing
+hidden by default), merged into one query string by
+`WorkbookExplorer.tsx`'s `applyState` so the two filter dimensions never
+clobber each other.
 
 The matrix (`/he`, `/en`) renders rows 1–3 from real ingested data: label
 column pinned to the inline-start edge (a fixed pane, not `position:
@@ -129,6 +155,14 @@ partly-filtered group's header shrinks to its remaining columns and a
 fully-filtered one simply disappears, with nothing to throw on a column
 gap.
 
+The same toolbar's "Show:" group toggles three row-groups independently:
+Trilemma scores, Trilemma charts (the sparkline rows), and the roadmap
+section — also URL-synced (`?hide=scores,charts,roadmap`, only the hidden
+ones listed) via `sectionVisibility.ts`, merged with the column filters
+into one query string so reloading restores both. Hiding scores also
+hides the Trilemma total row that follows equity (below); hiding charts
+alone leaves it in place.
+
 ## Tech stack
 
 Next.js 16 (App Router, TypeScript strict) · Tailwind CSS 4 · shadcn/ui
@@ -160,20 +194,21 @@ alone reports "up to date" and will not re-run it.
 
 ## Scripts
 
-| Command                                   | Purpose                                                                                                                        |
-| :---------------------------------------- | :----------------------------------------------------------------------------------------------------------------------------- |
-| `npm run dev`                             | Dev server                                                                                                                     |
-| `npm run build` / `npm run start`         | Production build / serve                                                                                                       |
-| `npm run typecheck`                       | `tsc --noEmit`                                                                                                                 |
-| `npm run lint`                            | ESLint, including the two repo-specific rules below                                                                            |
-| `npm run test` / `npm run test:watch`     | Vitest unit tests (`tests/unit/`)                                                                                              |
-| `npm run e2e`                             | Playwright (`tests/e2e/`) — visual regression baselines land with T14                                                          |
-| `npm run format` / `npm run format:check` | Prettier                                                                                                                       |
-| `npm run ingest`                          | Re-run workbook ingestion against `docs/*.xlsx`, rewriting `db/snapshot.json`, `db/ingest-report.md` and `db/reference.sqlite` |
-| `npm run parity:generate`                 | Regenerate `db/parity-fixtures.json` (T6b golden fixtures) from `db/snapshot.json` — run explicitly, never in CI               |
+| Command                                   | Purpose                                                                                                                                     |
+| :---------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------ |
+| `npm run dev`                             | Dev server                                                                                                                                  |
+| `npm run build` / `npm run start`         | Production build / serve                                                                                                                    |
+| `npm run typecheck`                       | `tsc --noEmit`                                                                                                                              |
+| `npm run lint`                            | ESLint, including the two repo-specific rules below                                                                                         |
+| `npm run test` / `npm run test:watch`     | Vitest unit tests (`tests/unit/`)                                                                                                           |
+| `npm run e2e`                             | Playwright (`tests/e2e/`): locale redirect, structural fidelity (AC-2), accessibility (AC-5), visual regression against committed baselines |
+| `npm run format` / `npm run format:check` | Prettier                                                                                                                                    |
+| `npm run ingest`                          | Re-run workbook ingestion against `docs/*.xlsx`, rewriting `db/snapshot.json`, `db/ingest-report.md` and `db/reference.sqlite`              |
+| `npm run parity:generate`                 | Regenerate `db/parity-fixtures.json` (T6b golden fixtures) from `db/snapshot.json` — run explicitly, never in CI                            |
 
 CI (`.github/workflows/ci.yml`) runs typecheck, lint, unit tests, format
-check and build on every push.
+check, build and the Playwright e2e suite (installing Chromium first) on
+every push.
 
 ## Project structure
 
@@ -188,8 +223,9 @@ components/workbook/  WorkbookMatrix.tsx (F-101/F-102, T7-T13) + gridLayout.ts (
                      + Callout.tsx (F-104 trigger callout, positioned on its anchor cell's roadmap slot)
                      + HebrewSourceMark.tsx (the "HE" marker for untranslated free text)
                      + ChannelDrawer.tsx (F-105, T12: radar + trajectory charts, sub-scores, roadmap, provenance)
-                     + WorkbookExplorer.tsx (F-106, T13: owns URL-synced filter state, renders FilterToolbar + WorkbookMatrix)
+                     + WorkbookExplorer.tsx (F-106, T13: owns URL-synced filter + section-visibility state, renders FilterToolbar + WorkbookMatrix)
                      + FilterToolbar.tsx + columnFilters.ts (pure: URL <-> filter state, channel-visibility predicate)
+                     + sectionVisibility.ts (pure: URL <-> hidden-sections state for the scores/charts/roadmap selectors, OQ-16)
 components/ui/      hand-authored shadcn/ui primitives (Sheet on @radix-ui/react-dialog, Table) — the shadcn
                      CLI's registry fetch isn't reachable through this environment's egress proxy, so these
                      are written by hand in the same "new-york" style components.json already configures
@@ -208,6 +244,10 @@ drizzle/            committed SQL migrations for lib/db/schema.ts (generated by 
 db/                 snapshot.json + ingest-report.md + parity-fixtures.json (all committed),
                      reference.sqlite (gitignored — rebuilt from snapshot.json on first read)
 docs/               PRD, SPEC, DEV-PLAN, the source workbook, the reference screenshot
+tests/unit/         Vitest — engine/ingestion/component-logic unit tests + the T14 performance budget (engine/performance.test.ts)
+tests/e2e/          Playwright (T14) — locale-redirect, structural-fidelity.spec.ts (AC-2, against /api/workbook),
+                     accessibility.spec.ts (AC-5, axe), visual-regression.spec.ts (committed screenshot baselines
+                     in visual-regression.spec.ts-snapshots/)
 ```
 
 ## Repo-specific lint rules

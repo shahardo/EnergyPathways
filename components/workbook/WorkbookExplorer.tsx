@@ -12,6 +12,11 @@ import {
   toggleSetMember,
   type ColumnFilters,
 } from "./columnFilters";
+import {
+  parseSectionVisibility,
+  serializeSectionVisibility,
+  type SectionVisibility,
+} from "./sectionVisibility";
 import { FilterToolbar } from "./FilterToolbar";
 import { WorkbookMatrix } from "./WorkbookMatrix";
 
@@ -21,20 +26,35 @@ export interface WorkbookExplorerProps {
 }
 
 /**
- * Owns F-106's URL-synced filter state (DEV-PLAN T13) and derives which
- * channels `WorkbookMatrix` shows from it. The URL is the only source of
- * truth for the filter -- no separate component state -- so a reload
- * restores it exactly (the acceptance criterion) with no hydration
- * mismatch to reconcile.
+ * Owns F-106's URL-synced filter state (DEV-PLAN T13) plus the Trilemma
+ * scores/charts/roadmap section-visibility selectors, and derives which
+ * channels and row-groups `WorkbookMatrix` shows from them. The URL is the
+ * only source of truth for both -- no separate component state -- so a
+ * reload restores them exactly, with no hydration mismatch to reconcile.
+ * The two dimensions are parsed/serialized independently
+ * (`columnFilters.ts` / `sectionVisibility.ts`) but share one URL, so
+ * `applyState` merges their params into a single query string rather than
+ * letting one dimension's update clobber the other's.
  */
 export function WorkbookExplorer({ payload, locale }: WorkbookExplorerProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const filters = useMemo(() => parseColumnFilters(searchParams), [searchParams]);
+  const hiddenSections = useMemo(
+    () => parseSectionVisibility(searchParams),
+    [searchParams],
+  );
 
-  function applyFilters(next: ColumnFilters) {
-    const query = serializeColumnFilters(next).toString();
+  function applyState(nextFilters: ColumnFilters, nextHiddenSections: SectionVisibility) {
+    const params = new URLSearchParams();
+    for (const [key, value] of serializeColumnFilters(nextFilters)) {
+      params.set(key, value);
+    }
+    for (const [key, value] of serializeSectionVisibility(nextHiddenSections)) {
+      params.set(key, value);
+    }
+    const query = params.toString();
     router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
   }
 
@@ -61,24 +81,31 @@ export function WorkbookExplorer({ payload, locale }: WorkbookExplorerProps) {
         axisGroups={payload.axisGroups}
         locale={locale}
         filters={filters}
+        hiddenSections={hiddenSections}
         onToggleAxisGroup={(id) =>
-          applyFilters({
-            ...filters,
-            axisGroups: toggleSetMember(filters.axisGroups, id),
-          })
+          applyState(
+            { ...filters, axisGroups: toggleSetMember(filters.axisGroups, id) },
+            hiddenSections,
+          )
         }
         onToggleLikelihood={(value) =>
-          applyFilters({
-            ...filters,
-            likelihoods: toggleSetMember(filters.likelihoods, value),
-          })
+          applyState(
+            { ...filters, likelihoods: toggleSetMember(filters.likelihoods, value) },
+            hiddenSections,
+          )
         }
-        onClear={() => applyFilters(EMPTY_FILTERS)}
+        onToggleSection={(key) =>
+          applyState(filters, toggleSetMember(hiddenSections, key))
+        }
+        onClear={() => applyState(EMPTY_FILTERS, hiddenSections)}
       />
       <WorkbookMatrix
         payload={payload}
         locale={locale}
         visibleChannelIds={visibleChannelIds}
+        showScores={!hiddenSections.has("scores")}
+        showCharts={!hiddenSections.has("charts")}
+        showRoadmap={!hiddenSections.has("roadmap")}
       />
     </div>
   );

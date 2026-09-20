@@ -21,7 +21,17 @@ export function HebrewSourceMark({
         {children}
       </span>
       <span
-        className="border-border text-muted-foreground shrink-0 rounded border px-1 text-[0.625rem] leading-normal"
+        // Solid white background, not a transparent one over the
+        // `text-muted-foreground` token: this badge sits on whichever
+        // ambient fill surrounds it -- a roadmap phase-band body, a
+        // drawer background, or T11's #5B9BD5 callout -- and no single
+        // text colour clears 4.5:1 against all of those (the axe
+        // accessibility gate caught #404040 failing on the callout's
+        // blue, 3.5:1, right after it had fixed the same badge's contrast
+        // on the lightest phase-band fill). Owning its own opaque
+        // background makes the badge's contrast self-contained instead of
+        // dependent on whatever it happens to be layered over.
+        className="shrink-0 rounded border border-current bg-white px-1 text-[0.625rem] leading-normal text-[#404040]"
         title={
           locale === "he"
             ? "אין תרגום מאושר לאנגלית עדיין"

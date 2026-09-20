@@ -1,4 +1,8 @@
-import type { ColorScaleRule, Dimension } from "@/lib/schemas/workbook";
+import type {
+  ColorScaleRule,
+  Dimension,
+  TrilemmaColorScale,
+} from "@/lib/schemas/workbook";
 import type { RawColorScaleRule } from "./sheet";
 
 /**
@@ -7,9 +11,14 @@ import type { RawColorScaleRule } from "./sheet";
  * main range so its `min == max` scale never skews the other 16 columns'
  * colours) — six rules in total.
  *
- * Row 37 (טרילמה) also carries a colour-scale rule in the file, but the row
- * is entirely blank and not displayed in Phase 1 (OQ-16); `resolveColorScaleRules`
- * reports it as an anomaly instead of returning it as a seventh rule.
+ * Row 37 (טרילמה) also carries a colour-scale rule in the file. The row
+ * itself is entirely blank in the source workbook (OQ-16), but its
+ * colour-scale rule is captured separately (`TrilemmaColorScale`, not a
+ * seventh `ColorScaleRule`, since it isn't keyed to one of the three
+ * Trilemma dimensions) for the UI's own computed composite -- "the mean
+ * of the three dimension averages," OQ-16's documented default -- to
+ * colour itself with the workbook's real colours rather than an invented
+ * scale.
  */
 const RULE_BY_SQREF: Record<
   string,
@@ -26,14 +35,14 @@ const RULE_BY_SQREF: Record<
 
 export interface ColorScaleExtraction {
   rules: ColorScaleRule[];
-  trilemmaRuleFound: boolean;
+  trilemmaColorScale: TrilemmaColorScale | null;
 }
 
 export function resolveColorScaleRules(
   raw: readonly RawColorScaleRule[],
 ): ColorScaleExtraction {
   const rules: ColorScaleRule[] = [];
-  let trilemmaRuleFound = false;
+  let trilemmaColorScale: TrilemmaColorScale | null = null;
 
   for (const rule of raw) {
     const mapping = RULE_BY_SQREF[rule.sqref];
@@ -41,7 +50,13 @@ export function resolveColorScaleRules(
       throw new Error(`ingest-workbook: unrecognized colour-scale range "${rule.sqref}"`);
     }
     if (mapping === "trilemma") {
-      trilemmaRuleFound = true;
+      trilemmaColorScale = {
+        ranges: rule.sqref.split(" "),
+        low: rule.low,
+        mid: rule.mid,
+        high: rule.high,
+        midPercentile: rule.midPercentile,
+      };
       continue;
     }
     rules.push({
@@ -55,5 +70,5 @@ export function resolveColorScaleRules(
     });
   }
 
-  return { rules, trilemmaRuleFound };
+  return { rules, trilemmaColorScale };
 }

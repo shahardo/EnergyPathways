@@ -25,9 +25,11 @@ import {
 import type { Locale } from "@/lib/i18n/locales";
 import { useFormat } from "@/lib/i18n/useFormat";
 import { resolveFreeText } from "@/lib/i18n/freeText";
+import { contrastTextColor } from "@/lib/color";
 import type { DimensionColorScales } from "./scoreRows";
 import { DIMENSIONS } from "./scoreRows";
 import { HebrewSourceMark } from "./HebrewSourceMark";
+import { CALLOUT_FILL } from "./Callout";
 import {
   Sheet,
   SheetContent,
@@ -454,8 +456,14 @@ export function ChannelDrawer({
                 {channelCallouts.map((c) => (
                   <li
                     key={c.calloutId}
-                    className="flex items-start gap-1 rounded-md p-2 text-xs text-white"
-                    style={{ background: "#5B9BD5" }}
+                    // White text here was 2.96:1 against this fill, short
+                    // of WCAG AA (same bug as Callout.tsx, fixed the same
+                    // way -- see that component's comment).
+                    className="flex items-start gap-1 rounded-md p-2 text-xs"
+                    style={{
+                      background: CALLOUT_FILL,
+                      color: contrastTextColor(CALLOUT_FILL),
+                    }}
                   >
                     <span aria-hidden="true">⚠</span>
                     <span>
