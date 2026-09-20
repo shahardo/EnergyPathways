@@ -91,11 +91,20 @@ as a follow-up — a stale map is worse than no map.
   documents; don't reflow their formatting even incidentally via a broad
   `npm run format`.
 - Before committing: `npm run typecheck && npm run lint && npm run test &&
-npm run format:check && npm run build`. All five are required in CI
-  (`.github/workflows/ci.yml`); don't push something that fails one.
+npm run format:check && npm run build && npm run e2e`. All six are
+  required in CI (`.github/workflows/ci.yml`); don't push something that
+  fails one. `npm run e2e` needs a Chromium build matching the installed
+  `@playwright/test` version on `PATH` (CI installs one with
+  `npx playwright install --with-deps chromium`); in a dev container whose
+  pre-installed browser predates the pinned `@playwright/test` version,
+  set `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH` instead of downloading a
+  second copy (`playwright.config.ts` reads it; see
+  `/root/.ccr/README.md`).
 - Follow DEV-PLAN's dependency order (T1 → T2/T3 → T4 → T5 → T6 → T7 → T8–T13
-  in parallel → T14 continuously). T1–T13 are done — all of Phase 1 except
-  T14's fidelity/quality gates. Real workbook data is
+  in parallel → T14 continuously). T1–T14 are done — all of Phase 1's
+  feature work and automated quality gates; what remains of Phase 1's
+  definition of done (domain-lead sign-off, the recognition test) is
+  manual, not something to automate from here. Real workbook data is
   available end-to-end through `getWorkbookPayload()`/`getChannel()`
   (`lib/db/queries.ts`), the pure colour-scale/sparkline-path/average
   functions exist in `lib/engine/workbook/`, the matrix skeleton
@@ -156,6 +165,71 @@ WorkbookExplorer.tsx`, which owns the filter state — read from and
   rather than by looking up its `startColumn`/`endColumn` letters
   directly, so a group with some (or all) of its columns filtered out
   shrinks its header span (or is omitted) instead of throwing.
+- **T14's fidelity/quality gates are real regression tests, not a
+  checkbox.** `tests/e2e/structural-fidelity.spec.ts` asserts column
+  order, axis-group spans, fills, the collapsed-by-default disclosure and
+  its in-place expansion, blank-not-zero cells, and callout-to-anchor-cell
+  wiring directly against the `/api/workbook` payload (AC-2) — it re-uses
+  `computeAxisGroupSpans`/`buildRoadmapLayout` from the pure layout
+  modules rather than re-deriving expected positions by hand, so it stays
+  in sync with them automatically. `tests/e2e/accessibility.spec.ts` runs
+  an axe scan (`@axe-core/playwright`) on the initial matrix, an expanded
+  dimension, and the open channel drawer, in both locales (AC-5).
+  `tests/e2e/visual-regression.spec.ts` screenshots the matrix against
+  committed baselines (`*-snapshots/`, Linux-rendered — regenerate with
+  `npm run e2e -- --update-snapshots tests/e2e/visual-regression.spec.ts`
+  on the same platform CI runs on if a deliberate visual change lands).
+  `tests/unit/engine/performance.test.ts` times one full render's worth of
+  colour-scale + sparkline computation as a regression tripwire against an
+  accidental O(n²) blowup — its ceiling is deliberately looser than PRD
+  §5.2's strict 16 ms figure, since that budget is stated for a "mid-tier
+  laptop," not whatever CI runner happens to be available. This gate
+  found real bugs on first run, not just wiring gaps:
+  - **Four WCAG AA colour-contrast failures**, all pre-existing and
+    invisible without an automated contrast check: the roadmap's "HE"
+    untranslated-text badge (`HebrewSourceMark.tsx`) failed against the
+    lightest phase-band fill (`#E2F0D9`, 3.99:1) and, once fixed for that,
+    failed _again_ against the trigger callout's `#5B9BD5` blue (3.5:1) —
+    fixed for good by giving the badge its own solid white background
+    instead of a text colour tuned to one ambient fill, since no single
+    text colour clears 4.5:1 against every fill it might sit on. The
+    trigger callout's own white body text against that same blue was
+    2.96:1 — fixed in both places it was duplicated (`Callout.tsx` and,
+    separately, `ChannelDrawer.tsx`'s own callout list) by using
+    `contrastTextColor` instead of a hardcoded `text-white`, same as
+    everywhere else fill-dependent text colour is chosen in this
+    codebase. And `lib/color.ts`'s `contrastTextColor` itself had a
+    latent bug: its dark option, `#1A1A1A`, is strictly worse than pure
+    black, and for the coal axis group's `#7F7F7F` name fill, `#1A1A1A`
+    only reached 4.34:1 — short of 4.5:1 even though it was the _better_
+    of the two options. Switched `DARK` to `#000000`: pure black paired
+    with white is mathematically guaranteed to clear 4.5:1 against any
+    background whatsoever (the two ranges where each wins overlap, with
+    no gap), so this is a strict improvement with no possible regression.
+  - **One structural ARIA defect**: axe's `aria-required-children` rule
+    flagged the roadmap section's `role="grid"` as an invalid descendant
+    of the matrix's own outer `role="grid"` — a grid's children must be
+    `row`s (or a `rowgroup` of them), never another `grid`. The roadmap
+    lives inside the same shared scrolling data pane as the matrix
+    specifically so its horizontal scroll position stays synced
+    automatically (see the doc comment below), so splitting it into a
+    separate scroll container to un-nest the two grids would have broken
+    that. Fixed instead by treating the roadmap's rows as a continuation
+    of the _same_ accessible grid — its `aria-rowindex` continues from
+    `allRows.length`, its `aria-colindex` shifts by one to match the
+    matrix's "column 1 = the label column" convention, and its own
+    `role="grid"`/`aria-label`/`aria-rowcount`/`aria-colcount` were
+    removed rather than duplicated. Separately, axe's
+    `aria-required-parent` rule flagged every `rowheader`/`gridcell`/
+    `columnheader` in both the label pane and the CSS-Grid-positioned data
+    panes for having no `role="row"` ancestor at all (the two-pane split
+    below never had one). Fixed by wrapping each row's cells in a
+    `role="row"` element — plain in the label pane's normal document
+    flow, `style={{ display: "contents" }}` in the CSS-Grid data panes so
+    the wrapper contributes no layout of its own and each cell's
+    `gridColumn`/`gridRow` positioning is unaffected. If a third grid-like
+    section is ever added to this matrix, give it the same treatment
+    rather than its own nested `role="grid"`.
 - **`position: sticky` did not work for the label column inside the wide
   CSS Grid** (tested in both RTL and LTR — the column scrolled away with
   the rest of the content instead of pinning). `WorkbookMatrix.tsx` uses a

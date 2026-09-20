@@ -636,6 +636,22 @@ export function WorkbookMatrix({
     channelTextByChannelId,
   ]);
 
+  // Grouped for the `role="row"` wrapper ARIA's grid pattern requires
+  // between `grid` and its cells (axe's aria-required-parent/children
+  // rules) -- `dataCells` is already built one row's worth at a time
+  // (axis headers, then names, then potential, then each content row in
+  // turn), so grouping by `rowIndex` here just makes that existing order
+  // explicit rather than re-deriving it.
+  const dataCellsByRow = useMemo(() => {
+    const map = new Map<number, DataCell[]>();
+    for (const cell of dataCells) {
+      const list = map.get(cell.rowIndex);
+      if (list) list.push(cell);
+      else map.set(cell.rowIndex, [cell]);
+    }
+    return map;
+  }, [dataCells]);
+
   const gridTemplateColumns = `repeat(${colCount}, minmax(9.5rem, 1fr))`;
 
   // Same architectural issue as the roadmap section below, just latent
@@ -696,7 +712,15 @@ export function WorkbookMatrix({
     <div
       role="grid"
       aria-label={locale === "he" ? "לוח מסלולי האנרגיה" : "Energy pathways matrix"}
-      aria-rowcount={rowMetrics.length}
+      // One accessible grid, not two nested ones: the roadmap section
+      // below (rows 40-66) renders in the same fixed label pane and
+      // scrolling data pane as the matrix above (see this component's own
+      // doc comment), so its rows continue this grid's row count rather
+      // than the roadmap div carrying its own `role="grid"` -- a `grid`
+      // cannot contain another `grid` as a descendant (axe's
+      // aria-required-children rule, caught by the T14 accessibility
+      // gate: "Element has children which are not allowed: [role=grid]").
+      aria-rowcount={rowMetrics.length + roadmapLayout.rows.length}
       aria-colcount={colCount + 1}
       onKeyDown={handleKeyDown}
       className="border-border flex max-w-full items-start rounded-md border"
@@ -728,44 +752,52 @@ export function WorkbookMatrix({
             const dimension = blockRow.dimension;
             const isExpanded = expandedDimensions.has(dimension);
             return (
-              <div
-                key={rowIndex}
-                ref={(el) => registerCell(rowIndex, 0, el)}
-                role="rowheader"
-                aria-rowindex={rowIndex + 1}
-                aria-colindex={1}
-                aria-expanded={isExpanded}
-                tabIndex={isFocusable ? 0 : -1}
-                onFocus={() => setFocus({ row: rowIndex, col: 0 })}
-                onClick={() => toggleDimension(dimension)}
-                onKeyDown={(event) => {
-                  if (event.key === "Enter" || event.key === " ") {
-                    event.preventDefault();
-                    toggleDimension(dimension);
-                  }
-                }}
-                className={`${commonClassName} cursor-pointer`}
-                style={commonStyle}
-              >
-                <span aria-hidden="true">{isExpanded ? "−" : "+"}</span>
-                {text}
+              // ARIA's grid pattern requires a `row` between `grid` and
+              // its `rowheader`/`gridcell`/`columnheader` children (axe's
+              // aria-required-parent/children rules, caught by the T14
+              // accessibility gate) -- this pane has exactly one cell per
+              // row, so the wrapper adds no layout, just the required
+              // role.
+              <div key={rowIndex} role="row">
+                <div
+                  ref={(el) => registerCell(rowIndex, 0, el)}
+                  role="rowheader"
+                  aria-rowindex={rowIndex + 1}
+                  aria-colindex={1}
+                  aria-expanded={isExpanded}
+                  tabIndex={isFocusable ? 0 : -1}
+                  onFocus={() => setFocus({ row: rowIndex, col: 0 })}
+                  onClick={() => toggleDimension(dimension)}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter" || event.key === " ") {
+                      event.preventDefault();
+                      toggleDimension(dimension);
+                    }
+                  }}
+                  className={`${commonClassName} cursor-pointer`}
+                  style={commonStyle}
+                >
+                  <span aria-hidden="true">{isExpanded ? "−" : "+"}</span>
+                  {text}
+                </div>
               </div>
             );
           }
 
           return (
-            <div
-              key={rowIndex}
-              ref={(el) => registerCell(rowIndex, 0, el)}
-              role="rowheader"
-              aria-rowindex={rowIndex + 1}
-              aria-colindex={1}
-              tabIndex={isFocusable ? 0 : -1}
-              onFocus={() => setFocus({ row: rowIndex, col: 0 })}
-              className={commonClassName}
-              style={commonStyle}
-            >
-              {text}
+            <div key={rowIndex} role="row">
+              <div
+                ref={(el) => registerCell(rowIndex, 0, el)}
+                role="rowheader"
+                aria-rowindex={rowIndex + 1}
+                aria-colindex={1}
+                tabIndex={isFocusable ? 0 : -1}
+                onFocus={() => setFocus({ row: rowIndex, col: 0 })}
+                className={commonClassName}
+                style={commonStyle}
+              >
+                {text}
+              </div>
             </div>
           );
         })}
@@ -821,203 +853,225 @@ export function WorkbookMatrix({
       {/* Data pane — the 17 channel columns, scrolls horizontally on its own */}
       <div className="min-w-0 flex-1 overflow-x-auto">
         <div ref={matrixDataGridRef} style={{ display: "grid", gridTemplateColumns }}>
-          {dataCells.map((cell) => {
-            const metrics = rowMetrics[cell.rowIndex];
-            const isFocusable =
-              cell.colIndexes.includes(focus.col) && focus.row === cell.rowIndex;
-            return (
-              <div
-                key={cell.key}
-                data-matrix-row={cell.rowIndex}
-                ref={(el) => {
-                  for (const col of cell.colIndexes) registerCell(cell.rowIndex, col, el);
-                }}
-                role={cell.role}
-                aria-rowindex={cell.rowIndex + 1}
-                aria-colindex={cell.colIndexes[0]! + 1}
-                aria-colspan={cell.ariaColspan}
-                tabIndex={isFocusable ? 0 : -1}
-                aria-haspopup={cell.onActivate ? "dialog" : undefined}
-                onFocus={() => setFocus({ row: cell.rowIndex, col: cell.colIndexes[0]! })}
-                onClick={
-                  cell.onActivate
-                    ? (event) => {
-                        drawerTriggerRef.current = event.currentTarget;
-                        cell.onActivate!();
-                      }
-                    : undefined
-                }
-                onKeyDown={
-                  cell.onActivate
-                    ? (event) => {
-                        if (event.key === "Enter" || event.key === " ") {
-                          event.preventDefault();
-                          drawerTriggerRef.current = event.currentTarget;
-                          cell.onActivate!();
-                        }
-                      }
-                    : undefined
-                }
-                className={`${cell.className} border-border border-e border-b last:border-e-0 ${cell.rowIndex === allRows.length - 1 ? "border-b-0" : ""}`}
-                style={{
-                  gridColumnStart: cell.gridColumnStart,
-                  gridColumnEnd: cell.gridColumnEnd,
-                  gridRow: cell.rowIndex + 1,
-                  minBlockSize: metrics?.heightPx,
-                  background: cell.background,
-                  color: contrastTextColor(cell.background),
-                }}
-              >
-                {cell.content}
-              </div>
-            );
-          })}
+          {Array.from(dataCellsByRow.entries()).map(([rowIndex, cells]) => (
+            // `display: contents` keeps this wrapper out of the CSS Grid
+            // entirely -- its children lay out exactly as if they were
+            // direct grid children -- while still giving axe's ARIA grid
+            // pattern the `role="row"` it requires between `grid` and
+            // `gridcell`/`columnheader` (aria-required-parent/children,
+            // caught by the T14 accessibility gate).
+            <div key={rowIndex} role="row" style={{ display: "contents" }}>
+              {cells.map((cell) => {
+                const metrics = rowMetrics[cell.rowIndex];
+                const isFocusable =
+                  cell.colIndexes.includes(focus.col) && focus.row === cell.rowIndex;
+                return (
+                  <div
+                    key={cell.key}
+                    data-matrix-row={cell.rowIndex}
+                    ref={(el) => {
+                      for (const col of cell.colIndexes)
+                        registerCell(cell.rowIndex, col, el);
+                    }}
+                    role={cell.role}
+                    aria-rowindex={cell.rowIndex + 1}
+                    aria-colindex={cell.colIndexes[0]! + 1}
+                    aria-colspan={cell.ariaColspan}
+                    tabIndex={isFocusable ? 0 : -1}
+                    aria-haspopup={cell.onActivate ? "dialog" : undefined}
+                    onFocus={() =>
+                      setFocus({ row: cell.rowIndex, col: cell.colIndexes[0]! })
+                    }
+                    onClick={
+                      cell.onActivate
+                        ? (event) => {
+                            drawerTriggerRef.current = event.currentTarget;
+                            cell.onActivate!();
+                          }
+                        : undefined
+                    }
+                    onKeyDown={
+                      cell.onActivate
+                        ? (event) => {
+                            if (event.key === "Enter" || event.key === " ") {
+                              event.preventDefault();
+                              drawerTriggerRef.current = event.currentTarget;
+                              cell.onActivate!();
+                            }
+                          }
+                        : undefined
+                    }
+                    className={`${cell.className} border-border border-e border-b last:border-e-0 ${cell.rowIndex === allRows.length - 1 ? "border-b-0" : ""}`}
+                    style={{
+                      gridColumnStart: cell.gridColumnStart,
+                      gridColumnEnd: cell.gridColumnEnd,
+                      gridRow: cell.rowIndex + 1,
+                      minBlockSize: metrics?.heightPx,
+                      background: cell.background,
+                      color: contrastTextColor(cell.background),
+                    }}
+                  >
+                    {cell.content}
+                  </div>
+                );
+              })}
+            </div>
+          ))}
         </div>
 
         {/* Roadmap step cards (SPEC §5.7): same 17-column grid, same
             scrolling data pane, so it shares horizontal scroll position
             with the matrix above automatically. */}
-        <div
-          ref={roadmapDataGridRef}
-          role="grid"
-          aria-label={locale === "he" ? "מפת דרכים" : "Roadmap"}
-          aria-rowcount={roadmapLayout.rows.length}
-          aria-colcount={colCount}
-          style={{ display: "grid", gridTemplateColumns }}
-        >
-          {roadmapLayout.rows.flatMap((row, rowIndex) =>
-            channels.map((channel, colIndex) => {
-              const item = roadmapItemsByKey.get(
-                roadmapItemKey(row.phase, row.kind, row.slot, channel.channelId),
-              );
-              const background = bodyFillByPhase.get(row.phase) ?? "#FFFFFF";
-              const heightPx = roadmapRowHeights[rowIndex];
+        <div ref={roadmapDataGridRef} style={{ display: "grid", gridTemplateColumns }}>
+          {roadmapLayout.rows.map((row, rowIndex) => (
+            // Same `display: contents` + `role="row"` pattern as the
+            // matrix data pane above, for the same ARIA grid-pattern
+            // requirement.
+            <div
+              key={`roadmap-row-${rowIndex}`}
+              role="row"
+              style={{ display: "contents" }}
+            >
+              {channels.map((channel, colIndex) => {
+                const item = roadmapItemsByKey.get(
+                  roadmapItemKey(row.phase, row.kind, row.slot, channel.channelId),
+                );
+                const background = bodyFillByPhase.get(row.phase) ?? "#FFFFFF";
+                const heightPx = roadmapRowHeights[rowIndex];
 
-              let content: ReactNode = null;
-              if (item) {
-                if (row.kind === "step") {
-                  const title = resolveFreeText(locale, item.titleHe, item.titleEn);
-                  const detail = resolveFreeText(locale, item.detailHe, item.detailEn);
-                  const challenges = resolveFreeText(
-                    locale,
-                    item.challengesHe,
-                    item.challengesEn,
-                  );
-                  content = (
-                    <div className="flex h-full w-full flex-col gap-0.5 p-1">
-                      {title && (
-                        <div className="text-center text-[0.7rem] font-bold">
-                          {title.isHebrewSource ? (
-                            <HebrewSourceMark locale={locale}>
-                              {title.text}
-                            </HebrewSourceMark>
-                          ) : (
-                            title.text
-                          )}
-                        </div>
-                      )}
-                      {detail && (
-                        <div className="text-[0.65rem]">
-                          {detail.isHebrewSource ? (
-                            <HebrewSourceMark locale={locale}>
-                              {detail.text}
-                            </HebrewSourceMark>
-                          ) : (
-                            detail.text
-                          )}
-                        </div>
-                      )}
-                      {challenges && (
-                        <div className="text-[0.65rem]">
-                          <strong>אתגרים:</strong>{" "}
-                          {challenges.isHebrewSource ? (
-                            <HebrewSourceMark locale={locale}>
-                              {challenges.text}
-                            </HebrewSourceMark>
-                          ) : (
-                            challenges.text
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  );
-                } else {
-                  const title = resolveFreeText(locale, item.titleHe, item.titleEn);
-                  content = title && (
-                    <div className="h-full w-full p-1 text-center text-[0.7rem]">
-                      {title.isHebrewSource ? (
-                        <HebrewSourceMark locale={locale}>{title.text}</HebrewSourceMark>
-                      ) : (
-                        title.text
-                      )}
-                    </div>
-                  );
-                }
-              }
-
-              // T11: trigger callouts (SPEC §5.8) attach to their anchor
-              // cell's grid area and overflow toward the next phase
-              // boundary -- never float free of the grid.
-              const callouts = calloutsByCellKey.get(
-                roadmapItemKey(row.phase, row.kind, row.slot, channel.channelId),
-              );
-
-              return (
-                <div
-                  key={`roadmap-${row.phase}-${row.kind}-${row.slot}-${channel.channelId}`}
-                  data-roadmap-row={rowIndex}
-                  role="gridcell"
-                  aria-rowindex={rowIndex + 1}
-                  aria-colindex={colIndex + 1}
-                  aria-describedby={callouts?.map((c) => c.calloutId).join(" ")}
-                  tabIndex={0}
-                  className="border-border relative flex items-stretch border-e border-b last:border-e-0"
-                  style={{
-                    gridColumnStart: colIndex + 1,
-                    gridColumnEnd: colIndex + 2,
-                    gridRow: rowIndex + 1,
-                    // A floor, not a cap (same pattern as the main matrix's
-                    // rows above, `metrics?.heightPx` at `minBlockSize`):
-                    // real content can be taller than the nominal/measured
-                    // value and is left free to grow the row rather than
-                    // being clipped. The measurement effect above reads
-                    // this natural size back via `data-roadmap-row` and
-                    // republishes it to the label pane, so the two
-                    // independently-rendered panes stay pixel-synced without
-                    // ever truncating real text (see this file's earlier bug
-                    // where a fixed blockSize clipped long roadmap entries).
-                    minBlockSize: heightPx,
-                    background,
-                    color: contrastTextColor(background),
-                  }}
-                >
-                  {content}
-                  {callouts?.map((callout) => {
-                    const resolved = resolveFreeText(
+                let content: ReactNode = null;
+                if (item) {
+                  if (row.kind === "step") {
+                    const title = resolveFreeText(locale, item.titleHe, item.titleEn);
+                    const detail = resolveFreeText(locale, item.detailHe, item.detailEn);
+                    const challenges = resolveFreeText(
                       locale,
-                      callout.textHe,
-                      callout.textEn,
+                      item.challengesHe,
+                      item.challengesEn,
                     );
-                    return (
-                      <Callout
-                        key={callout.calloutId}
-                        id={callout.calloutId}
-                        text={
-                          resolved?.isHebrewSource ? (
-                            <HebrewSourceMark locale={locale}>
-                              {resolved.text}
-                            </HebrewSourceMark>
-                          ) : (
-                            (resolved?.text ?? callout.textHe)
-                          )
-                        }
-                      />
+                    content = (
+                      <div className="flex h-full w-full flex-col gap-0.5 p-1">
+                        {title && (
+                          <div className="text-center text-[0.7rem] font-bold">
+                            {title.isHebrewSource ? (
+                              <HebrewSourceMark locale={locale}>
+                                {title.text}
+                              </HebrewSourceMark>
+                            ) : (
+                              title.text
+                            )}
+                          </div>
+                        )}
+                        {detail && (
+                          <div className="text-[0.65rem]">
+                            {detail.isHebrewSource ? (
+                              <HebrewSourceMark locale={locale}>
+                                {detail.text}
+                              </HebrewSourceMark>
+                            ) : (
+                              detail.text
+                            )}
+                          </div>
+                        )}
+                        {challenges && (
+                          <div className="text-[0.65rem]">
+                            <strong>אתגרים:</strong>{" "}
+                            {challenges.isHebrewSource ? (
+                              <HebrewSourceMark locale={locale}>
+                                {challenges.text}
+                              </HebrewSourceMark>
+                            ) : (
+                              challenges.text
+                            )}
+                          </div>
+                        )}
+                      </div>
                     );
-                  })}
-                </div>
-              );
-            }),
-          )}
+                  } else {
+                    const title = resolveFreeText(locale, item.titleHe, item.titleEn);
+                    content = title && (
+                      <div className="h-full w-full p-1 text-center text-[0.7rem]">
+                        {title.isHebrewSource ? (
+                          <HebrewSourceMark locale={locale}>
+                            {title.text}
+                          </HebrewSourceMark>
+                        ) : (
+                          title.text
+                        )}
+                      </div>
+                    );
+                  }
+                }
+
+                // T11: trigger callouts (SPEC §5.8) attach to their anchor
+                // cell's grid area and overflow toward the next phase
+                // boundary -- never float free of the grid.
+                const callouts = calloutsByCellKey.get(
+                  roadmapItemKey(row.phase, row.kind, row.slot, channel.channelId),
+                );
+
+                return (
+                  <div
+                    key={`roadmap-${row.phase}-${row.kind}-${row.slot}-${channel.channelId}`}
+                    data-roadmap-row={rowIndex}
+                    role="gridcell"
+                    // Continues the outer grid's row/column numbering
+                    // (matrix rows 1..allRows.length, column 1 = the
+                    // label column) rather than restarting at 1: this is
+                    // one accessible grid, not two (see the outer
+                    // `aria-rowcount`'s comment).
+                    aria-rowindex={allRows.length + rowIndex + 1}
+                    aria-colindex={colIndex + 2}
+                    aria-describedby={callouts?.map((c) => c.calloutId).join(" ")}
+                    tabIndex={0}
+                    className="border-border relative flex items-stretch border-e border-b last:border-e-0"
+                    style={{
+                      gridColumnStart: colIndex + 1,
+                      gridColumnEnd: colIndex + 2,
+                      gridRow: rowIndex + 1,
+                      // A floor, not a cap (same pattern as the main matrix's
+                      // rows above, `metrics?.heightPx` at `minBlockSize`):
+                      // real content can be taller than the nominal/measured
+                      // value and is left free to grow the row rather than
+                      // being clipped. The measurement effect above reads
+                      // this natural size back via `data-roadmap-row` and
+                      // republishes it to the label pane, so the two
+                      // independently-rendered panes stay pixel-synced without
+                      // ever truncating real text (see this file's earlier bug
+                      // where a fixed blockSize clipped long roadmap entries).
+                      minBlockSize: heightPx,
+                      background,
+                      color: contrastTextColor(background),
+                    }}
+                  >
+                    {content}
+                    {callouts?.map((callout) => {
+                      const resolved = resolveFreeText(
+                        locale,
+                        callout.textHe,
+                        callout.textEn,
+                      );
+                      return (
+                        <Callout
+                          key={callout.calloutId}
+                          id={callout.calloutId}
+                          text={
+                            resolved?.isHebrewSource ? (
+                              <HebrewSourceMark locale={locale}>
+                                {resolved.text}
+                              </HebrewSourceMark>
+                            ) : (
+                              (resolved?.text ?? callout.textHe)
+                            )
+                          }
+                        />
+                      );
+                    })}
+                  </div>
+                );
+              })}
+            </div>
+          ))}
         </div>
       </div>
       <ChannelDrawer

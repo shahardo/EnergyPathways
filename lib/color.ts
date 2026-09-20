@@ -29,7 +29,15 @@ function contrastRatio(luminanceA: number, luminanceB: number): number {
 }
 
 const WHITE = "#FFFFFF";
-const DARK = "#1A1A1A";
+// Pure black, not a softer near-black: against a mid-tone fill (e.g. the
+// coal axis group's #7F7F7F name colour), #1A1A1A only reached 4.34:1 --
+// short of WCAG AA's 4.5:1 -- because it's the *better* of the two
+// options here, not a *passing* one. Black is strictly higher-contrast
+// than #1A1A1A against every background, so this can only turn a
+// borderline failure into a pass; it never weakens an already-passing
+// choice. Found by the axe accessibility gate (DEV-PLAN T14), not by
+// inspection.
+const DARK = "#000000";
 
 /** Picks white or near-black text, whichever contrasts better against `backgroundHex`. */
 export function contrastTextColor(backgroundHex: string): string {
