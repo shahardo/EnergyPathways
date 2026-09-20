@@ -37,6 +37,7 @@ export function getWorkbookPayload(): WorkbookPayload {
     axisGroups: db.select().from(schema.axisGroups).all(),
     rowLabels: db.select().from(schema.rowLabels).all(),
     colorScaleRules: db.select().from(schema.colorScaleRules).all(),
+    trilemmaColorScale: db.select().from(schema.trilemmaColorScale).all()[0] ?? null,
     sparklineSpecs: db.select().from(schema.sparklineSpecs).all(),
     phaseBands: db.select().from(schema.phaseBands).all(),
   };

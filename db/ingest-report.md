@@ -3,7 +3,7 @@
 - **Dataset version:** `a42326b533e46f9f`
 - **Source file:** `Israel 2050 Pathways 06092026.xlsx`
 - **SHA-256:** `a42326b533e46f9f7ef7505d1b817d60b2320b44c70de84fd747f15daee6beda`
-- **Ingested at:** 2026-09-17T20:32:20.541Z
+- **Ingested at:** 2026-09-20T08:13:52.473Z
 - **Rows × columns read:** 78 × 17
 
 ## Anomalies and warnings
@@ -18,7 +18,7 @@
 - chart50.xml plots column C's data but is rendered in column D's sparkline slot.
 - chart51.xml plots column C's data but is rendered in column D's sparkline slot.
 - Duplicate callout at Q49 — de-duplicated, one kept (OQ-18).
-- Row 37 (טרילמה) carries a colour-scale rule but is entirely blank — not displayed in Phase 1 (OQ-16).
+- Row 37 (טרילמה) is entirely blank in the source workbook, but carries a colour-scale rule; the UI computes and displays it as the mean of the three dimension averages (OQ-16), using this rule's own colours.
 
 ## Recovered parameters (SPEC §3.5)
 

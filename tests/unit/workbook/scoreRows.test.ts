@@ -2,12 +2,15 @@ import { describe, expect, it } from "vitest";
 import {
   buildDimensionColorScales,
   buildScoreBlockRows,
+  computeTrilemmaScores,
 } from "@/components/workbook/scoreRows";
 import type {
+  Channel,
   ColorScaleRule,
   DimensionAverage,
   RowLabel,
   SubScore,
+  TrilemmaColorScale,
 } from "@/lib/schemas/workbook";
 
 const ROW_LABELS: RowLabel[] = [
@@ -301,5 +304,108 @@ describe("buildDimensionColorScales", () => {
     expect(() => scales.colorForCell("security", "C", "C9")).toThrow(
       /missing colour-scale rule/,
     );
+  });
+});
+
+function channel(channelId: string, columnLetter: string): Channel {
+  return {
+    channelId: channelId as Channel["channelId"],
+    columnLetter,
+    columnOrder: 1,
+    axisGroupId: "efficiency",
+    nameHe: "x",
+    nameEn: "x",
+    potentialMw: null,
+    potentialRaw: null,
+    energyRole: "enabler",
+    cf: null,
+    ciGPerKwh: null,
+    paramsRecovered: false,
+  };
+}
+
+const TRILEMMA_RULE: TrilemmaColorScale = {
+  ranges: ["C37:S37"],
+  low: "#F8696B",
+  mid: "#FFEB84",
+  high: "#63BE7B",
+  midPercentile: 50,
+};
+
+describe("computeTrilemmaScores", () => {
+  it("averages all three dimensions when every one is present (OQ-16's documented default)", () => {
+    const channels = [channel("efficiency", "C")];
+    const averages: DimensionAverage[] = [
+      { channelId: "efficiency", dimension: "security", value: 3, cellRef: "C9" },
+      { channelId: "efficiency", dimension: "environment", value: 5, cellRef: "C20" },
+      { channelId: "efficiency", dimension: "equity", value: 4, cellRef: "C31" },
+    ];
+    const scores = computeTrilemmaScores(channels, averages, null);
+    expect(scores.valueByChannelId.get("efficiency")).toBe(4); // (3+5+4)/3
+  });
+
+  it("skips a blank dimension rather than treating it as zero (SPEC §3.1 blank semantics)", () => {
+    const channels = [channel("regional_interconnection", "F")];
+    const averages: DimensionAverage[] = [
+      {
+        channelId: "regional_interconnection",
+        dimension: "security",
+        value: 3,
+        cellRef: "F9",
+      },
+      {
+        channelId: "regional_interconnection",
+        dimension: "environment",
+        value: 3.8,
+        cellRef: "F20",
+      },
+      // equity is blank for this channel (SPEC's F/M equity anomaly)
+      {
+        channelId: "regional_interconnection",
+        dimension: "equity",
+        value: null,
+        cellRef: "F31",
+      },
+    ];
+    const scores = computeTrilemmaScores(channels, averages, null);
+    expect(scores.valueByChannelId.get("regional_interconnection")).toBeCloseTo(3.4, 5);
+  });
+
+  it("is null when all three dimensions are blank, never zero", () => {
+    const channels = [channel("efficiency", "C")];
+    const scores = computeTrilemmaScores(channels, [], null);
+    expect(scores.valueByChannelId.get("efficiency")).toBeNull();
+  });
+
+  it("colours the composite range-relative across channels, using the workbook's own rule", () => {
+    const channels = [
+      channel("efficiency", "C"),
+      channel("demand_reduction", "D"),
+      channel("renewables_storage", "E"),
+    ];
+    const averages: DimensionAverage[] = (
+      [
+        ["efficiency", 1],
+        ["demand_reduction", 3],
+        ["renewables_storage", 5],
+      ] as const
+    ).flatMap(([channelId, value]) => [
+      { channelId, dimension: "security", value, cellRef: `${channelId}-sec` },
+      { channelId, dimension: "environment", value, cellRef: `${channelId}-env` },
+      { channelId, dimension: "equity", value, cellRef: `${channelId}-eq` },
+    ]);
+    const scores = computeTrilemmaScores(channels, averages, TRILEMMA_RULE);
+    expect(scores.colorForChannel("efficiency")).toBe("#F8696B");
+    expect(scores.colorForChannel("renewables_storage")).toBe("#63BE7B");
+  });
+
+  it("returns a null colour (but a real value) when the workbook carries no trilemma rule", () => {
+    const channels = [channel("efficiency", "C")];
+    const averages: DimensionAverage[] = [
+      { channelId: "efficiency", dimension: "security", value: 4, cellRef: "C9" },
+    ];
+    const scores = computeTrilemmaScores(channels, averages, null);
+    expect(scores.valueByChannelId.get("efficiency")).toBe(4);
+    expect(scores.colorForChannel("efficiency")).toBeNull();
   });
 });

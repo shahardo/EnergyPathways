@@ -22,9 +22,11 @@ const BARRIER_FILL = "#BFBFBF";
 
 // Default-collapsed `data-matrix-row` indices (rows 1-3 are 0-2; content
 // rows start at 3). Deterministic because `buildScoreBlockRows` with an
-// empty `expandedDimensions` set emits exactly one row per dimension, and
-// T9's sparkline row is always inserted directly after its score row
-// (WorkbookMatrix.tsx's `contentRows` builder).
+// empty `expandedDimensions` set emits exactly one row per dimension, T9's
+// sparkline row is always inserted directly after its score row, and the
+// trilemma composite (OQ-16) always follows equity's sparkline
+// (WorkbookMatrix.tsx's `contentRows` builder), with all three sections
+// shown (the default, none toggled off).
 const ROW = {
   axis: 0,
   name: 1,
@@ -35,8 +37,9 @@ const ROW = {
   environmentSparkline: 6,
   equityScore: 7,
   equitySparkline: 8,
-  likelihood: 9,
-  barriers: 10,
+  trilemma: 9,
+  likelihood: 10,
+  barriers: 11,
 } as const;
 
 function hexToRgb(hex: string): string {

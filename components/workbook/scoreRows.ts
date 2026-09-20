@@ -1,13 +1,17 @@
 import type {
+  Channel,
+  ChannelId,
   Dimension,
   DimensionAverage,
   ColorScaleRule,
   RowLabel,
   SubScore,
   SubScoreKey,
+  TrilemmaColorScale,
 } from "@/lib/schemas/workbook";
 import { subScoreKeySchema } from "@/lib/schemas/workbook";
 import { buildColorScale } from "@/lib/engine/workbook/colorScale";
+import { dimensionAverage } from "@/lib/engine/workbook/dimensionAverage";
 
 export const DIMENSIONS = [
   "security",
@@ -108,6 +112,63 @@ export function buildDimensionColorScales(
         );
       }
       return colorFn(cellRef);
+    },
+  };
+}
+
+export interface TrilemmaScores {
+  /** `null` when all three dimension averages are blank for that channel (SPEC §3.1's blank semantics). */
+  valueByChannelId: ReadonlyMap<ChannelId, number | null>;
+  /** `null` for a blank value, or when the workbook carries no colour-scale rule for row 37. */
+  colorForChannel(channelId: ChannelId): string | null;
+}
+
+/**
+ * Row 37's Trilemma composite (טרילמה, OQ-16): "the mean of the three
+ * dimension averages" — the documented default for a row the current
+ * workbook leaves blank. Reuses `dimensionAverage`'s exact blank
+ * semantics (mean of whichever of the three are present; `null` if all
+ * three are) rather than a bespoke average, and colours itself the same
+ * way every dimension's own score row does — `buildColorScale` over the
+ * row's real cell references (`${columnLetter}37`), range-relative
+ * across all 17 channels, using the colour-scale rule the workbook
+ * itself carries for that row (captured at ingestion, never invented).
+ */
+export function computeTrilemmaScores(
+  channels: readonly Channel[],
+  dimensionAverages: readonly DimensionAverage[],
+  rule: TrilemmaColorScale | null,
+): TrilemmaScores {
+  const averageByChannelDim = new Map<string, number | null>();
+  for (const d of dimensionAverages) {
+    averageByChannelDim.set(`${d.channelId}|${d.dimension}`, d.value);
+  }
+
+  const valueByChannelId = new Map<ChannelId, number | null>();
+  const cellRefByChannelId = new Map<ChannelId, string>();
+  const valueByCellRef = new Map<string, number>();
+  for (const channel of channels) {
+    const value = dimensionAverage(
+      DIMENSIONS.map((d) => averageByChannelDim.get(`${channel.channelId}|${d}`) ?? null),
+    );
+    valueByChannelId.set(channel.channelId, value);
+    const cellRef = `${channel.columnLetter}37`; // SPEC §2.2 row 37
+    cellRefByChannelId.set(channel.channelId, cellRef);
+    if (value !== null) valueByCellRef.set(cellRef, value);
+  }
+
+  if (!rule) {
+    return { valueByChannelId, colorForChannel: () => null };
+  }
+  const colorForCellRef = buildColorScale(
+    rule,
+    (cellRef) => valueByCellRef.get(cellRef) ?? null,
+  );
+  return {
+    valueByChannelId,
+    colorForChannel: (channelId) => {
+      const cellRef = cellRefByChannelId.get(channelId);
+      return cellRef ? colorForCellRef(cellRef) : null;
     },
   };
 }

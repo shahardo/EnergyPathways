@@ -25,6 +25,8 @@ import { computeAxisGroupSpans, computeRowMetrics } from "./gridLayout";
 import {
   buildDimensionColorScales,
   buildScoreBlockRows,
+  computeTrilemmaScores,
+  DIMENSIONS,
   type ScoreBlockRow,
 } from "./scoreRows";
 import {
@@ -93,6 +95,7 @@ const METRIC_UNIT: Record<TrajectoryMetric, string> = {
 type ContentRow =
   | ScoreBlockRow
   | { kind: "sparkline"; dimension: Dimension; rowLabel: RowLabel }
+  | { kind: "trilemma"; rowLabel: RowLabel }
   | { kind: "likelihood"; rowLabel: RowLabel }
   | { kind: "barriers"; rowLabel: RowLabel };
 
@@ -101,6 +104,10 @@ interface WorkbookMatrixProps {
   locale: Locale;
   /** F-106 column filtering (T13): `undefined` shows every channel. Colours are always computed over the unfiltered payload (SPEC §5.9), never recomputed from this subset. */
   visibleChannelIds?: ReadonlySet<ChannelId>;
+  /** Section visibility selectors, additive over the default (all `true` when omitted). */
+  showScores?: boolean;
+  showCharts?: boolean;
+  showRoadmap?: boolean;
 }
 
 interface DataCell {
@@ -138,6 +145,9 @@ export function WorkbookMatrix({
   payload,
   locale,
   visibleChannelIds,
+  showScores = true,
+  showCharts = true,
+  showRoadmap = true,
 }: WorkbookMatrixProps) {
   const channels = useMemo(
     () =>
@@ -183,8 +193,9 @@ export function WorkbookMatrix({
     () => new Map(payload.sparklineSpecs.map((s) => [s.dimension, s])),
     [payload.sparklineSpecs],
   );
-  // T10: likelihood (row 38) and barriers (row 39) follow the equity block —
-  // row 37 (trilemma) is hidden in the source workbook and never rendered.
+  // T10: likelihood (row 38) and barriers (row 39) follow the equity block,
+  // always -- unlike scores/charts/roadmap, they have no visibility
+  // selector of their own.
   const likelihoodRowLabel = useMemo(
     () => payload.rowLabels.find((r) => r.key === "likelihood"),
     [payload.rowLabels],
@@ -193,26 +204,54 @@ export function WorkbookMatrix({
     () => payload.rowLabels.find((r) => r.key === "barriers"),
     [payload.rowLabels],
   );
+  // Row 37 (טרילmma, OQ-16): blank in the source workbook, computed here as
+  // the mean of the three dimension averages -- see `computeTrilemmaScores`.
+  // Rendered as part of the scores group, directly after equity (the
+  // workbook's own row order), so hiding "scores" hides it too.
+  const trilemmaRowLabel = useMemo(
+    () => payload.rowLabels.find((r) => r.key === "trilemma"),
+    [payload.rowLabels],
+  );
   const contentRows = useMemo<ContentRow[]>(() => {
     const rows: ContentRow[] = [];
-    for (const row of scoreBlockRows) {
-      rows.push(row);
-      if (row.kind === "score") {
-        const sparkRowLabel = sparklineRowByDimension.get(row.dimension);
-        if (sparkRowLabel) {
-          rows.push({
-            kind: "sparkline",
-            dimension: row.dimension,
-            rowLabel: sparkRowLabel,
-          });
+    if (showScores) {
+      for (const row of scoreBlockRows) {
+        rows.push(row);
+        if (row.kind === "score" && showCharts) {
+          const sparkRowLabel = sparklineRowByDimension.get(row.dimension);
+          if (sparkRowLabel) {
+            rows.push({
+              kind: "sparkline",
+              dimension: row.dimension,
+              rowLabel: sparkRowLabel,
+            });
+          }
         }
+      }
+      if (trilemmaRowLabel) rows.push({ kind: "trilemma", rowLabel: trilemmaRowLabel });
+    } else if (showCharts) {
+      // Scores hidden but charts kept: a sparkline row per dimension still
+      // needs deriving directly, since the loop above (the only other
+      // place that pushes one) never runs.
+      for (const dimension of DIMENSIONS) {
+        const sparkRowLabel = sparklineRowByDimension.get(dimension);
+        if (sparkRowLabel)
+          rows.push({ kind: "sparkline", dimension, rowLabel: sparkRowLabel });
       }
     }
     if (likelihoodRowLabel)
       rows.push({ kind: "likelihood", rowLabel: likelihoodRowLabel });
     if (barriersRowLabel) rows.push({ kind: "barriers", rowLabel: barriersRowLabel });
     return rows;
-  }, [scoreBlockRows, sparklineRowByDimension, likelihoodRowLabel, barriersRowLabel]);
+  }, [
+    showScores,
+    showCharts,
+    scoreBlockRows,
+    sparklineRowByDimension,
+    trilemmaRowLabel,
+    likelihoodRowLabel,
+    barriersRowLabel,
+  ]);
   const channelTextByChannelId = useMemo(
     () => new Map(payload.channelText.map((t) => [t.channelId, t])),
     [payload.channelText],
@@ -225,6 +264,15 @@ export function WorkbookMatrix({
         payload.dimensionAverages,
       ),
     [payload.colorScaleRules, payload.subScores, payload.dimensionAverages],
+  );
+  const trilemmaScale = useMemo(
+    () =>
+      computeTrilemmaScores(
+        channels,
+        payload.dimensionAverages,
+        payload.trilemmaColorScale,
+      ),
+    [channels, payload.dimensionAverages, payload.trilemmaColorScale],
   );
   const subScoreByChannelDimKey = useMemo(() => {
     const map = new Map<string, WorkbookPayload["subScores"][number]>();
@@ -562,6 +610,27 @@ export function WorkbookMatrix({
           });
         }
 
+        if (row.kind === "trilemma") {
+          return channels.map((channel, index) => {
+            const value = trilemmaScale.valueByChannelId.get(channel.channelId) ?? null;
+            const background =
+              value !== null
+                ? (trilemmaScale.colorForChannel(channel.channelId) ?? LABEL_FILL)
+                : LABEL_FILL;
+            return {
+              key: `trilemma-${channel.channelId}`,
+              rowIndex: 3 + blockIndex,
+              colIndexes: [index + 1],
+              gridColumnStart: index + 1,
+              gridColumnEnd: index + 2,
+              role: "gridcell",
+              background,
+              content: value !== null && <span dir="ltr">{format.score(value)}</span>,
+              className: "flex items-center justify-center p-2 text-sm font-bold",
+            };
+          });
+        }
+
         if (row.kind === "barriers") {
           return channels.map((channel, index) => {
             const text = channelTextByChannelId.get(channel.channelId);
@@ -632,6 +701,7 @@ export function WorkbookMatrix({
     averageByChannelDim,
     subScoreByChannelDimKey,
     colorScales,
+    trilemmaScale,
     format,
     channelTextByChannelId,
   ]);
@@ -720,7 +790,7 @@ export function WorkbookMatrix({
       // cannot contain another `grid` as a descendant (axe's
       // aria-required-children rule, caught by the T14 accessibility
       // gate: "Element has children which are not allowed: [role=grid]").
-      aria-rowcount={rowMetrics.length + roadmapLayout.rows.length}
+      aria-rowcount={rowMetrics.length + (showRoadmap ? roadmapLayout.rows.length : 0)}
       aria-colcount={colCount + 1}
       onKeyDown={handleKeyDown}
       className="border-border flex max-w-full items-start rounded-md border"
@@ -807,47 +877,52 @@ export function WorkbookMatrix({
             blocks, in the same fixed pane as the row labels above, so they
             never scroll horizontally either. Rotated with `writing-mode`
             so the same markup reads correctly in both locales -- it
-            doesn't depend on page `dir`. */}
-        <div className="border-border flex border-b">
-          <div className="flex shrink-0 flex-col" style={{ width: "4rem" }}>
-            {roadmapLayout.phaseSpans.map((span) => (
-              <div
-                key={span.phase}
-                className="border-border flex items-center justify-center overflow-hidden border-e border-b p-1 text-[0.7rem] font-bold last:border-b-0"
-                style={{
-                  blockSize: sumRoadmapHeights(span.startIndex, span.rowCount),
-                  minBlockSize: 0, // overrides flex/grid items' default min-size:auto, which would otherwise let content grow past blockSize
-                  background: span.labelFill,
-                  color: contrastTextColor(span.labelFill),
-                }}
-              >
-                <span dir="ltr" style={{ writingMode: "vertical-rl" }}>
-                  {span.phase.replace("-", "–")}
-                </span>
-              </div>
-            ))}
-          </div>
-          <div className="flex shrink-0 flex-col" style={{ width: "4rem" }}>
-            {subGroupColumnBlocks.map((span) => (
-              <div
-                key={`${span.phase}-${span.key}`}
-                className="border-border flex items-center justify-center overflow-hidden border-b p-1 text-[0.7rem] font-bold last:border-b-0"
-                style={{
-                  blockSize: sumRoadmapHeights(span.startIndex, span.rowCount),
-                  minBlockSize: 0,
-                  background: bodyFillByPhase.get(span.phase) ?? "#FFFFFF",
-                  color: contrastTextColor(bodyFillByPhase.get(span.phase) ?? "#FFFFFF"),
-                }}
-              >
-                {span.labelHe && (
-                  <span style={{ writingMode: "vertical-rl" }}>
-                    {locale === "he" ? span.labelHe : span.labelEn}
+            doesn't depend on page `dir`. Hidden together with the roadmap
+            data pane below when the "roadmap" section selector is off. */}
+        {showRoadmap && (
+          <div className="border-border flex border-b">
+            <div className="flex shrink-0 flex-col" style={{ width: "4rem" }}>
+              {roadmapLayout.phaseSpans.map((span) => (
+                <div
+                  key={span.phase}
+                  className="border-border flex items-center justify-center overflow-hidden border-e border-b p-1 text-[0.7rem] font-bold last:border-b-0"
+                  style={{
+                    blockSize: sumRoadmapHeights(span.startIndex, span.rowCount),
+                    minBlockSize: 0, // overrides flex/grid items' default min-size:auto, which would otherwise let content grow past blockSize
+                    background: span.labelFill,
+                    color: contrastTextColor(span.labelFill),
+                  }}
+                >
+                  <span dir="ltr" style={{ writingMode: "vertical-rl" }}>
+                    {span.phase.replace("-", "–")}
                   </span>
-                )}
-              </div>
-            ))}
+                </div>
+              ))}
+            </div>
+            <div className="flex shrink-0 flex-col" style={{ width: "4rem" }}>
+              {subGroupColumnBlocks.map((span) => (
+                <div
+                  key={`${span.phase}-${span.key}`}
+                  className="border-border flex items-center justify-center overflow-hidden border-b p-1 text-[0.7rem] font-bold last:border-b-0"
+                  style={{
+                    blockSize: sumRoadmapHeights(span.startIndex, span.rowCount),
+                    minBlockSize: 0,
+                    background: bodyFillByPhase.get(span.phase) ?? "#FFFFFF",
+                    color: contrastTextColor(
+                      bodyFillByPhase.get(span.phase) ?? "#FFFFFF",
+                    ),
+                  }}
+                >
+                  {span.labelHe && (
+                    <span style={{ writingMode: "vertical-rl" }}>
+                      {locale === "he" ? span.labelHe : span.labelEn}
+                    </span>
+                  )}
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       {/* Data pane — the 17 channel columns, scrolls horizontally on its own */}
@@ -921,158 +996,166 @@ export function WorkbookMatrix({
 
         {/* Roadmap step cards (SPEC §5.7): same 17-column grid, same
             scrolling data pane, so it shares horizontal scroll position
-            with the matrix above automatically. */}
-        <div ref={roadmapDataGridRef} style={{ display: "grid", gridTemplateColumns }}>
-          {roadmapLayout.rows.map((row, rowIndex) => (
-            // Same `display: contents` + `role="row"` pattern as the
-            // matrix data pane above, for the same ARIA grid-pattern
-            // requirement.
-            <div
-              key={`roadmap-row-${rowIndex}`}
-              role="row"
-              style={{ display: "contents" }}
-            >
-              {channels.map((channel, colIndex) => {
-                const item = roadmapItemsByKey.get(
-                  roadmapItemKey(row.phase, row.kind, row.slot, channel.channelId),
-                );
-                const background = bodyFillByPhase.get(row.phase) ?? "#FFFFFF";
-                const heightPx = roadmapRowHeights[rowIndex];
+            with the matrix above automatically. Hidden together with the
+            label pane's phase/sub-group columns above when the "roadmap"
+            section selector is off. */}
+        {showRoadmap && (
+          <div ref={roadmapDataGridRef} style={{ display: "grid", gridTemplateColumns }}>
+            {roadmapLayout.rows.map((row, rowIndex) => (
+              // Same `display: contents` + `role="row"` pattern as the
+              // matrix data pane above, for the same ARIA grid-pattern
+              // requirement.
+              <div
+                key={`roadmap-row-${rowIndex}`}
+                role="row"
+                style={{ display: "contents" }}
+              >
+                {channels.map((channel, colIndex) => {
+                  const item = roadmapItemsByKey.get(
+                    roadmapItemKey(row.phase, row.kind, row.slot, channel.channelId),
+                  );
+                  const background = bodyFillByPhase.get(row.phase) ?? "#FFFFFF";
+                  const heightPx = roadmapRowHeights[rowIndex];
 
-                let content: ReactNode = null;
-                if (item) {
-                  if (row.kind === "step") {
-                    const title = resolveFreeText(locale, item.titleHe, item.titleEn);
-                    const detail = resolveFreeText(locale, item.detailHe, item.detailEn);
-                    const challenges = resolveFreeText(
-                      locale,
-                      item.challengesHe,
-                      item.challengesEn,
-                    );
-                    content = (
-                      <div className="flex h-full w-full flex-col gap-0.5 p-1">
-                        {title && (
-                          <div className="text-center text-[0.7rem] font-bold">
-                            {title.isHebrewSource ? (
-                              <HebrewSourceMark locale={locale}>
-                                {title.text}
-                              </HebrewSourceMark>
-                            ) : (
-                              title.text
-                            )}
-                          </div>
-                        )}
-                        {detail && (
-                          <div className="text-[0.65rem]">
-                            {detail.isHebrewSource ? (
-                              <HebrewSourceMark locale={locale}>
-                                {detail.text}
-                              </HebrewSourceMark>
-                            ) : (
-                              detail.text
-                            )}
-                          </div>
-                        )}
-                        {challenges && (
-                          <div className="text-[0.65rem]">
-                            <strong>אתגרים:</strong>{" "}
-                            {challenges.isHebrewSource ? (
-                              <HebrewSourceMark locale={locale}>
-                                {challenges.text}
-                              </HebrewSourceMark>
-                            ) : (
-                              challenges.text
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    );
-                  } else {
-                    const title = resolveFreeText(locale, item.titleHe, item.titleEn);
-                    content = title && (
-                      <div className="h-full w-full p-1 text-center text-[0.7rem]">
-                        {title.isHebrewSource ? (
-                          <HebrewSourceMark locale={locale}>
-                            {title.text}
-                          </HebrewSourceMark>
-                        ) : (
-                          title.text
-                        )}
-                      </div>
-                    );
-                  }
-                }
-
-                // T11: trigger callouts (SPEC §5.8) attach to their anchor
-                // cell's grid area and overflow toward the next phase
-                // boundary -- never float free of the grid.
-                const callouts = calloutsByCellKey.get(
-                  roadmapItemKey(row.phase, row.kind, row.slot, channel.channelId),
-                );
-
-                return (
-                  <div
-                    key={`roadmap-${row.phase}-${row.kind}-${row.slot}-${channel.channelId}`}
-                    data-roadmap-row={rowIndex}
-                    role="gridcell"
-                    // Continues the outer grid's row/column numbering
-                    // (matrix rows 1..allRows.length, column 1 = the
-                    // label column) rather than restarting at 1: this is
-                    // one accessible grid, not two (see the outer
-                    // `aria-rowcount`'s comment).
-                    aria-rowindex={allRows.length + rowIndex + 1}
-                    aria-colindex={colIndex + 2}
-                    aria-describedby={callouts?.map((c) => c.calloutId).join(" ")}
-                    tabIndex={0}
-                    className="border-border relative flex items-stretch border-e border-b last:border-e-0"
-                    style={{
-                      gridColumnStart: colIndex + 1,
-                      gridColumnEnd: colIndex + 2,
-                      gridRow: rowIndex + 1,
-                      // A floor, not a cap (same pattern as the main matrix's
-                      // rows above, `metrics?.heightPx` at `minBlockSize`):
-                      // real content can be taller than the nominal/measured
-                      // value and is left free to grow the row rather than
-                      // being clipped. The measurement effect above reads
-                      // this natural size back via `data-roadmap-row` and
-                      // republishes it to the label pane, so the two
-                      // independently-rendered panes stay pixel-synced without
-                      // ever truncating real text (see this file's earlier bug
-                      // where a fixed blockSize clipped long roadmap entries).
-                      minBlockSize: heightPx,
-                      background,
-                      color: contrastTextColor(background),
-                    }}
-                  >
-                    {content}
-                    {callouts?.map((callout) => {
-                      const resolved = resolveFreeText(
+                  let content: ReactNode = null;
+                  if (item) {
+                    if (row.kind === "step") {
+                      const title = resolveFreeText(locale, item.titleHe, item.titleEn);
+                      const detail = resolveFreeText(
                         locale,
-                        callout.textHe,
-                        callout.textEn,
+                        item.detailHe,
+                        item.detailEn,
                       );
-                      return (
-                        <Callout
-                          key={callout.calloutId}
-                          id={callout.calloutId}
-                          text={
-                            resolved?.isHebrewSource ? (
-                              <HebrewSourceMark locale={locale}>
-                                {resolved.text}
-                              </HebrewSourceMark>
-                            ) : (
-                              (resolved?.text ?? callout.textHe)
-                            )
-                          }
-                        />
+                      const challenges = resolveFreeText(
+                        locale,
+                        item.challengesHe,
+                        item.challengesEn,
                       );
-                    })}
-                  </div>
-                );
-              })}
-            </div>
-          ))}
-        </div>
+                      content = (
+                        <div className="flex h-full w-full flex-col gap-0.5 p-1">
+                          {title && (
+                            <div className="text-center text-[0.7rem] font-bold">
+                              {title.isHebrewSource ? (
+                                <HebrewSourceMark locale={locale}>
+                                  {title.text}
+                                </HebrewSourceMark>
+                              ) : (
+                                title.text
+                              )}
+                            </div>
+                          )}
+                          {detail && (
+                            <div className="text-[0.65rem]">
+                              {detail.isHebrewSource ? (
+                                <HebrewSourceMark locale={locale}>
+                                  {detail.text}
+                                </HebrewSourceMark>
+                              ) : (
+                                detail.text
+                              )}
+                            </div>
+                          )}
+                          {challenges && (
+                            <div className="text-[0.65rem]">
+                              <strong>אתגרים:</strong>{" "}
+                              {challenges.isHebrewSource ? (
+                                <HebrewSourceMark locale={locale}>
+                                  {challenges.text}
+                                </HebrewSourceMark>
+                              ) : (
+                                challenges.text
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    } else {
+                      const title = resolveFreeText(locale, item.titleHe, item.titleEn);
+                      content = title && (
+                        <div className="h-full w-full p-1 text-center text-[0.7rem]">
+                          {title.isHebrewSource ? (
+                            <HebrewSourceMark locale={locale}>
+                              {title.text}
+                            </HebrewSourceMark>
+                          ) : (
+                            title.text
+                          )}
+                        </div>
+                      );
+                    }
+                  }
+
+                  // T11: trigger callouts (SPEC §5.8) attach to their anchor
+                  // cell's grid area and overflow toward the next phase
+                  // boundary -- never float free of the grid.
+                  const callouts = calloutsByCellKey.get(
+                    roadmapItemKey(row.phase, row.kind, row.slot, channel.channelId),
+                  );
+
+                  return (
+                    <div
+                      key={`roadmap-${row.phase}-${row.kind}-${row.slot}-${channel.channelId}`}
+                      data-roadmap-row={rowIndex}
+                      role="gridcell"
+                      // Continues the outer grid's row/column numbering
+                      // (matrix rows 1..allRows.length, column 1 = the
+                      // label column) rather than restarting at 1: this is
+                      // one accessible grid, not two (see the outer
+                      // `aria-rowcount`'s comment).
+                      aria-rowindex={allRows.length + rowIndex + 1}
+                      aria-colindex={colIndex + 2}
+                      aria-describedby={callouts?.map((c) => c.calloutId).join(" ")}
+                      tabIndex={0}
+                      className="border-border relative flex items-stretch border-e border-b last:border-e-0"
+                      style={{
+                        gridColumnStart: colIndex + 1,
+                        gridColumnEnd: colIndex + 2,
+                        gridRow: rowIndex + 1,
+                        // A floor, not a cap (same pattern as the main matrix's
+                        // rows above, `metrics?.heightPx` at `minBlockSize`):
+                        // real content can be taller than the nominal/measured
+                        // value and is left free to grow the row rather than
+                        // being clipped. The measurement effect above reads
+                        // this natural size back via `data-roadmap-row` and
+                        // republishes it to the label pane, so the two
+                        // independently-rendered panes stay pixel-synced without
+                        // ever truncating real text (see this file's earlier bug
+                        // where a fixed blockSize clipped long roadmap entries).
+                        minBlockSize: heightPx,
+                        background,
+                        color: contrastTextColor(background),
+                      }}
+                    >
+                      {content}
+                      {callouts?.map((callout) => {
+                        const resolved = resolveFreeText(
+                          locale,
+                          callout.textHe,
+                          callout.textEn,
+                        );
+                        return (
+                          <Callout
+                            key={callout.calloutId}
+                            id={callout.calloutId}
+                            text={
+                              resolved?.isHebrewSource ? (
+                                <HebrewSourceMark locale={locale}>
+                                  {resolved.text}
+                                </HebrewSourceMark>
+                              ) : (
+                                (resolved?.text ?? callout.textHe)
+                              )
+                            }
+                          />
+                        );
+                      })}
+                    </div>
+                  );
+                })}
+              </div>
+            ))}
+          </div>
+        )}
       </div>
       <ChannelDrawer
         payload={payload}

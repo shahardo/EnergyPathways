@@ -3,7 +3,7 @@
     "datasetVersion": "a42326b533e46f9f",
     "filename": "Israel 2050 Pathways 06092026.xlsx",
     "sha256": "a42326b533e46f9f7ef7505d1b817d60b2320b44c70de84fd747f15daee6beda",
-    "ingestedAt": "2026-09-17T20:32:20.541Z",
+    "ingestedAt": "2026-09-20T08:13:52.473Z",
     "rowCount": 78,
     "columnCount": 17
   },
@@ -5800,6 +5800,15 @@
       "midPercentile": 50
     }
   ],
+  "trilemmaColorScale": {
+    "ranges": [
+      "C37:S37"
+    ],
+    "low": "#F8696B",
+    "mid": "#FFEB84",
+    "high": "#63BE7B",
+    "midPercentile": 50
+  },
   "sparklineSpecs": [
     {
       "dimension": "security",

@@ -19,6 +19,7 @@ export function hydrateFromSnapshot(
       schema.axisGroups,
       schema.rowLabels,
       schema.colorScaleRules,
+      schema.trilemmaColorScale,
       schema.sparklineSpecs,
       schema.phaseBands,
       schema.channels,
@@ -54,6 +55,11 @@ export function hydrateFromSnapshot(
       tx.insert(schema.rowLabels).values(snapshot.rowLabels).run();
     if (snapshot.colorScaleRules.length > 0) {
       tx.insert(schema.colorScaleRules).values(snapshot.colorScaleRules).run();
+    }
+    if (snapshot.trilemmaColorScale) {
+      tx.insert(schema.trilemmaColorScale)
+        .values({ id: 0, ...snapshot.trilemmaColorScale })
+        .run();
     }
     if (snapshot.sparklineSpecs.length > 0) {
       tx.insert(schema.sparklineSpecs).values(snapshot.sparklineSpecs).run();

@@ -46,11 +46,34 @@ recognition test (AC-6) — see `docs/DEV-PLAN.md`'s Definition of done.
 Ingestion has run against the real workbook: `db/snapshot.json` and
 `db/ingest-report.md` are committed and current. All 17 columns' CF/CI/ramp
 match SPEC §3.4 with zero trajectory-verification issues; the report lists
-every anomaly SPEC §6.3 calls for (D copying C, K/L as enablers, the blank
-row 37 Trilemma rule, the Q49 duplicate callout, the chart49–51/column-D
-mismatch, blank equity for F/M) plus one SPEC didn't anticipate: row 31's
-equity average is a literal cached value in the current file, not a live
-formula like rows 9 and 20.
+every anomaly SPEC §6.3 calls for (D copying C, K/L as enablers, row 37's
+blank Trilemma row carrying a colour-scale rule the UI now uses (below),
+the Q49 duplicate callout, the chart49–51/column-D mismatch, blank equity
+for F/M) plus one SPEC didn't anticipate: row 31's equity average is a
+literal cached value in the current file, not a live formula like rows 9
+and 20.
+
+**Post-T14 addition: Trilemma total row + section visibility selectors.**
+Row 37 (טרילמה) is blank in the source workbook but carries its own
+colour-scale rule (OQ-16); `components/workbook/scoreRows.ts`'s
+`computeTrilemmaScores` now computes it as the mean of each channel's
+three dimension averages (`dimensionAverage`'s exact blank-safe
+semantics, reused rather than a bespoke average) and colours it with that
+captured rule via `buildColorScale`, over real cell references
+(`${columnLetter}37`) the same way every other score row does — never an
+invented scale. Renders as one more row directly after equity, exactly
+where the workbook puts it. Ingestion (`scripts/ingest/colorScaleRules.ts`)
+now captures this rule instead of discarding it; `lib/schemas/workbook.ts`'s
+`trilemmaColorScaleSchema` and a matching `lib/db/schema.ts` table
+(`drizzle/0001_omniscient_cable.sql`) carry it through the payload,
+nullable if a future workbook drops the rule. Alongside it, a "Show:"
+group in `FilterToolbar.tsx` toggles the Trilemma scores, Trilemma charts
+(sparkline rows) and roadmap sections independently —
+`components/workbook/sectionVisibility.ts` is the same additive,
+URL-synced pattern as `columnFilters.ts` (`?hide=scores,roadmap`; nothing
+hidden by default), merged into one query string by
+`WorkbookExplorer.tsx`'s `applyState` so the two filter dimensions never
+clobber each other.
 
 The matrix (`/he`, `/en`) renders rows 1–3 from real ingested data: label
 column pinned to the inline-start edge (a fixed pane, not `position:
@@ -132,6 +155,14 @@ partly-filtered group's header shrinks to its remaining columns and a
 fully-filtered one simply disappears, with nothing to throw on a column
 gap.
 
+The same toolbar's "Show:" group toggles three row-groups independently:
+Trilemma scores, Trilemma charts (the sparkline rows), and the roadmap
+section — also URL-synced (`?hide=scores,charts,roadmap`, only the hidden
+ones listed) via `sectionVisibility.ts`, merged with the column filters
+into one query string so reloading restores both. Hiding scores also
+hides the Trilemma total row that follows equity (below); hiding charts
+alone leaves it in place.
+
 ## Tech stack
 
 Next.js 16 (App Router, TypeScript strict) · Tailwind CSS 4 · shadcn/ui
@@ -192,8 +223,9 @@ components/workbook/  WorkbookMatrix.tsx (F-101/F-102, T7-T13) + gridLayout.ts (
                      + Callout.tsx (F-104 trigger callout, positioned on its anchor cell's roadmap slot)
                      + HebrewSourceMark.tsx (the "HE" marker for untranslated free text)
                      + ChannelDrawer.tsx (F-105, T12: radar + trajectory charts, sub-scores, roadmap, provenance)
-                     + WorkbookExplorer.tsx (F-106, T13: owns URL-synced filter state, renders FilterToolbar + WorkbookMatrix)
+                     + WorkbookExplorer.tsx (F-106, T13: owns URL-synced filter + section-visibility state, renders FilterToolbar + WorkbookMatrix)
                      + FilterToolbar.tsx + columnFilters.ts (pure: URL <-> filter state, channel-visibility predicate)
+                     + sectionVisibility.ts (pure: URL <-> hidden-sections state for the scores/charts/roadmap selectors, OQ-16)
 components/ui/      hand-authored shadcn/ui primitives (Sheet on @radix-ui/react-dialog, Table) — the shadcn
                      CLI's registry fetch isn't reachable through this environment's egress proxy, so these
                      are written by hand in the same "new-york" style components.json already configures

@@ -230,6 +230,42 @@ WorkbookExplorer.tsx`, which owns the filter state — read from and
     `gridColumn`/`gridRow` positioning is unaffected. If a third grid-like
     section is ever added to this matrix, give it the same treatment
     rather than its own nested `role="grid"`.
+- **The Trilemma total row (OQ-16) and the scores/charts/roadmap
+  visibility selectors.** Row 37 (טרילמה) is blank in the source workbook
+  but SPEC §6.3/OQ-16 documents it as a planned composite — "if wanted,
+  the mean of the three dimension averages" — and it still carries its
+  own colour-scale rule in the file. `scripts/ingest/colorScaleRules.ts`
+  now captures that rule (`TrilemmaColorScale`: ranges/low/mid/high/
+  midPercentile, no `dimension` field, since it isn't one of the three)
+  instead of discarding it as a pure anomaly; `lib/schemas/workbook.ts`
+  and a dedicated singleton `lib/db/schema.ts` table
+  (`trilemma_color_scale`, `id` always `0`) carry it through the payload
+  as `trilemmaColorScale`, nullable if a future workbook drops the rule.
+  `components/workbook/scoreRows.ts`'s `computeTrilemmaScores` computes
+  the composite by reusing `dimensionAverage` on `[security, environment,
+equity]` per channel — exact same blank-safe semantics as every other
+  average, never a bespoke one — and colours it with `buildColorScale`
+  over real cell references (`${columnLetter}37`), the same range-relative
+  pattern `buildDimensionColorScales` already uses, so it never invents a
+  scale. `WorkbookMatrix.tsx` renders it as one more `ContentRow` directly
+  after equity's sparkline row (row 37's real position), gated by the same
+  `showScores` prop that gates the three dimension score rows themselves.
+  Alongside it, `FilterToolbar.tsx` gained a "Show:" group toggling three
+  independent selectors — Trilemma scores, Trilemma charts (the sparkline
+  rows), and the roadmap section — via `sectionVisibility.ts`, the same
+  additive URL-synced pattern as `columnFilters.ts`'s column filters
+  (`?hide=scores,charts,roadmap`; an absent/empty param means everything
+  shown, matching the workbook's own default view). Both filter
+  dimensions live in the _same_ URL, so `WorkbookExplorer.tsx`'s
+  `applyState` merges their serialized params into one `URLSearchParams`
+  rather than letting a change to one clobber the other. **Hiding scores
+  and hiding charts are independent, but the row list they both feed is
+  interleaved per dimension** (`WorkbookMatrix.tsx`'s `contentRows`
+  builder): scores hidden but charts shown still needs a sparkline row per
+  dimension, derived by iterating `DIMENSIONS` directly rather than via
+  `scoreBlockRows` (which is empty when scores are hidden) — don't
+  collapse that into a single loop keyed off `row.kind === "score"` again,
+  or hiding scores silently hides charts too.
 - **`position: sticky` did not work for the label column inside the wide
   CSS Grid** (tested in both RTL and LTR — the column scrolled away with
   the rest of the content instead of pinning). `WorkbookMatrix.tsx` uses a

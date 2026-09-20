@@ -141,6 +141,16 @@ export const colorScaleRules = sqliteTable("color_scale_rules", {
   midPercentile: real("mid_percentile").notNull(),
 });
 
+/** Singleton row (row 37's own colour-scale rule, OQ-16) -- `id` is always 0; absent entirely if the workbook carries none. */
+export const trilemmaColorScale = sqliteTable("trilemma_color_scale", {
+  id: integer("id").primaryKey(),
+  ranges: text("ranges", { mode: "json" }).notNull().$type<string[]>(),
+  low: text("low").notNull(),
+  mid: text("mid").notNull(),
+  high: text("high").notNull(),
+  midPercentile: real("mid_percentile").notNull(),
+});
+
 export const sparklineSpecs = sqliteTable("sparkline_specs", {
   dimension: text("dimension").primaryKey(),
   metric: text("metric").notNull(),

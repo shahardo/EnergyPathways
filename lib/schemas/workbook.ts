@@ -280,6 +280,23 @@ export const colorScaleRuleSchema = z.object({
 });
 export type ColorScaleRule = z.infer<typeof colorScaleRuleSchema>;
 
+/**
+ * Row 37's own colour-scale rule (טרילמה — OQ-16): captured separately from
+ * `colorScaleRuleSchema` because it isn't keyed to one of the three
+ * Trilemma dimensions, it colours a composite of all three. `null` if a
+ * future workbook revision drops the rule — the composite row then
+ * renders uncoloured rather than throwing (same "blank, not invented"
+ * posture as everywhere else a colour scale can be absent).
+ */
+export const trilemmaColorScaleSchema = z.object({
+  ranges: z.array(a1RangeSchema).min(1),
+  low: hexColorSchema,
+  mid: hexColorSchema,
+  high: hexColorSchema,
+  midPercentile: z.number().min(0).max(100),
+});
+export type TrilemmaColorScale = z.infer<typeof trilemmaColorScaleSchema>;
+
 export const sparklineSpecSchema = z.object({
   dimension: dimensionSchema,
   metric: trajectoryMetricSchema,
@@ -325,6 +342,7 @@ export const workbookPayloadSchema = z.object({
   axisGroups: z.array(axisGroupSchema),
   rowLabels: z.array(rowLabelSchema),
   colorScaleRules: z.array(colorScaleRuleSchema),
+  trilemmaColorScale: trilemmaColorScaleSchema.nullable(),
   sparklineSpecs: z.array(sparklineSpecSchema),
   phaseBands: z.array(phaseBandSchema),
 });

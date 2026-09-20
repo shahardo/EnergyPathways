@@ -15,6 +15,17 @@ describe("getWorkbookPayload", () => {
     expect(payload.channels.map((c) => c.channelId)).toEqual([...CHANNEL_IDS]);
   });
 
+  it("carries row 37's Trilemma colour-scale rule (OQ-16), captured separately from the six dimension rules", () => {
+    const payload = getWorkbookPayload();
+    expect(payload.trilemmaColorScale).toEqual({
+      ranges: ["C37:S37"],
+      low: "#F8696B",
+      mid: "#FFEB84",
+      high: "#63BE7B",
+      midPercentile: 50,
+    });
+  });
+
   it("carries the shared layout metadata tables", () => {
     const payload = getWorkbookPayload();
     expect(payload.axisGroups).toHaveLength(10);
