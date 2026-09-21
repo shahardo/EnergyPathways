@@ -2,6 +2,7 @@
   "app.title": "Israel Energy Pathways 2050",
   "app.tagline": "Simulation & decision-support platform",
   "nav.workbook": "Pathways Matrix",
+  "nav.byChannel": "By-channel view",
   "nav.languageSwitcher.label": "Language",
   "nav.languageSwitcher.he": "עברית",
   "nav.languageSwitcher.en": "English"

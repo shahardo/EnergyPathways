@@ -266,11 +266,33 @@ equity]` per channel — exact same blank-safe semantics as every other
   `scoreBlockRows` (which is empty when scores are hidden) — don't
   collapse that into a single loop keyed off `row.kind === "score"` again,
   or hiding scores silently hides charts too.
+- **A second, standalone view: the by-channel (transposed) table**
+  (`/by-channel`, `components/channel-matrix/`) — channels as rows instead
+  of columns, requested after Phase 1 shipped. Not a replacement for the
+  main matrix (both routes exist, linked from each other's header); it
+  reuses the main matrix's own domain logic (`scoreRows.ts`'s colour
+  scales, `roadmapRows.ts`'s layout, `resolveFreeText`) rather than
+  re-deriving any of it. See `components/channel-matrix/README.md` and
+  `ChannelMatrix.tsx`'s doc comment for the layout decisions (plain
+  `<table>`, per-dimension score-vs-metric-trajectory column split,
+  inline callouts instead of an overflowing overlay).
 - **`position: sticky` did not work for the label column inside the wide
   CSS Grid** (tested in both RTL and LTR — the column scrolled away with
   the rest of the content instead of pinning). `WorkbookMatrix.tsx` uses a
   fixed label pane next to an independently-scrolling data pane instead;
-  see its doc comment before reintroducing a sticky-column approach.
+  see its doc comment before reintroducing a sticky-column approach. That
+  failure was specific to the CSS Grid architecture, not to `position:
+sticky` itself: `components/channel-matrix/ChannelMatrix.tsx` (the
+  by-channel transposed view) uses a real `<table>` with `position:
+sticky` on its first column's `<th>`/`<td>` cells, inside a plain
+  `overflow-x-auto` wrapper, and it works correctly — verified with a
+  Playwright scroll test before relying on it, not assumed from this note.
+  A real `<table>` also sidesteps the whole pane-sync problem below: one
+  shared row per `<tr>` means the browser's own table layout keeps a
+  pinned first column's row heights in sync with the rest of the row for
+  free, with no measurement needed. Reach for a `<table>` over the
+  CSS-Grid two-pane pattern whenever the content is naturally row-per-item
+  (few, unbounded-height rows) rather than needing virtualization.
 - **Keeping two independently-rendered panes pixel-synced with variable-length
   content needs real measurement, not a nominal constant.** The roadmap's
   label-pane blocks (phase/sub-group columns) and its data-pane cells are two

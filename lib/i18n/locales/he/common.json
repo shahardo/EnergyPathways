@@ -2,6 +2,7 @@
   "app.title": "מסלולי אנרגיה ישראל 2050",
   "app.tagline": "פלטפורמת סימולציה ותמיכה בהחלטות",
   "nav.workbook": "לוח המסלולים",
+  "nav.byChannel": "תצוגה לפי ערוץ",
   "nav.languageSwitcher.label": "שפה",
   "nav.languageSwitcher.he": "עברית",
   "nav.languageSwitcher.en": "English"

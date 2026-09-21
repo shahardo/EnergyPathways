@@ -75,6 +75,12 @@ hidden by default), merged into one query string by
 `WorkbookExplorer.tsx`'s `applyState` so the two filter dimensions never
 clobber each other.
 
+**Also post-T14: a transposed by-channel view** (`/by-channel`,
+`components/channel-matrix/`) — channels as rows instead of columns, for
+reading "everything about one channel" as a row instead of a column scan;
+see the prose section below for what it shows and why it's a plain
+`<table>` rather than the main matrix's CSS-Grid architecture.
+
 The matrix (`/he`, `/en`) renders rows 1–3 from real ingested data: label
 column pinned to the inline-start edge (a fixed pane, not `position:
 sticky` — see `WorkbookMatrix.tsx`'s doc comment for why), 17 channels in
@@ -163,6 +169,41 @@ into one query string so reloading restores both. Hiding scores also
 hides the Trilemma total row that follows equity (below); hiding charts
 alone leaves it in place.
 
+**By-channel view (`/he/by-channel`, `/en/by-channel`) — the transposed
+table.** A second, standalone view alongside the main matrix, linked from
+each page's header: one row per generation path/channel instead of one
+column, so a reader who wants "everything about channel X" reads
+straight across a row instead of scanning 39+ rows down one column.
+Columns group by dimension (Security/Environment/Equity), each with a
+score column followed by that dimension's trajectory _metric_ across the
+four milestone years — the score itself is a single snapshot per channel
+in the workbook, not time-series data, only its associated metric
+(generation/emissions/price impact) is, so "scores by year" would be
+inventing data the workbook doesn't have (see
+`components/channel-matrix/channelMatrixColumns.ts`'s doc comment) — then
+Trilemma, Likelihood, Barriers, then one column-group per roadmap phase
+with that phase's target/step/impact slots as columns instead of rows.
+Reuses the exact same domain logic as the main matrix (`buildColorScale`
+via `scoreRows.ts`, `buildRoadmapLayout`, `resolveFreeText`) rather than
+re-deriving any of it, so a colour or a translation fallback can never
+drift between the two views — verified directly (a channel scoring a
+perfect 5 on Security renders the same `#63BE7B` T6b golden colour here
+as in the main matrix). Deliberately a plain semantic `<table>`, not the
+main matrix's CSS-Grid two-pane split: with only 17 rows, no
+virtualization is needed, and a real `<table>` gives the pinned first
+column (channel name, `position: sticky`) correct row-height agreement
+with the rest of the row for free — native table row layout, not two
+independently-rendered DOM trees — sidestepping the whole class of
+pane-sync bug the main matrix had to solve by hand (see
+`ChannelMatrix.tsx`'s doc comment on why `position: sticky` works here
+despite failing inside the main matrix's wide CSS Grid). Trigger callouts
+render as an inline note within their roadmap-slot cell rather than an
+overflowing overlay: the workbook's "overflow toward the next phase"
+reads naturally when phases are vertical bands, but here phases are
+column groups, so replicating it would need a direction-aware
+(RTL-mirrored) transform per callout for no real benefit over an inline
+note.
+
 ## Tech stack
 
 Next.js 16 (App Router, TypeScript strict) · Tailwind CSS 4 · shadcn/ui
@@ -213,7 +254,8 @@ every push.
 ## Project structure
 
 ```
-app/[locale]/       routes — /he (default) and /en, locale set at the root layout only
+app/[locale]/       routes — /he (default) and /en, locale set at the root layout only;
+                     by-channel/ is the transposed (channels-as-rows) view, a separate route
 app/api/            /api/workbook, /api/channels/[id] (SPEC §7) — thin wrappers over lib/db/queries
 components/workbook/  WorkbookMatrix.tsx (F-101/F-102, T7-T13) + gridLayout.ts (pure grid-layout helpers)
                      + scoreRows.ts (pure: score/sub-score row disclosure order, per-column colour lookup)
@@ -226,6 +268,10 @@ components/workbook/  WorkbookMatrix.tsx (F-101/F-102, T7-T13) + gridLayout.ts (
                      + WorkbookExplorer.tsx (F-106, T13: owns URL-synced filter + section-visibility state, renders FilterToolbar + WorkbookMatrix)
                      + FilterToolbar.tsx + columnFilters.ts (pure: URL <-> filter state, channel-visibility predicate)
                      + sectionVisibility.ts (pure: URL <-> hidden-sections state for the scores/charts/roadmap selectors, OQ-16)
+components/channel-matrix/  ChannelMatrix.tsx (the by-channel/transposed view: channels as rows) +
+                     channelMatrixColumns.ts (pure: the column-group structure -- dimension score + trajectory
+                     years, Trilemma/Likelihood/Barriers, roadmap phase slots -- reuses buildRoadmapLayout
+                     rather than re-deriving roadmap structure a third time)
 components/ui/      hand-authored shadcn/ui primitives (Sheet on @radix-ui/react-dialog, Table) — the shadcn
                      CLI's registry fetch isn't reachable through this environment's egress proxy, so these
                      are written by hand in the same "new-york" style components.json already configures
@@ -247,7 +293,8 @@ docs/               PRD, SPEC, DEV-PLAN, the source workbook, the reference scre
 tests/unit/         Vitest — engine/ingestion/component-logic unit tests + the T14 performance budget (engine/performance.test.ts)
 tests/e2e/          Playwright (T14) — locale-redirect, structural-fidelity.spec.ts (AC-2, against /api/workbook),
                      accessibility.spec.ts (AC-5, axe), visual-regression.spec.ts (committed screenshot baselines
-                     in visual-regression.spec.ts-snapshots/)
+                     in visual-regression.spec.ts-snapshots/), channel-matrix.spec.ts (the by-channel view's own
+                     axe/structural/visual-regression coverage)
 ```
 
 ## Repo-specific lint rules
